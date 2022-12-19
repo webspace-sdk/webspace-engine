@@ -36,6 +36,7 @@ safari bugs:
 ---
 - chat messages are piling up
 - drop non-used environment colors
+- show guides during XYZ move
 - hide other instances in voxel editor
 - Reset (G) is not going onto undo stack?
 - tippy root getting into dom
