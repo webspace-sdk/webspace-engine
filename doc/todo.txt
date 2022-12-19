@@ -24,15 +24,10 @@
 - make sure removing CORS anywhere tag disalbed youtube
 - show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
 
-
 firefox bugs:
-- ctrl-B opens bookmarks
-- screen sharing doesn't work
-- avatar was in the floor when chrome joined and firefox was in background
 - need to test git uploading etc
 
 safari bugs:
-- screen sharing busted
 - paste image not working
 - need to test uploading once other things are fixed
 - need to test git sync of DOM once other things are fixed

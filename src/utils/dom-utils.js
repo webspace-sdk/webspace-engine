@@ -796,7 +796,12 @@ const prettifyXml = sourceXml => {
   const xsltProcessor = new XSLTProcessor();
   xsltProcessor.importStylesheet(xsltDoc);
   const resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-  const resultXml = new XMLSerializer().serializeToString(resultDoc);
+  let resultXml = new XMLSerializer().serializeToString(resultDoc);
+
+  // Firefox doesn't add newlines :P
+  if (browser.name === "firefox") {
+    resultXml = resultXml.replace(/></g, ">\n<");
+  }
 
   return resultXml;
 };
