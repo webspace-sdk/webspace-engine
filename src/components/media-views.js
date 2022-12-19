@@ -814,7 +814,7 @@ AFRAME.registerComponent("media-video", {
 
       // Set src on video to begin loading.
       if (url.startsWith("webspace://clients")) {
-        const streamClientId = url.substring(7).split("/")[1]; // /clients/<client id>/video is only URL for now
+        const streamClientId = url.substring(12).split("/")[1]; // /clients/<client id>/video is only URL for now
         const stream = await NAF.connection.adapter.getMediaStream(streamClientId, "video");
         if (this._onVideoStreamChanged) {
           NAF.connection.adapter.removeEventListener("video_stream_changed", this._onVideoStreamChanged);

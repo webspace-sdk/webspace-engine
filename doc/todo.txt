@@ -25,17 +25,12 @@
 
 
 firefox bugs:
-- prettifyXml crashes
 - ctrl-B opens bookmarks
 - screen sharing doesn't work
-- voxmoji not spawning
-  - physics is working, but not rendering
-- emoji gun not working
 - avatar was in the floor when chrome joined and firefox was in background
 - need to test git uploading etc
 
 safari bugs:
-- fastnoise not working
 - screen sharing busted
 - paste image not working
 - need to test uploading once other things are fixed
@@ -43,12 +38,14 @@ safari bugs:
 - toolbar elements etc are not clickable in quill
 
 ---
+- chat messages are piling up
 - drop non-used environment colors
 - hide other instances in voxel editor
 - Reset (G) is not going onto undo stack?
 - tippy root getting into dom
 - avoid adding viseme to outgoing streams that can't decode it
 - preview color wheel on swatch pages
+- make labels + banners start with a larger scale
 - disable LOD on flat + plains
 - pasting text not working, and causing cursor to act funny (not hoverable)
 - smooth voxel mesher is randomized
