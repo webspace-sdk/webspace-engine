@@ -63,7 +63,7 @@ export default class SceneEntryManager {
     }
 
     if (isMobile || forceEnableTouchscreen || qsTruthy("mobile")) {
-      this.avatarRig.setAttribute("virtual-gamepad-controls", {});
+      // this.avatarRig.setAttribute("virtual-gamepad-controls", {});
     }
 
     this._setupPlayerRig();

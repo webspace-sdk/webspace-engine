@@ -20,6 +20,7 @@ export const ASSET_PANEL_HEIGHT_EXPANDED = 290;
 export const ASSET_PANEL_HEIGHT_COLLAPSED = 0; // TODO
 
 const panelExpandStep = BezierEasing(0.12, 0.98, 0.18, 0.98);
+const isMobile = AFRAME.utils.device.isMobile();
 
 export class UIAnimationSystem {
   constructor(sceneEl) {
@@ -40,6 +41,10 @@ export class UIAnimationSystem {
     const initialUIApplyInterval = setInterval(() => {
       if (!this.applyUI(this.targetSceneLeft, this.targetSceneRight)) return;
       clearInterval(initialUIApplyInterval);
+
+      if (isMobile) {
+        this.collapseSidePanels(false);
+      }
     }, 250);
 
     const layoutOnFocus = () => {

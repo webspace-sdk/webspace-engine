@@ -22,6 +22,8 @@ import HubPermissionsPopup from "./hub-permissions-popup";
 import WritebackSetupPopup from "./writeback-setup-popup";
 import EnvironmentSettingsPopup from "./environment-settings-popup";
 
+const isMobile = AFRAME.utils.device.isMobile();
+
 const Top = styled.div`
   flex: 1;
   display: flex;
@@ -487,7 +489,7 @@ function CanvasTop(props) {
     !atomAccessManager.hasAnotherWriterInPresence();
   const showInstallButton = !showEditButton && pwaAvailable;
 
-  if (!isInspecting) {
+  if (!isInspecting && !isMobile) {
     cornerButtons = (
       <CornerButtons>
         {showInstallButton && (
@@ -558,7 +560,7 @@ function CanvasTop(props) {
         <AtomTrail
           atomIds={atomTrailAtomIds}
           metadata={metadata}
-          can={atomType === ATOM_TYPES.VOX ? voxCan : hubCan}
+          can={isMobile ? () => false : atomType === ATOM_TYPES.VOX ? voxCan : hubCan}
           viewPermission={atomType === ATOM_TYPES.VOX ? "view_vox" : "join_hub"}
           editPermission={atomType === ATOM_TYPES.VOX ? "edit_vox" : "update_hub_meta"} // TODO bug need to check matrix room permissions
           renamePopupElement={atomRenamePopupElement}

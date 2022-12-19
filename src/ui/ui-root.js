@@ -409,7 +409,7 @@ function UIRoot(props) {
             >
               <KeyTips id="key-tips" />
             </KeyTipsWrap>
-            <DeviceStatuses id="device-statuses">
+            <DeviceStatuses id="device-statuses" style={isMobile ? { display: "none" } : {}}>
               {triggerMode === "builder" && <EqippedBrushIcon />}
               {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
             </DeviceStatuses>

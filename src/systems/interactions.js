@@ -5,6 +5,8 @@ import { isTagged } from "../components/tags";
 import { isSynchronized, isMine } from "../utils/ownership-utils";
 import { cloneMedia, isLockedMedia } from "../utils/media-utils";
 
+const isMobile = AFRAME.utils.device.isMobile();
+
 function findHandCollisionTargetForHand(bodyHelper) {
   const physicsSystem = this.el.sceneEl.systems["hubs-systems"].physicsSystem;
 
@@ -249,6 +251,8 @@ AFRAME.registerSystem("interaction", {
   },
 
   tickInteractor(options, state) {
+    if (isMobile) return; // Disable mobile interactions
+
     const userinput = AFRAME.scenes[0].systems.userinput;
     const controlPath = paths.device.keyboard.key("control");
 
