@@ -26,7 +26,7 @@ export const touchscreenUserBindings = addSetsToBindings({
     {
       src: { value: paths.device.touchscreen.pinch.delta },
       dest: { value: forward },
-      xform: xforms.scale(0.25)
+      xform: xforms.scale(0.5)
     },
     {
       src: {},

@@ -38,12 +38,17 @@ export class UIAnimationSystem {
     this.presenceDragTarget = DOM_ROOT.getElementById("presence-drag-target");
 
     // Hacky, need to apply continuously until react renders DOM.
-    const initialUIApplyInterval = setInterval(() => {
+    let initialUIApplyInterval = setInterval(() => {
       if (!this.applyUI(this.targetSceneLeft, this.targetSceneRight)) return;
       clearInterval(initialUIApplyInterval);
 
       if (isMobile) {
-        this.collapseSidePanels(false);
+        initialUIApplyInterval = setInterval(() => {
+          if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) {
+            this.collapseSidePanels(false);
+            clearInterval(initialUIApplyInterval);
+          }
+        }, 250);
       }
     }, 250);
 
@@ -97,7 +102,7 @@ export class UIAnimationSystem {
     this.sceneEl.emit("side_panel_resize_started");
 
     // Hide triggers upon collapse
-    if (DOM_ROOT.getElementById("left-expand-trigger")) {
+    if (!isMobile) {
       const triggerSizePx = DOM_ROOT.getElementById("left-expand-trigger").offsetWidth;
       DOM_ROOT.getElementById("left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
       DOM_ROOT.getElementById("right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);

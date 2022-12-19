@@ -1039,6 +1039,8 @@ async function start() {
   });
 
   canvas.addEventListener("mousemove", async ({ buttons, clientX, clientY }) => {
+    if (isMobile) return;
+
     let leftDelta = 0;
     let rightDelta = 0;
     let bottomDelta = 0;

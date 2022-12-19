@@ -31,7 +31,9 @@
 - Reset (G) is not going onto undo stack?
 - tippy root getting into dom
 - disable autocorrect on repo field in git dialog
+- 'others are here' being clipped on mobile
 - avoid adding viseme to outgoing streams that can't decode it
+- go fullscreen on android when tapping in
 - preview color wheel on swatch pages
 - make labels + banners start with a larger scale
 - disable LOD on flat + plains
@@ -58,6 +60,7 @@
 - browser compat, show message if trying to edit file:// in non-chrome
 - allow networking settings to be changed via qs
 - remove all unused translations
+- can't move when pinching on text field on mobile
 - deal with filtering networking based on roles + hub setting for allowing edits
 - add service to register spaces
 - cull permissions (in atom manager)
