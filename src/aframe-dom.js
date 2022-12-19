@@ -4,6 +4,7 @@ import PLAY_URL from "!!url-loader!./assets/video-overlay/play.png";
 import PLAY_HOVER_URL from "!!url-loader!./assets/video-overlay/play-hover.png";
 import PAUSE_URL from "!!url-loader!./assets/video-overlay/pause.png";
 import PAUSE_HOVER_URL from "!!url-loader!./assets/video-overlay/pause-hover.png";
+import CURSOR_URL from "!!url-loader!./assets/images/cursor.svg";
 
 export default `
     <a-scene
@@ -37,6 +38,7 @@ export default `
             <img style="display: none;" id="video-play-hover" crossorigin="anonymous" src="${PLAY_HOVER_URL}">
             <img style="display: none;" id="video-pause" crossorigin="anonymous" src="${PAUSE_URL}">
             <img style="display: none;" id="video-pause-hover" crossorigin="anonymous" src="${PAUSE_HOVER_URL}">
+            <img style="display: none;" id="cursor-image" crossorigin="anonymous" src="${CURSOR_URL}">
 
             <template id="remote-avatar">
                 <a-entity networked-avatar ik-root player-info wrapped-entity visible="false">
@@ -326,41 +328,46 @@ export default `
 
         <a-entity
             id="right-cursor-controller"
-            cursor-controller="cursor: #right-cursor; camera: #avatar-pov-node;"
+            cursor-controller="cursor: #right-cursor; cursorVisual: #right-cursor-visual; camera: #avatar-pov-node;"
         ></a-entity>
 
         <a-entity
             id="left-cursor-controller"
-            cursor-controller="cursor: #left-cursor; camera: #avatar-pov-node;"
+            cursor-controller="cursor: #left-cursor; cursorVisual: #left-cursor-visual; camera: #avatar-pov-node;"
         ></a-entity>
 
         <a-sphere
             id="right-cursor"
-            material="shader: flat; depthTest: false; opacity:0.9; blending: additive;"
+            material="shader: flat; visible: false;"
             radius="0.01"
             segments-width="9"
             segments-height="9"
             body-helper="type: kinematic; disableCollision: true; collisionFilterGroup: 8; collisionFilterMask: 0; scaleAutoUpdate: false; activationState: disable_deactivation;"
-            shape-helper="type: sphere; sphereRadius: 0.02; fit: manual;"
-            scale-in-screen-space="baseScale: 0.10 0.10 0.10; addedScale: 0.4 0.4 0.4">
+            shape-helper="type: sphere; sphereRadius: 0.02; fit: manual;">
+            <a-circle
+                id="right-cursor-visual"
+                radius="0.02"
+                material="shader: flat; src: #cursor-image; depthTest: false; opacity: 0.9;"
+                scale-in-screen-space="baseScale: 0.10 0.10 0.10; addedScale: 0.4 0.4 0.4;"
+                billboard>
+            </a-circle>
         </a-sphere>
 
         <a-sphere
             id="left-cursor"
-            material="shader: flat; depthTest: false; opacity:0.9;"
+            material="shader: flat; visible: false"
             radius="0.01"
             segments-width="9"
             segments-height="9"
             body-helper="type: kinematic; disableCollision: true; collisionFilterGroup: 8; collisionFilterMask: 0; scaleAutoUpdate: false; activationState: disable_deactivation;"
-            shape-helper="type: sphere; sphereRadius: 0.02; fit: manual;"
-            scale-in-screen-space="baseScale: 0.10 0.10 0.10; addedScale: 0.4 0.4 0.4">
-            <a-entity
-                sprite
-                icon-button="image: rotate-cursor.png"
-                scale="0.1 0.1 0.1"
-                position="0.0 0 0"
-                class="hud"
-            ></a-entity>
+            shape-helper="type: sphere; sphereRadius: 0.02; fit: manual;">
+            <a-circle
+                id="left-cursor-visual"
+                radius="0.02"
+                material="shader: flat; src: #cursor-image; depthTest: false; opacity: 0.9;"
+                scale-in-screen-space="baseScale: 0.10 0.10 0.10; addedScale: 0.4 0.4 0.4;"
+                billboard>
+            </a-circle>
         </a-sphere>
 
         <!-- Avatar Rig -->

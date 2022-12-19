@@ -7,13 +7,14 @@ import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import { addVertexCurvingToMaterial } from "../systems/terrain-system";
 
 const HIGHLIGHT = new THREE.Color(0, 0xec / 255, 0xff / 255);
-const NO_HIGHLIGHT = new THREE.Color(0.15, 0.15, 0.15);
-const TRANSFORM_COLOR_1 = new THREE.Color(150 / 255, 80 / 255, 150 / 255);
-const TRANSFORM_COLOR_2 = new THREE.Color(23 / 255, 64 / 255, 118 / 255);
+const NO_HIGHLIGHT = new THREE.Color(0.99, 0.99, 0.99);
+const TRANSFORM_COLOR_1 = new THREE.Color(0, 0xec / 255, 0xff / 255);
+const TRANSFORM_COLOR_2 = new THREE.Color(0, 0xff / 255, 0xff / 255);
 
 AFRAME.registerComponent("cursor-controller", {
   schema: {
     cursor: { type: "selector" },
+    cursorVisual: { type: "selector" },
     camera: { type: "selector" },
     far: { default: 100 },
     near: { default: 0.01 },
@@ -24,10 +25,10 @@ AFRAME.registerComponent("cursor-controller", {
   init: function() {
     this.enabled = false;
 
-    this.data.cursor.addEventListener(
+    this.data.cursorVisual.addEventListener(
       "loaded",
       () => {
-        const mesh = this.data.cursor.object3DMap.mesh;
+        const mesh = this.data.cursorVisual.object3DMap.mesh;
         mesh.renderOrder = RENDER_ORDER.CURSOR;
         addVertexCurvingToMaterial(mesh.material);
       },
@@ -44,6 +45,7 @@ AFRAME.registerComponent("cursor-controller", {
       this.cssGazeCursor = DOM_ROOT.querySelector("#gaze-cursor .cursor");
       this.lastCssGazeCursorOffset = Infinity;
       this.lastCssGazeCursorScale = Infinity;
+      this.lastCssGazeCursorClass = "";
     });
 
     const lineGeometry = new THREE.BufferGeometry();
@@ -78,7 +80,7 @@ AFRAME.registerComponent("cursor-controller", {
       const cursorPose = userinput.get(left ? paths.actions.cursor.left.pose : paths.actions.cursor.right.pose);
       const hideLine = userinput.get(left ? paths.actions.cursor.left.hideLine : paths.actions.cursor.right.hideLine);
 
-      this.data.cursor.object3D.visible = this.enabled && !!cursorPose;
+      this.data.cursorVisual.object3D.visible = this.enabled && !!cursorPose;
       this.line.material.visible = !!(this.enabled && !hideLine);
 
       this.intersection = null;
@@ -119,7 +121,7 @@ AFRAME.registerComponent("cursor-controller", {
         }
       }
 
-      const { cursor, minDistance, far, camera } = this.data;
+      const { cursor, cursorVisual, minDistance, far, camera } = this.data;
 
       const cursorModDelta =
         userinput.get(left ? paths.actions.cursor.left.modDelta : paths.actions.cursor.right.modDelta) || 0;
@@ -143,6 +145,7 @@ AFRAME.registerComponent("cursor-controller", {
 
       let cursorScale3D = 0.4;
       let cursorScaleCSS = 0.4;
+      let cursorClassCSS = "";
 
       // TODO : Check if the selected object being transformed is for this cursor!
       if (
@@ -151,18 +154,20 @@ AFRAME.registerComponent("cursor-controller", {
           (!left && transformObjectSystem.hand.el.id === "player-right-controller"))
       ) {
         this.color.copy(TRANSFORM_COLOR_1).lerpHSL(TRANSFORM_COLOR_2, 0.5 + 0.5 * Math.sin(t / 1000.0));
-        cursorScale3D = 0.66;
+        cursorScale3D = 0.5;
         cursorScaleCSS = 1.0;
+        cursorClassCSS = "transform";
       } else if ((this.intersectionIsValid || isGrabbing) && !isLockedMedia(intersectionTarget)) {
         this.color.copy(HIGHLIGHT);
-        cursorScale3D = 0.66;
+        cursorScale3D = 0.5;
         cursorScaleCSS = 1.0;
+        cursorClassCSS = "highlight";
       } else {
         this.color.copy(NO_HIGHLIGHT);
       }
 
-      if (Math.abs(cursor.components["scale-in-screen-space"].data.baseScale.x - cursorScale3D) > 0.01) {
-        cursor.setAttribute("scale-in-screen-space", {
+      if (Math.abs(cursorVisual.components["scale-in-screen-space"].data.baseScale.x - cursorScale3D) > 0.01) {
+        cursorVisual.setAttribute("scale-in-screen-space", {
           addedScale: { x: cursorScale3D, y: cursorScale3D, z: cursorScale3D }
         });
       }
@@ -176,17 +181,21 @@ AFRAME.registerComponent("cursor-controller", {
       // vertically based upon how far the intersection is in a way similar to the 3d cursor.
       if (
         this.cssGazeCursor &&
-        (this.lastCssGazeCursorOffset !== cssGazeYOffset || this.lastCssGazeCursorScale !== cursorScaleCSS)
+        (this.lastCssGazeCursorOffset !== cssGazeYOffset ||
+          this.lastCssGazeCursorScale !== cursorScaleCSS ||
+          this.lastCssGazeCursorClass !== cursorClassCSS)
       ) {
         this.cssGazeCursor.setAttribute(
           "style",
           `transform: translateY(${cssGazeYOffset}px); transform: scale(${cursorScaleCSS}, ${cursorScaleCSS});`
         );
+        this.cssGazeCursor.setAttribute("class", `cursor ${cursorClassCSS}`);
         this.lastCssGazeCursorOffset = cssGazeYOffset;
         this.lastCssGazeCursorScale = cursorScaleCSS;
+        this.lastCssGazeCursorClass = cursorClassCSS;
       }
 
-      const mesh = this.data.cursor.object3DMap.mesh;
+      const mesh = this.data.cursorVisual.object3DMap.mesh;
       const material = mesh.material;
 
       if (!material.color.equals(this.color)) {

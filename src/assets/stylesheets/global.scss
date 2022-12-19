@@ -240,9 +240,8 @@ a-scene.visible {
 
 #gaze-cursor {
   position: absolute;
-  mix-blend-mode: color-dodge;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   z-index: 10000;
   pointer-events: none;
   visibility: hidden;
@@ -251,10 +250,20 @@ a-scene.visible {
   justify-content: center;
 
   .cursor {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 4px;
+    border: 1px solid black;
+    opacity: 0.66;
     background-color: rgba(128, 128, 128);
+  }
+
+  .cursor.highlight {
+    background-color: rgba(0, 237, 255);
+  }
+
+  .cursor.transform {
+    background-color: rgba(0, 237, 255);
   }
 }
 
