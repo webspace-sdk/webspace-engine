@@ -17,8 +17,7 @@ import { handleExitTo2DInterstitial, exit2DInterstitialAndEnterVR } from "./util
 import { ObjectContentOrigins } from "./object-types";
 import { pushHistoryState } from "./utils/history";
 import { proxiedUrlFor } from "./utils/media-url-utils";
-
-const { detect } = require("detect-browser");
+import { detect } from "detect-browser";
 
 const isBotMode = qsTruthy("bot");
 const isMobile = AFRAME.utils.device.isMobile();

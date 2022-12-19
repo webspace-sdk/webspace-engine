@@ -95,6 +95,7 @@
     "octokat": "^0.10.0",
     "pdfjs-dist": "^2.15.349",
     "phoenix": "github:gfodor/phoenix-js#master",
+    "pretty": "^2.0.0",
     "prop-types": "^15.8.1",
     "protobufjs": "^6.10.1",
     "quill": "github:webspace-sdk/quill#webspaces/master",

@@ -7,7 +7,8 @@ import { WORLD_COLOR_PRESETS } from "./world-color-presets";
 import { EmojiToShortname } from "./emojis";
 import { parseTransformIntoThree } from "./world-importer";
 import { posRotScaleToCssTransform } from "../systems/dom-serialize-system";
-const { detect } = require("detect-browser");
+import { detect } from "detect-browser";
+import prettify from "pretty";
 
 const browser = detect();
 import Color from "color";
@@ -773,41 +774,8 @@ export function quillHtmlToWebspaceHtml(html) {
   return doc.body.innerHTML;
 }
 
-const prettifyXml = sourceXml => {
-  const xmlDoc = new DOMParser().parseFromString(sourceXml, "application/xml");
-  const xsltDoc = new DOMParser().parseFromString(
-    [
-      // describes how we want to modify the XML - indent everything
-      '<?xml version="1.0"?>',
-      '<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">',
-      '  <xsl:strip-space elements="*"/>',
-      '  <xsl:template match="para[content-style][not(text())]">', // change to just text() to strip space in text nodes
-      '    <xsl:value-of select="normalize-space(.)"/>',
-      "  </xsl:template>",
-      '  <xsl:template match="node()|@*">',
-      '    <xsl:copy><xsl:apply-templates select="node()|@*"/></xsl:copy>',
-      "  </xsl:template>",
-      '  <xsl:output indent="yes"/>',
-      "</xsl:stylesheet>"
-    ].join("\n"),
-    "text/xml"
-  );
-
-  const xsltProcessor = new XSLTProcessor();
-  xsltProcessor.importStylesheet(xsltDoc);
-  const resultDoc = xsltProcessor.transformToDocument(xmlDoc);
-  let resultXml = new XMLSerializer().serializeToString(resultDoc);
-
-  // Firefox doesn't add newlines :P
-  if (browser.name === "firefox") {
-    resultXml = resultXml.replace(/></g, ">\n<");
-  }
-
-  return resultXml;
-};
-
 export const docToPrettifiedHtml = doc => {
-  return prettifyXml(new XMLSerializer().serializeToString(doc));
+  return prettify(new XMLSerializer().serializeToString(doc));
 };
 
 export const prettifyHtml = html => {

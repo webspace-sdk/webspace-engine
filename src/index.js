@@ -330,7 +330,7 @@ function hideCanvas() {
   canvas.classList.add("a-hidden");
 }
 
-function addGlobalEventListeners(scene, entryManager, atomAccessManager) {
+function addGlobalEventListeners(scene, entryManager) {
   scene.addEventListener("preferred_mic_changed", e => {
     const deviceId = e.detail;
     scene.systems["hubs-systems"].mediaStreamSystem.updatePreferredMicDevice(deviceId);
