@@ -1,6 +1,5 @@
 - need to test flow when creating voxel without git permission
 - deno cors proxying split + ytdl enable + move configs into index.html
-- test ff + safari
 - index.html add networking config (TURN, CORSAnywhere)
 - take a stab at mobile view
 - upload progress
@@ -14,24 +13,15 @@
 - duck should upload glb
 - disable live HTML update option (search for allowUnsavedObjects)
 - save HTML to back to origin option
+- quill toolbar not hiding when selection/cursor changes
 - vox
   - editor UX
     - close button in vox editor, drop left panel
     - undo/redo buttons
-- make cursor more visible
 - if space is held first, then object grabbed, enable snap
 - video play button missing
 - make sure removing CORS anywhere tag disalbed youtube
 - show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
-- avoid blank commits
-
-firefox bugs:
-- need to test git uploading etc
-
-safari bugs:
-- need to test git sync of DOM once other things are fixed
-- need to ignore spaces in diffs, or get spaces to be ignored
-- toolbar elements etc are not clickable in quill
 
 ---
 - chat messages are piling up

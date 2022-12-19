@@ -24,6 +24,8 @@ import AssetPanel from "./asset-panel";
 import SelfPanel from "./self-panel";
 import { ASSET_PANEL_HEIGHT_EXPANDED, ASSET_PANEL_HEIGHT_COLLAPSED } from "../systems/ui-animation-system";
 
+const isMobile = AFRAME.utils.device.isMobile();
+
 const skipSidePanels = qsTruthy("skip_panels");
 
 const Root = styled.div`
@@ -401,7 +403,10 @@ function UIRoot(props) {
               environmentSettingsButtonRef={environmentSettingsButtonRef}
               createSelectPopupRef={createSelectPopupRef}
             />
-            <KeyTipsWrap onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}>
+            <KeyTipsWrap
+              style={isMobile ? { display: "none" } : {}}
+              onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
+            >
               <KeyTips id="key-tips" />
             </KeyTipsWrap>
             <DeviceStatuses id="device-statuses">
@@ -445,9 +450,13 @@ function UIRoot(props) {
           )}
         </Root>
         <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
-        <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
-        <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
-        <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
+        {!isMobile && (
+          <>
+            <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
+            <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
+            <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
+          </>
+        )}
         <SelfPanel
           scene={scene}
           sessionId={sessionId}

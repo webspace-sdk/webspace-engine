@@ -15,8 +15,7 @@ function getPlatformSupport() {
   return [
     { name: "Web Assembly", supported: !!window.WebAssembly },
     { name: "Media Devices", supported: !!navigator.mediaDevices },
-    { name: "WebGL2", supported: !!window.WebGL2RenderingContext },
-    { name: "Mobile App", supported: () => typeof AFRAME !== "undefined" && !AFRAME.utils.device.isMobile() }
+    { name: "WebGL2", supported: !!window.WebGL2RenderingContext }
   ];
 }
 
