@@ -7,6 +7,7 @@ import { toArray as convertToEmojis } from "react-emoji-render";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 const CHAT_HIDE_TIMEOUT = 15000;
+const isMobile = AFRAME.utils.device.isMobile();
 
 const ChatLogElement = styled.div`
   height: 250px;
@@ -300,11 +301,7 @@ export default function ChatLog({ scene, hub, store, leftOffset }) {
   );
 
   if (hasOtherOccupants && !hasChatted && entries.filter(({ type }) => type === "chat").length === 0) {
-    return (
-      <UnpausedInfoLabel>
-        <FormattedMessage id="chat.info" />
-      </UnpausedInfoLabel>
-    );
+    return <UnpausedInfoLabel>{!isMobile && <FormattedMessage id="chat.info" />}</UnpausedInfoLabel>;
   }
 
   return (

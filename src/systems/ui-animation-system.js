@@ -48,9 +48,9 @@ export class UIAnimationSystem {
             this.collapseSidePanels(false);
             clearInterval(initialUIApplyInterval);
           }
-        }, 250);
+        }, 0);
       }
-    }, 250);
+    }, 100);
 
     const layoutOnFocus = () => {
       // Attempt to fix issues with layout not being set when focusing window

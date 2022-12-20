@@ -3,6 +3,8 @@ import styled from "styled-components";
 import { getMessages } from "../utils/i18n";
 import PropTypes from "prop-types";
 
+const isMobile = AFRAME.utils.device.isMobile();
+
 export const PanelWrap = styled.div`
   width: fit-content;
   height: fit-content;
@@ -122,7 +124,7 @@ export const Input = styled.input`
     color: var(--text-input-placeholder-color);
   }
 
-  width: 300px;
+  width: ${isMobile ? 150 : 300}px;
 `;
 
 export const Checkbox = styled.input`
