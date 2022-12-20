@@ -1293,9 +1293,21 @@ export const addMediaInFrontOfPlayer = options => {
 };
 
 export const addMediaInFrontOfPlayerIfPermitted = options => {
-  if (!window.APP.atomAccessManager.hubCan("spawn_and_move_media")) return { entity: null, orientation: null };
-  if (options.src instanceof File && !window.APP.atomAccessManager.hubCan("upload_files"))
+  const { atomAccessManager } = window.APP;
+
+  if (!atomAccessManager.hubCan("spawn_and_move_media")) return { entity: null, orientation: null };
+
+  if (options.src instanceof File && !atomAccessManager.hubCan("upload_files")) {
+    if (
+      window.APP.saveChangesToOrigin &&
+      !atomAccessManager.isWritebackOpen &&
+      !atomAccessManager.hasAnotherWriterInPresence()
+    ) {
+      AFRAME.scenes[0].emit("action_open_writeback");
+    }
+
     return { entity: null, orientation: null };
+  }
 
   return addMediaInFrontOfPlayer(options);
 };

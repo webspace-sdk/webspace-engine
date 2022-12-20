@@ -17,6 +17,7 @@ import Tooltip from "./tooltip";
 import { useInstallPWA } from "./input/useInstallPWA";
 import { ATOM_TYPES } from "../utils/atom-metadata";
 import { WORLD_COLOR_TYPES } from "../constants";
+import { ROLES } from "../utils/atom-access-manager";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import WritebackSetupPopup from "./writeback-setup-popup";
@@ -481,10 +482,12 @@ function CanvasTop(props) {
 
   let cornerButtons;
 
+  const mayNeedToBecomeOwnerToSave = !canSpawnAndMoveMedia && window.APP.contentChangeRole === ROLES.OWNER;
+
   const showSaveButton =
     window.APP.saveChangesToOrigin &&
     isSaveConfigurable &&
-    documentIsDirty &&
+    (mayNeedToBecomeOwnerToSave || documentIsDirty) &&
     !atomAccessManager.hasAnotherWriterInPresence();
 
   const showInstallButton = !showSaveButton && pwaAvailable;

@@ -472,6 +472,8 @@ export default class AtomAccessManager extends EventTarget {
       if (isRegardingSelf && selfIsDefactoOwner) return true;
 
       if (permission === "upload_files") {
+        if (!window.APP.saveChangesToOrigin) return false;
+
         const hasNecessaryWritability = this.writeback?.isOpen || this.hasAnotherWriterInPresence();
 
         return (
