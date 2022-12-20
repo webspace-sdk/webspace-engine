@@ -27,7 +27,7 @@ export class UIAnimationSystem {
     this.sceneEl = sceneEl;
 
     this.lastTickT = 0;
-    this.panelExpansionState = PANEL_EXPANSION_STATES.EXPANDING;
+    this.panelExpansionState = PANEL_EXPANSION_STATES.COLLAPSING;
 
     this.sceneLeft = -1;
     this.sceneRight = -1;
@@ -38,18 +38,9 @@ export class UIAnimationSystem {
     this.presenceDragTarget = DOM_ROOT.getElementById("presence-drag-target");
 
     // Hacky, need to apply continuously until react renders DOM.
-    let initialUIApplyInterval = setInterval(() => {
-      if (!this.applyUI(this.targetSceneLeft, this.targetSceneRight)) return;
+    const initialUIApplyInterval = setInterval(() => {
+      if (!this.applyUI(0, 0)) return;
       clearInterval(initialUIApplyInterval);
-
-      if (isMobile) {
-        initialUIApplyInterval = setInterval(() => {
-          if (this.panelExpansionState === PANEL_EXPANSION_STATES.EXPANDED) {
-            this.collapseSidePanels(false);
-            clearInterval(initialUIApplyInterval);
-          }
-        }, 0);
-      }
     }, 100);
 
     const layoutOnFocus = () => {
