@@ -3,8 +3,6 @@
 - add a ui toggle button in top left due to docks on side of screen
   - this can be back button out of editor too
 - duck should upload glb
-- disable live HTML update option (search for allowUnsavedObjects)
-- save HTML to back to origin option
 - quill toolbar not hiding when selection/cursor changes
 - vox
   - editor UX
@@ -16,6 +14,8 @@
 ---
 - GIF not unpacking when using local filesystem
 - if space is held first, then object grabbed, enable snap
+- test iframe embedding
+- lazily allocate svox buffers
 - need to test flow when creating voxel without git permission
 - chat messages are piling up
 - drop non-used environment colors

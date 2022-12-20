@@ -82,6 +82,9 @@ export default class AtomAccessManager extends EventTarget {
         previousSaveChangesToOrigin !== this.saveChangesToOrigin ||
         previousContentChangeRole !== this.contentChangeRole
       ) {
+        previousSaveChangesToOrigin = this.saveChangesToOrigin;
+        previousContentChangeRole = this.contentChangeRole;
+
         this.dispatchEvent(new CustomEvent("permissions_updated", {}));
       }
     });
@@ -509,7 +512,7 @@ export default class AtomAccessManager extends EventTarget {
       }
     } else {
       if (isRegardingSelf && selfIsDefactoOwner) return true;
-      this.roles.get(sessionId) === ROLES.OWNER;
+      return this.roles.get(sessionId) === ROLES.OWNER;
     }
   }
 
