@@ -25,7 +25,7 @@ export function showHoverEffect(el) {
 export function gatePermissionPredicate(predicate) {
   if (predicate) return true;
 
-  if (window.APP.atomAccessManager.isEditingAvailable) {
+  if (window.APP.saveChangesToOrigin && !window.APP.atomAccessManager.isWritebackOpen) {
     AFRAME.scenes[0].emit("action_open_writeback");
   }
 

@@ -403,11 +403,11 @@ function CanvasTop(props) {
 
   const hubMetadata = worldTree && worldTree.atomMetadata;
   const metadata = atomType === ATOM_TYPES.VOX ? window.APP.voxMetadata : hubMetadata;
-  const [editingAvailable, setIsEditingAvailable] = useState(atomAccessManager.isEditingAvailable);
+  const [isSaveConfigurable, setIsSaveConfigurable] = useState(!atomAccessManager.isWritebackOpen);
   const [pwaAvailable, installPWA] = useInstallPWA();
   const environmentSettingsButtonRef = useRef();
   const hubPermissionsButtonRef = useRef();
-  const hubEditButtonRef = useRef();
+  const hubSaveButtonRef = useRef();
   const hubCreateButtonRef = useRef();
   const hubContextButtonRef = useRef();
 
@@ -426,7 +426,7 @@ function CanvasTop(props) {
     () => {
       const handleWritebackSetup = ({ detail }) => {
         if (atomAccessManager.writebackRequiresSetup) {
-          showWritebackSetupPopup(detail?.showInCenter ? createSelectPopupRef : hubEditButtonRef);
+          showWritebackSetupPopup(detail?.showInCenter ? createSelectPopupRef : hubSaveButtonRef);
         } else {
           atomAccessManager.openWriteback();
         }
@@ -435,20 +435,20 @@ function CanvasTop(props) {
       scene && scene.addEventListener("action_open_writeback", handleWritebackSetup);
       return () => scene && scene.removeEventListener("action_open_writeback", handleWritebackSetup);
     },
-    [scene, hubEditButtonRef, atomAccessManager, showWritebackSetupPopup, createSelectPopupRef]
+    [scene, hubSaveButtonRef, atomAccessManager, showWritebackSetupPopup, createSelectPopupRef]
   );
 
   useEffect(
     () => {
       const handler = () => {
         setDocumentIsDirty(atomAccessManager.documentIsDirty);
-        setIsEditingAvailable(atomAccessManager.isEditingAvailable);
+        setIsSaveConfigurable(!atomAccessManager.isWritebackOpen);
       };
 
       atomAccessManager && atomAccessManager.addEventListener("document-dirty-state-changed", handler);
       return () => atomAccessManager && atomAccessManager.removeEventListener("document-dirty-state-changed", handler);
     },
-    [scene, hubEditButtonRef, atomAccessManager, showWritebackSetupPopup, createSelectPopupRef]
+    [scene, hubSaveButtonRef, atomAccessManager, showWritebackSetupPopup, createSelectPopupRef]
   );
 
   useEffect(
@@ -464,7 +464,7 @@ function CanvasTop(props) {
     () => {
       const handler = () => {
         setCanSpawnAndMoveMedia(hubCan && hubId && hubCan("spawn_and_move_media", hubId));
-        setIsEditingAvailable(atomAccessManager.isEditingAvailable);
+        setIsSaveConfigurable(!atomAccessManager.isWritebackOpen);
 
         if (updateEnvironmentSettingsPopup) {
           updateEnvironmentSettingsPopup(); // The size of this changes depending on permissions, reposition
@@ -481,13 +481,13 @@ function CanvasTop(props) {
 
   let cornerButtons;
 
-  const allowUnsavedObjects = window.APP.allowUnsavedObjects;
-
-  const showEditButton =
-    editingAvailable &&
-    (!canSpawnAndMoveMedia || (allowUnsavedObjects && documentIsDirty)) &&
+  const showSaveButton =
+    window.APP.saveChangesToOrigin &&
+    isSaveConfigurable &&
+    documentIsDirty &&
     !atomAccessManager.hasAnotherWriterInPresence();
-  const showInstallButton = !showEditButton && pwaAvailable;
+
+  const showInstallButton = !showSaveButton && pwaAvailable;
 
   if (!isInspecting && !isMobile) {
     cornerButtons = (
@@ -497,13 +497,13 @@ function CanvasTop(props) {
             <FormattedMessage id="install.desktop" />
           </CornerButton>
         )}
-        {showEditButton && (
+        {showSaveButton && (
           <CornerButton
-            ref={hubEditButtonRef}
+            ref={hubSaveButtonRef}
             onMouseDown={e => cancelEventIfFocusedWithin(e, writebackSetupPopupElement)}
             onClick={() => scene.emit("action_open_writeback")}
           >
-            <FormattedMessage id={allowUnsavedObjects ? "writeback.save-changes" : "writeback.edit-world"} />
+            <FormattedMessage id="writeback.save-changes" />
           </CornerButton>
         )}
         {
@@ -514,7 +514,6 @@ function CanvasTop(props) {
           />
         }
         {hubCan &&
-          false &&
           hubCan("update_hub_roles", hubId) && (
             <HubPermissionsButton
               ref={hubPermissionsButtonRef}

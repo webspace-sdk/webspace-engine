@@ -9,9 +9,8 @@ export class App {
     this.store = new Store();
     this.mediaSearchStore = new MediaSearchStore();
 
-    // TODO SHARED, these should be settings
-    this.allowUnsavedObjects = true;
-    this.createAndEditRole = ROLES.MEMBER;
+    this.saveChangesToOrigin = true;
+    this.contentChangeRole = ROLES.MEMBER;
 
     // Detail levels
     // 0 - Full

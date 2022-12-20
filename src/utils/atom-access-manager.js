@@ -71,9 +71,8 @@ export default class AtomAccessManager extends EventTarget {
     this.remoteUploadResolvers = new Map();
   }
 
-  get isEditingAvailable() {
-    if (this.writeback?.isOpen) return false;
-    return true;
+  get isWritebackOpen() {
+    return !!this.writeback?.isOpen;
   }
 
   init() {
@@ -183,6 +182,7 @@ export default class AtomAccessManager extends EventTarget {
       if (!this.writeback?.isOpen) return;
       if (!this.documentIsDirty && !SYSTEMS.voxSystem.hasPendingWritebackFlush()) return;
       if (this.hasAnotherWriterInPresence()) return;
+      if (!window.APP.saveChangesToOrigin) return;
 
       e.preventDefault();
       e.returnValue = "Unsaved changes are still being written. Do you want to leave and lose these changes?";
@@ -461,20 +461,29 @@ export default class AtomAccessManager extends EventTarget {
 
     if (hubId !== null && this.currentHubId !== hubId) return false;
 
-    const allowUnsavedObjects = window.APP.allowUnsavedObjects;
-    const createAndEditRole = window.APP.createAndEditRole;
+    const contentChangeRole = window.APP.contentChangeRole;
 
-    if (permission.startsWith("spawn_") && allowUnsavedObjects) return true;
+    const isContentPermission = permission.startsWith("spawn_") || permission === "upload_files";
+    const isRegardingSelf = sessionId === null || sessionId === NAF.clientId;
+    const selfIsDefactoOwner = !!this.writeback?.isOpen;
 
-    const { atomAccessManager } = window.APP;
+    if (isContentPermission) {
+      if (!contentChangeRole) return false;
+      if (isRegardingSelf && selfIsDefactoOwner) return true;
 
-    const writesPossible = this.writeback?.isOpen || atomAccessManager.hasAnotherWriterInPresence();
-    if (!writesPossible) return false;
+      if (permission === "upload_files") {
+        const hasNecessaryWritability = this.writeback?.isOpen || this.hasAnotherWriterInPresence();
 
-    if (sessionId !== null && sessionId !== NAF.clientId) {
-      return this.roles.get(sessionId) === ROLES.OWNER || createAndEditRole === ROLES.MEMBER;
+        return (
+          hasNecessaryWritability && (this.roles.get(sessionId) === ROLES.OWNER || contentChangeRole === ROLES.MEMBER)
+        );
+      } else {
+        if (contentChangeRole === ROLES.MEMBER) return true;
+        return this.roles.get(sessionId) === ROLES.OWNER;
+      }
     } else {
-      return true;
+      if (isRegardingSelf && selfIsDefactoOwner) return true;
+      this.roles.get(sessionId) === ROLES.OWNER;
     }
   }
 
@@ -482,16 +491,12 @@ export default class AtomAccessManager extends EventTarget {
     if (!VALID_PERMISSIONS[ATOM_TYPES.SPACE].includes(permission))
       throw new Error(`Invalid permission name: ${permission}`);
 
-    const { atomAccessManager } = window.APP;
+    if (permission === "view_nav") return true;
 
-    const writesPossible = this.writeback?.isOpen || atomAccessManager.hasAnotherWriterInPresence();
-    if (!writesPossible) return false;
-
-    if (sessionId !== null && sessionId !== NAF.clientId) {
-      return this.roles.get(sessionId) === ROLES.OWNER;
-    }
-
-    return true;
+    const isRegardingSelf = sessionId === null || sessionId === NAF.clientId;
+    const selfIsDefactoOwner = !!this.writeback?.isOpen;
+    if (isRegardingSelf && selfIsDefactoOwner) return true;
+    return this.roles.get(sessionId) === ROLES.OWNER;
   }
 
   voxCan(permission, voxId = null, sessionId = null) {
@@ -500,28 +505,19 @@ export default class AtomAccessManager extends EventTarget {
 
     if (permission === "view_vox") return true;
 
-    // edit_vox
     const voxUrl = getUrlFromVoxId(voxId);
 
     if (new URL(voxUrl, document.location.href).origin !== document.location.origin) {
       return false;
     }
 
-    const { atomAccessManager } = window.APP;
+    const contentChangeRole = window.APP.contentChangeRole;
+    const isRegardingSelf = sessionId === null || sessionId === NAF.clientId;
+    const selfIsDefactoOwner = !!this.writeback?.isOpen;
 
-    const allowUnsavedObjects = window.APP.allowUnsavedObjects;
-    if (allowUnsavedObjects) return true;
+    if (isRegardingSelf && selfIsDefactoOwner) return true;
 
-    const writesPossible = this.writeback?.isOpen || atomAccessManager.hasAnotherWriterInPresence();
-    if (!writesPossible) return false;
-
-    const createAndEditRole = window.APP.createAndEditRole;
-
-    if (sessionId !== null && sessionId !== NAF.clientId) {
-      return this.roles.get(sessionId) === ROLES.OWNER || createAndEditRole === ROLES.MEMBER;
-    } else {
-      return true;
-    }
+    return this.roles.get(sessionId) === ROLES.OWNER || contentChangeRole === ROLES.MEMBER;
   }
 
   async closeWriteback() {
