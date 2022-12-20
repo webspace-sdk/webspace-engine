@@ -100,6 +100,8 @@ export default class AtomAccessManager extends EventTarget {
     let isWriting = false;
 
     const write = async (immediately = false) => {
+      if (!window.APP.saveChangesToOrigin) return;
+
       if (this.writeTimeout) {
         clearTimeout(this.writeTimeout);
         this.writeTimeout = null;
@@ -176,7 +178,9 @@ export default class AtomAccessManager extends EventTarget {
       this.writeTimeout = setTimeout(write, MAX_WRITE_RATE_MS);
     });
 
+    // TODO add handler when saveChangesToOrigin is set to true that marks document dirty
     window.addEventListener("beforeunload", e => {
+      if (!this.writeback?.isOpen) return;
       if (!this.documentIsDirty && !SYSTEMS.voxSystem.hasPendingWritebackFlush()) return;
       if (this.hasAnotherWriterInPresence()) return;
 
@@ -420,6 +424,7 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   async tryUploadAssetDirectly(fileOrBlob, fileName = null) {
+    if (!window.APP.saveChangesToOrigin) return;
     if (!(await this.ensureWritebackOpen())) return;
 
     fileName = fileName || this.getFilenameForFileOrBlob(fileOrBlob);

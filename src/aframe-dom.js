@@ -374,6 +374,7 @@ export default `
         <a-entity
             id="avatar-rig"
             ik-root
+            periodic-full-syncs
             player-info
             set-yxz-order
             visible="false"
