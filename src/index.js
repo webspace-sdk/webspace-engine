@@ -1182,51 +1182,25 @@ async function start() {
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(sessionId));
 
-  let nextSpaceToJoin;
-  let nextHubToJoin;
-  let joinHubPromise;
-
   console.log(`Logged into account ${store.state.credentials.public_key.x} ${store.state.credentials.public_key.y}`);
+  // Handle rapid history changes, only join last one.
+  const spaceId = await getSpaceIdFromHistory(history);
 
-  const performJoin = async () => {
-    // Handle rapid history changes, only join last one.
-    const spaceId = await getSpaceIdFromHistory(history);
-    const hubId = await getHubIdFromHistory(history);
+  const [treeManager] = await setupTreeManagers(history, entryManager, remountUIRoot);
+  const spaceMetadataSource = new IndexDOMSpaceMetadataSource(treeManager.worldNav);
+  spaceMetadata.bind(spaceMetadataSource);
 
-    nextSpaceToJoin = spaceId;
-    nextHubToJoin = hubId;
+  const hubMetadataSource = new LocalDOMHubMetadataSource(treeManager.worldNav);
+  hubMetadata.bind(hubMetadataSource);
 
-    if (joinHubPromise) await joinHubPromise;
-    joinHubPromise = null;
+  const voxMetadataSource = new VoxMetadataSource();
+  voxMetadata.bind(voxMetadataSource);
 
-    if (spaceChannel.spaceId !== spaceId && nextSpaceToJoin === spaceId) {
-      const [treeManager] = await setupTreeManagers(history, entryManager, remountUIRoot);
-      const spaceMetadataSource = new IndexDOMSpaceMetadataSource(treeManager.worldNav);
-      spaceMetadata.bind(spaceMetadataSource);
+  remountUIRoot({ spaceId });
 
-      const hubMetadataSource = new LocalDOMHubMetadataSource(treeManager.worldNav);
-      hubMetadata.bind(hubMetadataSource);
-
-      const voxMetadataSource = new VoxMetadataSource();
-      voxMetadata.bind(voxMetadataSource);
-
-      remountUIRoot({ spaceId });
-    }
-
-    if (joinHubPromise) await joinHubPromise;
-    joinHubPromise = null;
-
-    if (hubChannel.hubId !== hubId && nextHubToJoin === hubId) {
-      joinHubPromise = joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
-      initialWorldHTML = null;
-
-      await joinHubPromise;
-    }
-  };
-
-  history.listen(performJoin);
-
-  await performJoin();
+  // Don't await here, since this is just going to set up networking behind the scenes, which is slow
+  // and we don't want to block on.
+  joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
 
   entryManager.enterScene(false).then(() => {
     remountUIRoot({ isDoneLoading: true });
