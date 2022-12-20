@@ -7,6 +7,7 @@ import { WORLD_COLOR_PRESETS } from "./world-color-presets";
 import { EmojiToShortname } from "./emojis";
 import { parseTransformIntoThree } from "./world-importer";
 import { posRotScaleToCssTransform } from "../systems/dom-serialize-system";
+import { ROLES } from "./permissions-utils";
 import { detect } from "detect-browser";
 import prettify from "pretty";
 
@@ -438,6 +439,24 @@ export function getStringFromMetaTags(name, defaultValue = "") {
   );
 }
 
+export function getRoleFromMetaTags(name, defaultRole = ROLES.NONE) {
+  switch (getStringFromMetaTags(name)) {
+    case "owner":
+      return ROLES.OWNER;
+    case "member":
+      return ROLES.MEMBER;
+    case "none":
+      return ROLES.NONE;
+    default:
+      return defaultRole;
+  }
+}
+
+export function getBooleanFromMetaTags(name, defaultValue = false) {
+  const value = getStringFromMetaTags(name, defaultValue ? "true" : "false");
+  return value === "true";
+}
+
 export function getIntFromMetaTags(name, defaultValue = 0) {
   try {
     const value = parseInt(
@@ -503,6 +522,8 @@ export async function getHubMetaFromDOM() {
     url: document.location.origin + document.location.pathname,
     worker_url: getStringFromMetaTags("networking.worker_url", "https://webspace-worker.minddrop.workers.dev"),
     cors_anywhere_url: getStringFromMetaTags("networking.cors_anywhere_url", ""),
+    content_change_role: getRoleFromMetaTags("permissions.content_change_role", ROLES.MEMBER),
+    save_changes_to_origin: getBooleanFromMetaTags("permissions.save_changes_to_origin", true),
     spawn_point: {
       position: spawnPos,
       rotation: spawnRot,

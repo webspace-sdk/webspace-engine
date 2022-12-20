@@ -1,3 +1,9 @@
+export const ROLES = {
+  NONE: 0,
+  OWNER: 0x80,
+  MEMBER: 0x01
+};
+
 // Brief overview of client authorization can be found in the wiki:
 // https://github.com/mozilla/hubs/wiki/Hubs-authorization
 export function canMove(el) {
@@ -24,8 +30,9 @@ export function showHoverEffect(el) {
 
 export function gatePermissionPredicate(predicate) {
   if (predicate) return true;
+  const { atomAccessManager } = window.APP;
 
-  if (window.APP.saveChangesToOrigin && !window.APP.atomAccessManager.isWritebackOpen) {
+  if (atomAccessManager.saveChangesToOrigin && !atomAccessManager.isWritebackOpen) {
     AFRAME.scenes[0].emit("action_open_writeback");
   }
 

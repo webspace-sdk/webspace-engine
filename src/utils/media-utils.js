@@ -1299,7 +1299,7 @@ export const addMediaInFrontOfPlayerIfPermitted = options => {
 
   if (options.src instanceof File && !atomAccessManager.hubCan("upload_files")) {
     if (
-      window.APP.saveChangesToOrigin &&
+      atomAccessManager.saveChangesToOrigin &&
       !atomAccessManager.isWritebackOpen &&
       !atomAccessManager.hasAnotherWriterInPresence()
     ) {

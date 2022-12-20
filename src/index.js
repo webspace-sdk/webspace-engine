@@ -146,7 +146,7 @@ import AtomMetadata, {
 } from "./utils/atom-metadata";
 import { setupTreeManagers, joinHub } from "./init";
 import { disableiOSZoom } from "./utils/disable-ios-zoom";
-import { getHubIdFromHistory, getSpaceIdFromHistory } from "./utils/url-utils";
+import { getSpaceIdFromHistory } from "./utils/url-utils";
 import SceneEntryManager from "./scene-entry-manager";
 import AtomAccessManager from "./utils/atom-access-manager";
 import EditRingManager from "./utils/edit-ring-manager";

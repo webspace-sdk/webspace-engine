@@ -253,7 +253,9 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
 
   return new Promise(joinFinished => {
     hubMetadata.getOrFetchMetadata(hubId).then(async hub => {
-      atomAccessManager.dispatchEvent(new CustomEvent("permissions_updated", {}));
+      const hubId = hub.hub_id;
+
+      atomAccessManager.beginWatchingHubMetadata(hubId);
 
       if (!isInitialJoin) {
         NAF.connection.entities.completeSync(null, true);
@@ -265,8 +267,6 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       // which assumes scene state is set already to "off" for channels.
       scene.removeState("off");
       scene.classList.add("visible");
-
-      const hubId = hub.hub_id;
 
       hubMetadata.subscribeToMetadata(hubId, () => {
         const hub = hubMetadata?.getMetadata(hubId);

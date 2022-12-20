@@ -1,6 +1,5 @@
 import Store from "./storage/store";
 import MediaSearchStore from "./storage/media-search-store";
-import { ROLES } from "./utils/atom-access-manager";
 
 export class App {
   constructor() {
@@ -8,9 +7,6 @@ export class App {
     this.quality = "low";
     this.store = new Store();
     this.mediaSearchStore = new MediaSearchStore();
-
-    this.saveChangesToOrigin = true;
-    this.contentChangeRole = ROLES.MEMBER;
 
     // Detail levels
     // 0 - Full

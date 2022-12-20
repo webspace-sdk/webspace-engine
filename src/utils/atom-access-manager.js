@@ -6,6 +6,7 @@ import { signString, verifyString } from "./crypto";
 import { fromByteArray } from "base64-js";
 import FileWriteback from "../writeback/file-writeback";
 import GitHubWriteback from "../writeback/github-writeback";
+import { ROLES } from "./permissions-utils";
 import { getUrlFromVoxId } from "./vox-utils";
 import SERVICE_WORKER_JS from "!!raw-loader!../webspace.service.js";
 
@@ -23,12 +24,6 @@ const ATOM_TYPES = {
   HUB: 0,
   SPACE: 1,
   VOX: 2
-};
-
-export const ROLES = {
-  NONE: 0,
-  OWNER: 0x80,
-  MEMBER: 0x01
 };
 
 const VALID_PERMISSIONS = {
@@ -69,6 +64,35 @@ export default class AtomAccessManager extends EventTarget {
 
     this.documentIsDirty = false;
     this.remoteUploadResolvers = new Map();
+    this.hub = null;
+  }
+
+  beginWatchingHubMetadata(hubId) {
+    const { hubMetadata } = window.APP;
+    this.hub = hubMetadata.getMetadata(hubId);
+    this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+
+    const previousSaveChangesToOrigin = this.saveChangesToOrigin;
+    const previousContentChangeRole = this.contentChangeRole;
+
+    hubMetadata.subscribeToMetadata(hubId, () => {
+      this.hub = hubMetadata?.getMetadata(hubId);
+
+      if (
+        previousSaveChangesToOrigin !== this.saveChangesToOrigin ||
+        previousContentChangeRole !== this.contentChangeRole
+      ) {
+        this.dispatchEvent(new CustomEvent("permissions_updated", {}));
+      }
+    });
+  }
+
+  get saveChangesToOrigin() {
+    return !!(this.hub && this.hub.save_changes_to_origin);
+  }
+
+  get contentChangeRole() {
+    return (this.hub && this.hub.content_change_role) || ROLES.NONE;
   }
 
   get isWritebackOpen() {
@@ -99,7 +123,7 @@ export default class AtomAccessManager extends EventTarget {
     let isWriting = false;
 
     const write = async (immediately = false) => {
-      if (!window.APP.saveChangesToOrigin) return;
+      if (!this.saveChangesToOrigin) return;
 
       if (this.writeTimeout) {
         clearTimeout(this.writeTimeout);
@@ -182,7 +206,7 @@ export default class AtomAccessManager extends EventTarget {
       if (!this.writeback?.isOpen) return;
       if (!this.documentIsDirty && !SYSTEMS.voxSystem.hasPendingWritebackFlush()) return;
       if (this.hasAnotherWriterInPresence()) return;
-      if (!window.APP.saveChangesToOrigin) return;
+      if (!this.saveChangesToOrigin) return;
 
       e.preventDefault();
       e.returnValue = "Unsaved changes are still being written. Do you want to leave and lose these changes?";
@@ -424,7 +448,7 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   async tryUploadAssetDirectly(fileOrBlob, fileName = null) {
-    if (!window.APP.saveChangesToOrigin) return;
+    if (!this.saveChangesToOrigin) return;
     if (!(await this.ensureWritebackOpen())) return;
 
     fileName = fileName || this.getFilenameForFileOrBlob(fileOrBlob);
@@ -461,7 +485,7 @@ export default class AtomAccessManager extends EventTarget {
 
     if (hubId !== null && this.currentHubId !== hubId) return false;
 
-    const contentChangeRole = window.APP.contentChangeRole;
+    const contentChangeRole = this.contentChangeRole;
 
     const isContentPermission = permission.startsWith("spawn_") || permission === "upload_files";
     const isRegardingSelf = sessionId === null || sessionId === NAF.clientId;
@@ -472,7 +496,7 @@ export default class AtomAccessManager extends EventTarget {
       if (isRegardingSelf && selfIsDefactoOwner) return true;
 
       if (permission === "upload_files") {
-        if (!window.APP.saveChangesToOrigin) return false;
+        if (!this.saveChangesToOrigin) return false;
 
         const hasNecessaryWritability = this.writeback?.isOpen || this.hasAnotherWriterInPresence();
 
@@ -513,7 +537,7 @@ export default class AtomAccessManager extends EventTarget {
       return false;
     }
 
-    const contentChangeRole = window.APP.contentChangeRole;
+    const contentChangeRole = this.contentChangeRole;
     const isRegardingSelf = sessionId === null || sessionId === NAF.clientId;
     const selfIsDefactoOwner = !!this.writeback?.isOpen;
 

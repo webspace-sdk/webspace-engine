@@ -26,7 +26,7 @@ AFRAME.registerSystem("ui-hotkeys", {
         if (canSpawnMedia) {
           this.el.emit("action_create");
           this.store.handleActivityFlag("createMenu");
-        } else if (!atomAccessManager.isWritebackOpen && window.APP.saveChangesToOrigin) {
+        } else if (!atomAccessManager.isWritebackOpen && !atomAccessManager.saveChangesToOrigin) {
           this.el.emit("action_open_writeback");
         }
       }

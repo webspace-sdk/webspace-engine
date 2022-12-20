@@ -17,7 +17,7 @@ import Tooltip from "./tooltip";
 import { useInstallPWA } from "./input/useInstallPWA";
 import { ATOM_TYPES } from "../utils/atom-metadata";
 import { WORLD_COLOR_TYPES } from "../constants";
-import { ROLES } from "../utils/atom-access-manager";
+import { ROLES } from "../utils/permissions-utils";
 import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import WritebackSetupPopup from "./writeback-setup-popup";
@@ -274,6 +274,8 @@ ToggleFloorButton.displayName = "ToggleFloorButton";
 function CanvasTop(props) {
   const { hubCan, voxCan, worldTree, scene, spaceCan, createSelectPopupRef } = props;
   const hubId = props.hub?.hub_id;
+  const saveChangesToOrigin = props.hub?.save_changes_to_origin;
+  const contentChangeRole = props.hub?.content_change_role;
 
   const { cameraSystem, terrainSystem, atmosphereSystem } = SYSTEMS;
   const { store, hubChannel, atomAccessManager } = window.APP;
@@ -482,10 +484,10 @@ function CanvasTop(props) {
 
   let cornerButtons;
 
-  const mayNeedToBecomeOwnerToSave = !canSpawnAndMoveMedia && window.APP.contentChangeRole === ROLES.OWNER;
+  const mayNeedToBecomeOwnerToSave = !canSpawnAndMoveMedia && contentChangeRole === ROLES.OWNER;
 
   const showSaveButton =
-    window.APP.saveChangesToOrigin &&
+    saveChangesToOrigin &&
     isSaveConfigurable &&
     (mayNeedToBecomeOwnerToSave || documentIsDirty) &&
     !atomAccessManager.hasAnotherWriterInPresence();
