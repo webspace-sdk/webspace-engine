@@ -883,7 +883,7 @@ async function start() {
 
   await patchUpManuallyAddedHtmlTags();
 
-  let initialWorldHTML = `<!DOCTYPE html>\n<html><body>${document.body.innerHTML}</body></html>`;
+  const initialWorldHTML = `<!DOCTYPE html>\n<html><body>${document.body.innerHTML}</body></html>`;
 
   const useShadowDom = true;
 
@@ -1182,7 +1182,7 @@ async function start() {
 
   scene.addEventListener("adapter-ready", () => NAF.connection.adapter.setClientId(sessionId));
 
-  console.log(`Logged into account ${store.state.credentials.public_key.x} ${store.state.credentials.public_key.y}`);
+  // console.log(`Logged into account ${store.state.credentials.public_key.x} ${store.state.credentials.public_key.y}`);
   // Handle rapid history changes, only join last one.
   const spaceId = await getSpaceIdFromHistory(history);
 
@@ -1200,7 +1200,7 @@ async function start() {
 
   // Don't await here, since this is just going to set up networking behind the scenes, which is slow
   // and we don't want to block on.
-  joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
+  await joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
 
   entryManager.enterScene(false).then(() => {
     remountUIRoot({ isDoneLoading: true });

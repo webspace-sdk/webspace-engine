@@ -1,7 +1,6 @@
 - need to test flow when creating voxel without git permission
 - deno cors proxying split + ytdl enable + move configs into index.html
 - index.html add networking config (TURN, CORSAnywhere)
-- take a stab at mobile view
 - upload progress
 - UX updates
   - left click to drag objects
@@ -22,9 +21,6 @@
 - video play button missing
 - make sure removing CORS anywhere tag disalbed youtube
 - show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
-- avatar stuck black
-- getConnecteClients in sendStep -> canSync
-- uploaded image showing up as a tag
 
 ---
 - chat messages are piling up
