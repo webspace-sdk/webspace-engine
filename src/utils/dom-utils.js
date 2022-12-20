@@ -431,6 +431,25 @@ export const pushHubMetaUpdateIntoDOM = async hub => {
   if (typeof spawnRadius === "number" && spawnRadius >= 0 && spawnRadius <= 64) {
     upsertMetaTag("environment.spawn_point.radius", `${spawnRadius}`);
   }
+
+  if (typeof hub.save_changes_to_origin === "boolean") {
+    upsertMetaTag("permissions.save_changes_to_origin", `${hub.save_changes_to_origin}`);
+  }
+
+  if (typeof hub.content_change_role === "number") {
+    let role = "none";
+
+    switch (hub.content_change_role) {
+      case ROLES.OWNER:
+        role = "owner";
+        break;
+      case ROLES.MEMBER:
+        role = "member";
+        break;
+    }
+
+    upsertMetaTag("permissions.content_change_role", role);
+  }
 };
 
 export function getStringFromMetaTags(name, defaultValue = "") {

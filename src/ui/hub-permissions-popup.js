@@ -5,22 +5,28 @@ import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import PopupPanelMenu from "./popup-panel-menu";
 import PanelSectionHeader from "./panel-section-header";
 import { FormattedMessage } from "react-intl";
-import { PanelWrap, checkboxControlFor } from "./form-components";
+import { ROLES } from "../utils/permissions-utils";
+import { checkboxControlFor, Label, InputWrap, PanelWrap, RadioWrap, Radio } from "./form-components";
 
 let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
 const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata, hubId, children }) => {
-  const [allowEditing, setAllowEditing] = useState(false);
+  const { atomAccessManager } = window.APP;
+  const [saveChangesToOrigin, setSaveChangesToOrigin] = useState(false);
+  const [contentChangeRole, setContentChangeRole] = useState(ROLES.NONE);
 
   useEffect(
     () => {
       if (!hubMetadata || !hubId) return () => {};
 
       const updatePermissions = () => {
-        // TODO SHARED
-        const spaceRole = "member";
-        setAllowEditing(spaceRole === "editor");
+        if (!hubMetadata) return;
+        const hub = hubMetadata.getMetadata(hubId);
+        if (!hub) return;
+
+        setSaveChangesToOrigin(hub.save_changes_to_origin);
+        setContentChangeRole(hub.content_change_role);
       };
 
       updatePermissions();
@@ -28,21 +34,26 @@ const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata
       hubMetadata.subscribeToMetadata(hubId, updatePermissions);
       return () => hubMetadata.unsubscribeFromMetadata(updatePermissions);
     },
-    [setAllowEditing, hubId, hubMetadata]
+    [setSaveChangesToOrigin, setContentChangeRole, hubId, hubMetadata]
   );
 
-  const allowEditingOnChange = useCallback(
-    (/*value*/) => {
-      // TODO SHARED
-      // const allowEditing = value;
-      // const newSpaceRole = allowEditing ? "editor" : "viewer";
-      // //window.APP.hubChannel.updateSpaceMemberRole(newSpaceRole);
-      // setAllowEditing(allowEditing);
+  const saveChangesToOriginOnChange = useCallback(
+    value => {
+      window.APP.hubChannel.updateHubMeta(hubId, { save_changes_to_origin: value });
+      setSaveChangesToOrigin(value);
     },
-    [
-      /*setAllowEditing*/
-    ]
+    [hubId, setSaveChangesToOrigin]
   );
+
+  const contentChangeRoleOnChange = useCallback(
+    value => {
+      window.APP.hubChannel.updateHubMeta(hubId, { content_change_role: value });
+      setContentChangeRole(value);
+    },
+    [hubId, setContentChangeRole]
+  );
+
+  const writebackOriginType = atomAccessManager.writebackOriginType;
 
   const popupInput = (
     <div
@@ -57,12 +68,56 @@ const HubPermissionsPopup = ({ setPopperElement, styles, attributes, hubMetadata
           <PanelSectionHeader style={{ marginLeft: 0 }}>
             <FormattedMessage id="hub-permissions-popup.permissions" />
           </PanelSectionHeader>
+          <Label style={{ cursor: "pointer" }}>
+            <FormattedMessage id="hub-permissions-popup.content-change-role" />
+          </Label>
+          <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
+            <RadioWrap>
+              <Radio
+                type="radio"
+                id={"role_none"}
+                name={"role_none"}
+                checked={contentChangeRole === ROLES.NONE}
+                value={ROLES.NONE}
+                onChange={() => contentChangeRoleOnChange(ROLES.NONE)}
+              />
+              <Label htmlFor="role_none" style={{ cursor: "pointer" }}>
+                <FormattedMessage id="hub-permissions-popup.content-change-role-none" />
+              </Label>
+            </RadioWrap>
+            <RadioWrap>
+              <Radio
+                type="radio"
+                id={"role_owner"}
+                name={"role_owner"}
+                checked={contentChangeRole === ROLES.OWNER}
+                value={ROLES.OWNER}
+                onChange={() => contentChangeRoleOnChange(ROLES.OWNER)}
+              />
+              <Label htmlFor="role_owner" style={{ cursor: "pointer" }}>
+                <FormattedMessage id="hub-permissions-popup.content-change-role-owner" />
+              </Label>
+            </RadioWrap>
+            <RadioWrap>
+              <Radio
+                type="radio"
+                id={"role_member"}
+                name={"role_member"}
+                checked={contentChangeRole === ROLES.MEMBER}
+                value={ROLES.MEMBER}
+                onChange={() => contentChangeRoleOnChange(ROLES.MEMBER)}
+              />
+              <Label htmlFor="role_member" style={{ cursor: "pointer" }}>
+                <FormattedMessage id="hub-permissions-popup.content-change-role-member" />
+              </Label>
+            </RadioWrap>
+          </InputWrap>
           {checkboxControlFor(
-            "allow_editing",
-            "hub-permissions-popup.allow_editing",
-            allowEditing,
-            setAllowEditing,
-            allowEditingOnChange
+            "save_changes_to_origin",
+            `hub-permissions-popup.save-changes-to-origin-${writebackOriginType}`,
+            saveChangesToOrigin,
+            setSaveChangesToOrigin,
+            saveChangesToOriginOnChange
           )}
         </PanelWrap>
       </PopupPanelMenu>

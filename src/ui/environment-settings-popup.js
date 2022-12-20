@@ -8,7 +8,7 @@ import Tooltip from "./tooltip";
 import { getMessages } from "../utils/i18n";
 import { useSingleton } from "@tippyjs/react";
 import { FormattedMessage } from "react-intl";
-import { Label, InputWrap, PanelWrap, Checkbox, Radio } from "./form-components";
+import { Label, InputWrap, PanelWrap, Checkbox, Radio, RadioWrap } from "./form-components";
 import styled from "styled-components";
 import ColorPicker, { rgbToPickerValue } from "./color-picker";
 import { objRgbToCssRgb } from "../utils/dom-utils";
@@ -135,15 +135,6 @@ const PresetsWrap = styled.div`
   ${popupCss};
 `;
 
-const RadioWrap = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-direction: row;
-  flex: 1;
-  min-width: 100px;
-`;
-
 const EnvironmentSettingsPopup = ({
   setPopperElement,
   styles,
@@ -215,7 +206,7 @@ const EnvironmentSettingsPopup = ({
 
       setWorldType(world.type);
     },
-    [hubMetadata, groundColor, edgeColor, leavesColor, barkColor, rockColor, grassColor, skyColor, waterColor]
+    [hubId, hubMetadata, groundColor, edgeColor, leavesColor, barkColor, rockColor, grassColor, skyColor, waterColor]
   );
 
   useEffect(

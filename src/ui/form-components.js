@@ -213,6 +213,15 @@ export const Radio = styled.input`
   }
 `;
 
+export const RadioWrap = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row;
+  flex: 1;
+  min-width: 100px;
+`;
+
 const FieldEditButtonElement = styled.button`
   appearance: none;
   -moz-appearance: none;
