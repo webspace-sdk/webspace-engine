@@ -72,8 +72,8 @@ export default class AtomAccessManager extends EventTarget {
     this.hub = hubMetadata.getMetadata(hubId);
     this.dispatchEvent(new CustomEvent("permissions_updated", {}));
 
-    const previousSaveChangesToOrigin = this.saveChangesToOrigin;
-    const previousContentChangeRole = this.contentChangeRole;
+    let previousSaveChangesToOrigin = this.saveChangesToOrigin;
+    let previousContentChangeRole = this.contentChangeRole;
 
     hubMetadata.subscribeToMetadata(hubId, () => {
       this.hub = hubMetadata?.getMetadata(hubId);
