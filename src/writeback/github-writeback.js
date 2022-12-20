@@ -167,8 +167,10 @@ export default class GitHubWriteback {
     return `${this.root ? `${this.root}/` : ""}${path}`;
   }
 
-  async write(content, path = null) {
+  async write(content, path = null, progressCallback = () => {}) {
     if (!this.isOpen) return;
+
+    progressCallback(0);
 
     while (this.isWriting) {
       await new Promise(res => setTimeout(res, 100));
@@ -177,6 +179,8 @@ export default class GitHubWriteback {
 
     let sendContent = null;
     let sendEncoding = null;
+
+    progressCallback(0.05);
 
     if (typeof content === "string") {
       sendContent = content;
@@ -197,8 +201,10 @@ export default class GitHubWriteback {
     }
 
     const blobPromise = repo.git.blobs.create({ content: sendContent, encoding: sendEncoding });
+    progressCallback(0.1);
     const destPath = this.getFullTreePathToFile(path || this.filename);
     const branch = await repo.git.refs(`heads/${this.branch || "master"}`).fetch();
+    progressCallback(0.15);
 
     const blob = await blobPromise;
 
@@ -206,12 +212,21 @@ export default class GitHubWriteback {
       tree: [{ path: destPath, sha: blob.sha, mode: "100644", type: "blob" }],
       base_tree: branch.object.sha
     });
+
+    progressCallback(0.85);
+
     const commit = await repo.git.commits.create({
       message: `Update Webspace world ${document.title}`,
       tree: tree.sha,
       parents: [branch.object.sha]
     });
+
+    progressCallback(0.95);
+
     await branch.update({ sha: commit.sha });
+
+    progressCallback(1.0);
+
     return true;
   }
 
@@ -225,8 +240,8 @@ export default class GitHubWriteback {
     return path;
   }
 
-  async uploadAsset(fileOrBlob, fileName) {
-    await this.write(fileOrBlob, `assets/${fileName}`);
+  async uploadAsset(fileOrBlob, fileName, uploadProgressCallback = () => {}) {
+    await this.write(fileOrBlob, `assets/${fileName}`, uploadProgressCallback);
 
     return { url: `assets/${encodeURIComponent(fileName)}`, contentType: fileOrBlob.type };
   }

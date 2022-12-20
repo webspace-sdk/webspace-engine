@@ -5,6 +5,7 @@ import styled from "styled-components";
 import Linkify from "react-linkify";
 import { toArray as convertToEmojis } from "react-emoji-render";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
+import LoadingSpinner from "./loading-spinner";
 
 const CHAT_HIDE_TIMEOUT = 15000;
 const isMobile = AFRAME.utils.device.isMobile();
@@ -79,17 +80,20 @@ const ChatLogLine = styled.div`
 `;
 
 // Hacky copy+paste from webspace-ui
-const UnpausedInfoLabel = styled.div`
+const NonChatLabel = styled.div`
   position: absolute;
   bottom: 0px;
   left: 0px;
-  display: block;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
   color: var(--canvas-overlay-text-color);
   text-shadow: 0px 0px 4px var(--menu-shadow-color);
   line-height: calc(var(--canvas-overlay-tertiary-text-size) + 2px);
   font-weight: var(--canvas-overlay-item-tertiary-weight);
   font-size: var(--canvas-overlay-tertiary-text-size);
-  margin: 11px 0 42px 8px;
+  margin: 11px 0 64px 8px;
   padding: 6px 10px;
   white-space: pre;
 
@@ -147,10 +151,11 @@ let chatLogHideTimeout;
 export default function ChatLog({ scene, hub, store, leftOffset }) {
   const ref = useRef();
 
-  const { hubChannel } = window.APP;
+  const { hubChannel, atomAccessManager } = window.APP;
   const [entries, setEntries] = useState([]);
   const [hasChatted, setHasChatted] = useState(store.state.activity.chat);
   const [hasOtherOccupants, setHasOtherOccupants] = useState(NAF.connection?.presence?.states?.size > 1);
+  const [percentageUpload, setPercentageUpload] = useState(null);
 
   useEffect(
     () => {
@@ -300,8 +305,34 @@ export default function ChatLog({ scene, hub, store, leftOffset }) {
     [ref, entryHash]
   );
 
+  useEffect(
+    () => {
+      if (!atomAccessManager) return;
+      const handler = ({ detail: { progress } }) => {
+        if (progress === 1) {
+          setPercentageUpload(null);
+        } else {
+          setPercentageUpload(Math.round(progress * 100));
+        }
+      };
+
+      atomAccessManager.addEventListener("upload-progress", handler);
+      return () => atomAccessManager.removeEventListener("upload-progress", handler);
+    },
+    [atomAccessManager]
+  );
+
+  if (typeof percentageUpload === "number") {
+    return (
+      <NonChatLabel>
+        <LoadingSpinner style={{ marginRight: "8px" }} />
+        <FormattedMessage id="uploading.info" /> {percentageUpload > 0 ? `${percentageUpload}%` : ""}
+      </NonChatLabel>
+    );
+  }
+
   if (hasOtherOccupants && !hasChatted && entries.filter(({ type }) => type === "chat").length === 0) {
-    return <UnpausedInfoLabel>{!isMobile && <FormattedMessage id="chat.info" />}</UnpausedInfoLabel>;
+    return <NonChatLabel>{!isMobile && <FormattedMessage id="chat.info" />}</NonChatLabel>;
   }
 
   return (

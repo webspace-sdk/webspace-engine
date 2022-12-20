@@ -158,7 +158,7 @@ export default class FileWriteback {
     }
   }
 
-  async write(content, path = null) {
+  async write(content, path = null, progressCallback = () => {}) {
     if (!this.isOpen) return;
     if (!content || content.length === 0) return;
 
@@ -169,6 +169,8 @@ export default class FileWriteback {
     this.isWriting = true;
 
     try {
+      progressCallback(0);
+
       let writable;
 
       // TODO store additional handles for index
@@ -179,10 +181,13 @@ export default class FileWriteback {
         writable = await this.pageHandle.createWritable();
       }
 
+      progressCallback(0.05);
       await writable.write(content);
+      progressCallback(0.95);
       await writable.close();
     } finally {
       this.isWriting = false;
+      progressCallback(1);
     }
   }
 
@@ -245,14 +250,18 @@ export default class FileWriteback {
     }
   }
 
-  async uploadAsset(fileOrBlob, fileName) {
+  async uploadAsset(fileOrBlob, fileName, uploadProgressCallback = () => {}) {
     const assetsHandle = await this.dirHandle.getDirectoryHandle("assets", { create: true });
 
+    uploadProgressCallback(0);
     const contentType = fileOrBlob.type || "application/octet-stream";
     const fileHandle = await assetsHandle.getFileHandle(fileName, { create: true });
     const writable = await fileHandle.createWritable();
+    uploadProgressCallback(0.05);
     await writable.write(fileOrBlob);
+    uploadProgressCallback(0.85);
     await writable.close();
+    uploadProgressCallback(1);
 
     return { url: `assets/${encodeURIComponent(fileName)}`, contentType };
   }

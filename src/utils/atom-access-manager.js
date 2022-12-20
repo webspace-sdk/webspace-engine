@@ -413,16 +413,20 @@ export default class AtomAccessManager extends EventTarget {
 
     const promise = new Promise(res => this.remoteUploadResolvers.set(id, res));
 
+    this.dispatchEvent(new CustomEvent("upload-progress", { detail: { progress: 0 } }));
     window.APP.hubChannel.sendMessage({ id, contents, contentType, name }, "upload_asset_request", clientId);
 
     return await promise;
   }
 
-  async tryUploadAssetDirectly(fileOrBlob, fileName = null, doNotCache = false) {
+  async tryUploadAssetDirectly(fileOrBlob, fileName = null) {
     if (!(await this.ensureWritebackOpen())) return;
 
     fileName = fileName || this.getFilenameForFileOrBlob(fileOrBlob);
-    return await this.writeback.uploadAsset(fileOrBlob, fileName, doNotCache);
+
+    return await this.writeback.uploadAsset(fileOrBlob, fileName, progress => {
+      this.dispatchEvent(new CustomEvent("upload-progress", { detail: { progress } }));
+    });
   }
 
   getFilenameForFileOrBlob(fileOrBlob) {
@@ -597,6 +601,7 @@ export default class AtomAccessManager extends EventTarget {
       if (this.remoteUploadResolvers.has(id)) {
         this.remoteUploadResolvers.get(id)({ url, contentType });
         this.remoteUploadResolvers.delete(id);
+        this.dispatchEvent(new CustomEvent("upload-progress", { detail: { progress: 1 } }));
       }
     });
   }
