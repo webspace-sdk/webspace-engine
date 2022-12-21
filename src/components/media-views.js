@@ -803,14 +803,34 @@ AFRAME.registerComponent("media-video", {
         // We want to treat audio almost exactly like video, so we mock a video texture with an image property.
         texture = new THREE.Texture();
         texture.image = videoEl;
-        isReady = () => true;
+        isReady = () => videoEl.readyState > 0;
       } else {
         texture = new THREE.VideoTexture(videoEl);
-        isReady = () =>
-          (texture.image.videoHeight || texture.image.height) && (texture.image.videoWidth || texture.image.width);
-
         texture.minFilter = THREE.LinearFilter;
         texture.encoding = THREE.sRGBEncoding;
+        // Firefox seems to have video play (or decode) performance issue.
+        // Somehow setting RGBA format improves the performance very well.
+        // Some tickets have been opened for the performance issue but
+        // I don't think it will be fixed soon. So we set RGBA format for Firefox
+        // as workaround so far.
+        // See https://github.com/mozilla/hubs/issues/3470
+        if (/firefox/i.test(navigator.userAgent)) {
+          texture.format = THREE.RGBAFormat;
+        }
+        isReady = () => {
+          if (texture.hls && texture.hls.streamController.audioOnly) {
+            audioEl = videoEl;
+            const hls = texture.hls;
+            texture = new THREE.Texture();
+            texture.image = videoEl;
+            texture.hls = hls;
+            return true;
+          } else {
+            const ready =
+              (texture.image.videoHeight || texture.image.height) && (texture.image.videoWidth || texture.image.width);
+            return ready;
+          }
+        };
       }
 
       // Set src on video to begin loading.
