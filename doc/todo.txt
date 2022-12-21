@@ -11,6 +11,8 @@
     - close button in vox editor, drop left panel
     - undo/redo buttons
 - show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
+- check thumbnails
+- html formatter adding a bunch of whitespace
 
 ---
 - clean up per frame allocations

@@ -383,6 +383,7 @@ AFRAME.registerComponent("media-loader", {
           accessibleContentUrl = preflightResponse.accessibleContentUrl;
           accessibleContentAudioUrl = preflightResponse.accessibleContentAudioUrl;
         } catch (e) { // eslint-disable-line
+          console.error(e);
         }
       } else {
         contentType = guessContentType(src) || contentType;

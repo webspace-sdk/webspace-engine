@@ -222,16 +222,22 @@ const runYtdl = (function() {
         }
 
         const tmpVideo = document.createElement("video");
+        const tmpAudio = document.createElement("audio");
 
-        for (const format of ytdlInfo.formats) {
-          if (format.isDashMPD) continue; // Skip dash for now
-          if (!format.mimeType.startsWith("video/")) continue;
-          if (format.height > maxHeight) continue;
-          if (tmpVideo.canPlayType(format.mimeType) !== "probably") continue;
+        for (const hasAudio of [true, false]) {
+          for (const format of ytdlInfo.formats) {
+            if (format.isDashMPD) continue; // Skip dash for now
+            if (format.hasAudio !== hasAudio) continue; // Prefer non-split audio, due to safari bugs
+            if (!format.mimeType.startsWith("video/")) continue;
+            if (format.height > maxHeight) continue;
+            if (tmpVideo.canPlayType(format.mimeType) !== "probably") continue;
 
-          if (!chosenFormatVideo || chosenFormatVideo.height < format.height) {
-            chosenFormatVideo = format;
+            if (!chosenFormatVideo || chosenFormatVideo.height < format.height) {
+              chosenFormatVideo = format;
+            }
           }
+
+          if (chosenFormatVideo) break;
         }
 
         if (chosenFormatVideo) {
@@ -251,8 +257,9 @@ const runYtdl = (function() {
             let chosenFormatAudio = null;
 
             for (const format of ytdlInfo.formats) {
-              if (format.audioCodec !== "opus") continue;
               if (format.hasVideo) continue;
+              if (format.isDashMPD) continue; // Skip dash for now
+              if (tmpAudio.canPlayType(format.mimeType) !== "probably") continue;
 
               if (!chosenFormatAudio || chosenFormatAudio.audioSampleRate < format.audioSampleRate) {
                 chosenFormatAudio = format;
@@ -337,7 +344,7 @@ export const preflightUrl = async (parsedUrl, quality = "high", forceLink = fals
   let contentUrl = url;
   let contentType = metaJson.content_type;
   let accessibleContentUrl = contentUrl;
-  let accessibleContentAudioUrl = contentUrl;
+  let accessibleContentAudioUrl = null;
 
   if ((contentType && contentType.startsWith("text/html")) || forceLink) {
     if (!forceLink && (parsedUrl.origin.endsWith("youtube.com") || parsedUrl.origin.endsWith("youtu.be"))) {
@@ -346,13 +353,17 @@ export const preflightUrl = async (parsedUrl, quality = "high", forceLink = fals
 
         if (ytdlResult) {
           const vidCorsProxy = getCorsProxyUrl("video/mp4");
+
+          contentType = ytdlResult.contentType;
           contentUrl = ytdlResult.contentUrl.replaceAll(VIDEO_CORS_PROXY_PLACEHOLDER, vidCorsProxy);
           accessibleContentUrl = ytdlResult.accessibleContentUrl.replaceAll(VIDEO_CORS_PROXY_PLACEHOLDER, vidCorsProxy);
-          accessibleContentAudioUrl = ytdlResult.accessibleContentAudioUrl.replaceAll(
-            VIDEO_CORS_PROXY_PLACEHOLDER,
-            vidCorsProxy
-          );
-          contentType = ytdlResult.contentType;
+
+          if (ytdlResult.accessibleContentAudioUrl) {
+            accessibleContentAudioUrl = ytdlResult.accessibleContentAudioUrl.replaceAll(
+              VIDEO_CORS_PROXY_PLACEHOLDER,
+              vidCorsProxy
+            );
+          }
         } else {
           contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
         }
