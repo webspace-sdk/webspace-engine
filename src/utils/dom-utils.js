@@ -815,7 +815,8 @@ export function quillHtmlToWebspaceHtml(html) {
 }
 
 export const docToPrettifiedHtml = doc => {
-  return prettify(new XMLSerializer().serializeToString(doc));
+  const html = prettify(new XMLSerializer().serializeToString(doc));
+  return html.replaceAll("\n\n", "\n");
 };
 
 export const prettifyHtml = html => {
