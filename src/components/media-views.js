@@ -704,15 +704,24 @@ AFRAME.registerComponent("media-video", {
           this.updateHoverMenu();
         }
 
-        // TODO
-        // if (isIOS) {
-        //   const template = DOM_ROOT.getElementById("video-unmute");
-        //   this.el.appendChild(document.importNode(template.content, true));
-        //   this.el.setAttribute("position-at-border__unmute-ui", {
-        //     target: ".unmute-ui",
-        //     isFlat: true
-        //   });
-        // }
+        if (isIOS) {
+          // Special case for ios safari, where it requires a touchstart event before audio will work on
+          // eash subsequent video that is added.
+          const handler = () => {
+            // iOS initially plays the sound and *then* mutes it, and sometimes a second video playing
+            // can break all sound in the app. (Likely a Safari bug.) Adding a delay before the unmute
+            // occurs seems to help with reducing this.
+            if (!this.video || !this.videoMutedAt || performance.now() - this.videoMutedAt < 3000) {
+              document.addEventListener("touchstart", handler, { once: true });
+            } else {
+              if (this.video && this.video.muted) {
+                this.video.muted = false;
+              }
+            }
+          };
+
+          document.addEventListener("touchstart", handler, { once: true });
+        }
 
         this.videoTexture = texture;
         this.audioSource = audioSourceEl;
