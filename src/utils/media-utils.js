@@ -224,6 +224,7 @@ const runYtdl = (function() {
         const tmpVideo = document.createElement("video");
 
         for (const format of ytdlInfo.formats) {
+          if (format.isDashMPD) continue; // Skip dash for now
           if (!format.mimeType.startsWith("video/")) continue;
           if (format.height > maxHeight) continue;
           if (tmpVideo.canPlayType(format.mimeType) !== "probably") continue;
