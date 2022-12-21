@@ -13,6 +13,7 @@
 - show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
 
 ---
+- clean up per frame allocations
 - GIF not unpacking when using local filesystem
 - if space is held first, then object grabbed, enable snap
 - test iframe embedding

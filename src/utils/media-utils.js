@@ -1,5 +1,4 @@
 import { objectTypeForOriginAndContentType, ObjectContentOrigins } from "../object-types";
-import { hackyMobileSafariTest } from "./detect-touchscreen";
 import mediaHighlightFrag from "./media-highlight-frag.glsl";
 import { mapMaterials } from "./material-utils";
 import HubsTextureLoader from "../loaders/HubsTextureLoader";
@@ -25,6 +24,9 @@ import createEmojiRegex from "emoji-regex/text.js";
 
 import Linkify from "linkify-it";
 import tlds from "tlds";
+
+import { detect } from "detect-browser";
+const browser = detect();
 
 export const BasisLoadingManager = new THREE.LoadingManager();
 const VIDEO_CORS_PROXY_PLACEHOLDER = "__VIDEO_CORS_PROXY__"; // Used for YTDL cache
@@ -219,12 +221,12 @@ const runYtdl = (function() {
           default:
         }
 
-        const supportsWebM = !hackyMobileSafariTest();
+        const tmpVideo = document.createElement("video");
 
         for (const format of ytdlInfo.formats) {
-          if (format.container !== (supportsWebM ? "webm" : "mp4")) continue;
+          if (!format.mimeType.startsWith("video/")) continue;
           if (format.height > maxHeight) continue;
-          if (format.codecs.indexOf("vp9") === -1) continue; // TODO check codecs
+          if (tmpVideo.canPlayType(format.mimeType) !== "probably") continue;
 
           if (!chosenFormatVideo || chosenFormatVideo.height < format.height) {
             chosenFormatVideo = format;
