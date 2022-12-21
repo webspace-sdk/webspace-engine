@@ -540,7 +540,7 @@ export async function getHubMetaFromDOM() {
     name: document.title || null,
     url: document.location.origin + document.location.pathname,
     worker_url: getStringFromMetaTags("networking.worker_url", "https://webspace-worker.minddrop.workers.dev"),
-    cors_anywhere_url: getStringFromMetaTags("networking.cors_anywhere_url", ""),
+    cors_proxy_url: getStringFromMetaTags("networking.cors_proxy_url", "https://webspace-cors-proxy.deno.dev"),
     content_change_role: getRoleFromMetaTags("permissions.content_change_role", ROLES.MEMBER),
     save_changes_to_origin: getBooleanFromMetaTags("permissions.save_changes_to_origin", true),
     spawn_point: {

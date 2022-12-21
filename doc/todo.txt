@@ -1,5 +1,7 @@
 - deno cors proxying split + ytdl enable + move configs into index.html
+- video play button missing
 - index.html add networking config (TURN, CORSAnywhere)
+  - copy networking config into new hubs
 - add a ui toggle button in top left due to docks on side of screen
   - this can be back button out of editor too
 - duck should upload glb
@@ -8,7 +10,6 @@
   - editor UX
     - close button in vox editor, drop left panel
     - undo/redo buttons
-- video play button missing
 - show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
 
 ---
@@ -16,21 +17,17 @@
 - if space is held first, then object grabbed, enable snap
 - test iframe embedding
 - lazily allocate svox buffers
-- need to test flow when creating voxel without git permission
-- chat messages are piling up
-- drop non-used environment colors
+- presence messages are piling up
+- drop non-used environment colors + fix swatches to have colors actually used
 - show guides during XYZ move
 - hide other instances in voxel editor
 - Reset (G) is not going onto undo stack?
-- tippy root getting into dom
 - disable autocorrect on repo field in git dialog
-- 'others are here' being clipped on mobile
 - avoid adding viseme to outgoing streams that can't decode it
 - go fullscreen on android when tapping in
 - preview color wheel on swatch pages
 - make labels + banners start with a larger scale
 - disable LOD on flat + plains
-- pasting text not working, and causing cursor to act funny (not hoverable)
 - smooth voxel mesher is randomized
 - lock is re-generating smooth mesh, not strictly necessary
 - get rid of a-assets, see how mozilla does it
@@ -50,16 +47,13 @@
 - review all deps
 - consolidate channel classes
 - make voxmoji float
-- browser compat, show message if trying to edit file:// in non-chrome
 - allow networking settings to be changed via qs
 - remove all unused translations
 - can't move when pinching on text field on mobile
-- deal with filtering networking based on roles + hub setting for allowing edits
 - add service to register spaces
 - cull permissions (in atom manager)
 - spawn around origin
-- don't show unload nag if writeback isn't enabled
-- disable other users from editing
+- figure out snap position + scale for screen share
 - need to figure out stack axis. it is stored in the DOM, but also can be in the file.
   - suggestion: take it out of metadata, and during writeback look it up on the media loaders
                 when spawning, initialize the media loader with what's in the file
@@ -87,6 +81,4 @@ video playback stopping when tabbing away
 messing around with cursor, video, and console can cause 3d cursor to disappear (but highlight remain, so show 3d cursor prob false)
 video tick should keep running when tabbed away
 video reset to beginning when anotehr person joins (delay video ownership until joins?)
-gest HLS and dash
-
-
+test HLS and dash

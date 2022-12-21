@@ -27,6 +27,7 @@ import Linkify from "linkify-it";
 import tlds from "tlds";
 
 export const BasisLoadingManager = new THREE.LoadingManager();
+const VIDEO_CORS_PROXY_PLACEHOLDER = "__VIDEO_CORS_PROXY__"; // Used for YTDL cache
 
 BasisLoadingManager.setURLModifier(url => {
   if (url === "basis_transcoder.js") return basisTranscoderUrl;
@@ -192,7 +193,7 @@ const runYtdl = (function() {
 
       try {
         ytdl = window.require("ytdl-core-browser")({
-          proxyUrl: getCorsProxyUrl() + "/"
+          proxyUrl: getCorsProxyUrl("video/mp4") + "/"
         });
       } catch (e) {
         console.log("error loading ytdl", e);
@@ -270,14 +271,14 @@ const runYtdl = (function() {
 
               resolvedYtdl = true;
               contentUrl = chosenFormatVideo.url;
-              accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
+              accessibleContentUrl = `${VIDEO_CORS_PROXY_PLACEHOLDER}/${contentUrl}`;
               contentType = chosenFormatVideo.mimeType.split(";")[0];
-              accessibleContentAudioUrl = `${getCorsProxyUrl()}/${chosenFormatAudio.url}`;
+              accessibleContentAudioUrl = `${VIDEO_CORS_PROXY_PLACEHOLDER}/${chosenFormatAudio.url}`;
             }
           } else {
             resolvedYtdl = true;
             contentUrl = chosenFormatVideo.url;
-            accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
+            accessibleContentUrl = `${VIDEO_CORS_PROXY_PLACEHOLDER}/${contentUrl}`;
             contentType = chosenFormatVideo.mimeType.split(";")[0];
           }
         }
@@ -341,16 +342,20 @@ export const preflightUrl = async (parsedUrl, quality = "high", forceLink = fals
         const ytdlResult = await runYtdl(url, quality);
 
         if (ytdlResult) {
-          contentUrl = ytdlResult.contentUrl;
-          accessibleContentUrl = ytdlResult.accessibleContentUrl;
-          accessibleContentAudioUrl = ytdlResult.accessibleContentAudioUrl;
+          const vidCorsProxy = getCorsProxyUrl("video/mp4");
+          contentUrl = ytdlResult.contentUrl.replaceAll(VIDEO_CORS_PROXY_PLACEHOLDER, vidCorsProxy);
+          accessibleContentUrl = ytdlResult.accessibleContentUrl.replaceAll(VIDEO_CORS_PROXY_PLACEHOLDER, vidCorsProxy);
+          accessibleContentAudioUrl = ytdlResult.accessibleContentAudioUrl.replaceAll(
+            VIDEO_CORS_PROXY_PLACEHOLDER,
+            vidCorsProxy
+          );
           contentType = ytdlResult.contentType;
         } else {
           contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
         }
       } else {
         console.warn(
-          'To play YouTube videos, you need to configure a self hosted CORS Anywhere server by adding a meta tag like <met a name="webspace.networking.cors_anywhere_url" content="https://mycorsanywhere.com">. See: https://github.com/Rob--W/cors-anywhere'
+          'To play YouTube videos, you need to configure a self hosted CORS Proxy server by adding a meta tag like <met a name="webspace.networking.cors_proxy_url" content="https://mycorsanywhere.com">. See: https://github.com/Rob--W/cors-anywhere or https://github.com/webspace-sdk/webspace-cors-proxy-deno'
         );
 
         contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
@@ -360,7 +365,7 @@ export const preflightUrl = async (parsedUrl, quality = "high", forceLink = fals
       contentUrl = accessibleContentUrl = `${window.APP.workerUrl}/thumbnail/${contentUrl}`;
     }
   } else if ((!contentType || isAllowedCorsProxyContentType(contentType)) && !getAllowed) {
-    accessibleContentUrl = `${getCorsProxyUrl()}/${contentUrl}`;
+    accessibleContentUrl = `${getCorsProxyUrl(contentType)}/${contentUrl}`;
   }
 
   return { contentType, contentUrl, accessibleContentUrl, accessibleContentAudioUrl };

@@ -324,8 +324,8 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
       // Hacky for now, put the worker URL into a global
       window.APP.workerUrl = hub.worker_url;
 
-      if (hub.cors_anywhere_url) {
-        window.APP.corsAnywhereUrl = hub.cors_anywhere_url;
+      if (hub.cors_proxy_url) {
+        window.APP.corsProxyUrl = hub.cors_proxy_url;
       }
 
       scene.addEventListener("componentinitialized", handle);

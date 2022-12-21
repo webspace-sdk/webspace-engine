@@ -1,4 +1,3 @@
-import configs from "./configs";
 import { getBlobForEmojiImage } from "./emojis";
 import { VOX_CONTENT_TYPE } from "./vox-utils";
 
@@ -19,24 +18,28 @@ const commonKnownContentTypes = {
   svox: VOX_CONTENT_TYPE
 };
 
-export const getCorsProxyUrl = () => {
-  return window.APP.corsAnywhereUrl || window.APP.workerUrl;
+export const isWorkerCorsProxyableContentType = contentType =>
+  !contentType.startsWith("video/") &&
+  contentType.indexOf(".m3u8") === -1 &&
+  contentType.indexOf(".mpegurl") === -1 &&
+  contentType !== "application/dash";
+
+export const getCorsProxyUrl = (contentType = null) => {
+  if (contentType && isWorkerCorsProxyableContentType(contentType)) {
+    return window.APP.workerUrl;
+  }
+
+  return window.APP.corsProxyUrl || window.APP.workerUrl;
 };
 
 export const isAllowedCorsProxyContentType = contentType => {
-  if (window.APP.corsAnywhereUrl) return true; // If a CORS anywhere endpoint has been configured, use it
-
-  return (
-    !contentType.startsWith("video/") &&
-    contentType.indexOf(".m3u8") === -1 &&
-    contentType.indexOf(".mpegurl") === -1 &&
-    contentType !== "application/dash"
-  );
+  if (window.APP.corsProxyUrl) return true; // If a CORS anywhere endpoint has been configured, use it
+  return isWorkerCorsProxyableContentType(contentType);
 };
 
 // Synchronous version that doesn't actually use OPTIONS to determine if cors proxying is necessary
 // Use rarely to minimize cors proxying.
-export const proxiedUrlForSync = url => {
+export const proxiedUrlForSync = (url, contentType = null) => {
   if (!(url.startsWith("http:") || url.startsWith("https:"))) return url;
 
   // Skip known domains that do not require CORS proxying.
@@ -47,29 +50,32 @@ export const proxiedUrlForSync = url => {
     // Ignore
   }
 
-  return `${getCorsProxyUrl()}/${url}`;
+  return `${getCorsProxyUrl(contentType)}/${url}`;
 };
 
 export const proxiedUrlFor = async url => {
   if (!(url.startsWith("http:") || url.startsWith("https:"))) return url;
+
+  let contentType;
 
   // Skip known domains that do not require CORS proxying.
   try {
     const parsedUrl = new URL(url);
     if (document.location.origin === parsedUrl.origin) return url; // Same origin
 
-    const { content_type: contentType, get_allowed: getAllowed } = await (await fetch(
-      `${window.APP.workerUrl}/meta/${parsedUrl.toString()}`
-    )).json();
+    const meta = await (await fetch(`${window.APP.workerUrl}/meta/${parsedUrl.toString()}`)).json();
 
-    if (isAllowedCorsProxyContentType(contentType) && getAllowed) {
+    contentType = meta.contentType;
+    const getAllowed = meta.getAllowed;
+
+    if (getAllowed) {
       return url;
     }
   } catch (e) {
     // Ignore
   }
 
-  return `${getCorsProxyUrl()}/${url}`;
+  return `${getCorsProxyUrl(contentType)}/${url}`;
 };
 
 export function getAbsoluteUrl(baseUrl, relativeUrl) {
@@ -86,9 +92,9 @@ export const getCustomGLTFParserURLResolver = gltfUrl => url => {
   if (/^data:.*,.*$/i.test(url)) return url;
   if (/^blob:.*$/i.test(url)) return url;
 
-  if (configs.CORS_PROXY_SERVER) {
+  if (getCorsProxyUrl()) {
     // For absolute paths with a CORS proxied gltf URL, re-write the url properly to be proxied
-    const corsProxyPrefix = `https://${configs.CORS_PROXY_SERVER}/`;
+    const corsProxyPrefix = `https://${getCorsProxyUrl()}/`;
 
     if (gltfUrl.startsWith(corsProxyPrefix)) {
       const originalUrl = decodeURIComponent(gltfUrl.substring(corsProxyPrefix.length));

@@ -840,7 +840,7 @@ AFRAME.registerComponent("media-video", {
 
         if (isAllowedCorsProxyContentType(contentType)) {
           dashPlayer.extend("RequestModifier", function() {
-            return { modifyRequestHeader: xhr => xhr, modifyRequestURL: proxiedUrlForSync };
+            return { modifyRequestHeader: xhr => xhr, modifyRequestURL: () => proxiedUrlForSync(contentType) };
           });
         }
 
