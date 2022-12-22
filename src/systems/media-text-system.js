@@ -22,32 +22,6 @@ export class MediaTextSystem extends EventTarget {
 
     this.networkIdToComponent = new Map();
     this.maxIndex = -1;
-
-    setInterval(() => {
-      // No need to update media text content when not rendering as a page
-      if (!window.APP.showAsPage) return;
-
-      // When scene is off (since we're paused) we need to keep updating the text panels
-      if (sceneEl.is("off") || !sceneEl.object3D.isPlaying) {
-        this.beginUpdatingSelfAsync();
-      }
-    }, 1000);
-  }
-
-  beginUpdatingSelfAsync() {
-    if (this.selfUpdateInterval) return;
-
-    // Update at 60 hz
-    this.selfUpdateInterval = setInterval(() => {
-      this.applyPendingRingState();
-    }, 1000.0 / 60.0);
-  }
-
-  stopUpdatingSelfAsync() {
-    if (this.selfUpdateInterval) {
-      clearInterval(this.selfUpdateInterval);
-      this.selfUpdateInterval = null;
-    }
   }
 
   registerMediaTextComponent(component) {
@@ -310,7 +284,6 @@ export class MediaTextSystem extends EventTarget {
   }
 
   tick() {
-    this.stopUpdatingSelfAsync();
     this.applyPendingRingState();
   }
 

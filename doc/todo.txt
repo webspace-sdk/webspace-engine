@@ -1,3 +1,12 @@
+-- page mode
+can't toggle ui
+moving cursor to another window causes it to disappear
+can't interact with top menu
+should hide emoji button
+UI should show by default again, except on mobile
+try skipping loader
+--
+
 - add a ui toggle button in top left due to docks on side of screen
   - this can be back button out of editor too
 - vox

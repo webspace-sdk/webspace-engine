@@ -133,11 +133,55 @@ AFRAME.registerSystem("hubs-systems", {
     this.directorSystem = new DirectorSystem();
     this.undoSystem = new UndoSystem();
 
+    this.firstTickTime = null;
+    this.selfUpdateInterval = null;
+
+    // Some systems should keep running even when the scene is paused.
+    setInterval(() => {
+      if (this.el.is("off") || !this.el.object3D.isPlaying) {
+        this.beginUpdatingSelfAsync();
+      }
+    }, 1000);
+
     window.SYSTEMS = this;
   },
 
+  beginUpdatingSelfAsync() {
+    if (this.selfUpdateInterval) return;
+
+    let lastTime = performance.now();
+
+    // Update at 60 hz
+    this.selfUpdateInterval = setInterval(() => {
+      const now = performance.now();
+      const dt = now - lastTime;
+      const t = now - this.firstTickTime;
+      lastTime = now;
+
+      this.domSerializeSystem.tick();
+      this.soundEffectsSystem.tick();
+      this.mediaTextSystem.tick();
+      this.uiAnimationSystem.tick(t, dt);
+      this.avatarSystem.tick(t, dt); // For UI animations
+      this.keyboardTipSystem.tick();
+    }, 1000.0 / 60.0);
+  },
+
+  stopUpdatingSelfAsync() {
+    if (this.selfUpdateInterval) {
+      clearInterval(this.selfUpdateInterval);
+      this.selfUpdateInterval = null;
+    }
+  },
+
   tick(t, dt) {
+    if (this.firstTickTime === null) {
+      this.firstTickTime = performance.now();
+    }
+
     if (!this.DOMContentDidLoad) return;
+    this.stopUpdatingSelfAsync();
+
     const systems = AFRAME.scenes[0].systems;
     systems.userinput.tick2();
     systems.interaction.tick2();

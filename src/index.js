@@ -535,6 +535,7 @@ function setupGameEnginePausing(scene) {
   if (window.APP.showAsPage) {
     apply(true);
     UI.classList.remove("paused");
+    UI.classList.add("as-page");
     return;
   }
 
