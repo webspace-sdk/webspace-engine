@@ -27,7 +27,9 @@ export class UIAnimationSystem {
     this.sceneEl = sceneEl;
 
     this.lastTickT = 0;
-    this.panelExpansionState = PANEL_EXPANSION_STATES.COLLAPSING;
+
+    const startCollapsed = isMobile;
+    this.panelExpansionState = startCollapsed ? PANEL_EXPANSION_STATES.COLLAPSING : PANEL_EXPANSION_STATES.EXPANDING;
 
     this.sceneLeft = -1;
     this.sceneRight = -1;
@@ -39,7 +41,7 @@ export class UIAnimationSystem {
 
     // Hacky, need to apply continuously until react renders DOM.
     const initialUIApplyInterval = setInterval(() => {
-      if (!this.applyUI(0, 0)) return;
+      if (!this.applyUI(startCollapsed ? 0 : this.targetSceneLeft, startCollapsed ? 0 : this.targetSceneRight)) return;
       clearInterval(initialUIApplyInterval);
     }, 100);
 

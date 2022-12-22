@@ -11,7 +11,7 @@ import ProfileEditorPopup from "./profile-editor-popup";
 import AvatarEditorPopup from "./avatar-editor-popup";
 import { BigIconButton } from "./icon-button";
 import Tooltip from "./tooltip";
-import { cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
+import { cancelEventIfFocusedWithin, toggleFocus, PROJECTION_TYPES } from "../utils/dom-utils";
 import { useClientPresenceState, useSceneMuteState } from "../utils/shared-effects";
 import { usePopper } from "react-popper";
 import { useSingleton } from "@tippyjs/react";
@@ -112,7 +112,7 @@ const useMicDevices = (unmuted, setMicDevices) => {
   );
 };
 
-const SelfPanel = ({ scene, sessionId, onAvatarColorChangeComplete }) => {
+const SelfPanel = ({ scene, sessionId, onAvatarColorChangeComplete, projectionType }) => {
   const [tipSource, tipTarget] = useSingleton();
   const [deviceSelectorReferenceElement, setDeviceSelectorReferenceElement] = useState(null);
   const [deviceSelectorElement, setDeviceSelectorElement] = useState(null);
@@ -126,6 +126,9 @@ const SelfPanel = ({ scene, sessionId, onAvatarColorChangeComplete }) => {
   const [micDevices, setMicDevices] = useState([]);
   const [unmuted, setUnmuted] = useState(false);
   const [presenceState, setPresenceState] = useState({});
+
+  const isSpatial = projectionType === PROJECTION_TYPES.SPATIAL;
+  const showDeviceControls = isSpatial;
 
   useClientPresenceState(sessionId, scene, presenceState, setPresenceState);
 
@@ -238,48 +241,52 @@ const SelfPanel = ({ scene, sessionId, onAvatarColorChangeComplete }) => {
         {displayName && <DisplayName>{displayName}</DisplayName>}
         {identityName && <IdentityName>{identityName}</IdentityName>}
       </SelfName>
-      <DeviceControls>
-        <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
-          <BigIconButton
-            style={{ margin: 0 }}
-            iconSrc={verticalDotsIcon}
-            onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
-            onClick={() => {
-              updateDeviceSelectorPopper();
-              toggleFocus(deviceSelectorElement);
-            }}
-            ref={setDeviceSelectorReferenceElement}
-          />
-        </Tooltip>
-        <Tooltip
-          content={messages[unmuted ? "self.mute-tip" : "self.unmute-tip"]}
-          placement="top"
-          key="select"
-          singleton={tipTarget}
+      {showDeviceControls && (
+        <DeviceControls>
+          <Tooltip content={messages["self.select-tip"]} placement="top" key="mute" singleton={tipTarget}>
+            <BigIconButton
+              style={{ margin: 0 }}
+              iconSrc={verticalDotsIcon}
+              onMouseDown={e => cancelEventIfFocusedWithin(e, deviceSelectorElement)}
+              onClick={() => {
+                updateDeviceSelectorPopper();
+                toggleFocus(deviceSelectorElement);
+              }}
+              ref={setDeviceSelectorReferenceElement}
+            />
+          </Tooltip>
+          <Tooltip
+            content={messages[unmuted ? "self.mute-tip" : "self.unmute-tip"]}
+            placement="top"
+            key="select"
+            singleton={tipTarget}
+          >
+            <BigIconButton
+              style={{ margin: 0 }}
+              iconSrc={unmuted ? unmutedIcon : mutedIcon}
+              onClick={() => {
+                scene.emit("action_mute");
+                SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TOGGLE_MIC);
+              }}
+            />
+          </Tooltip>
+        </DeviceControls>
+      )}
+      {showDeviceControls && (
+        <DeviceSelectorPopup
+          scene={scene}
+          setPopperElement={setDeviceSelectorElement}
+          styles={deviceSelectorStyles}
+          attributes={deviceSelectorAttributes}
+          micDevices={micDevices}
         >
-          <BigIconButton
-            style={{ margin: 0 }}
-            iconSrc={unmuted ? unmutedIcon : mutedIcon}
-            onClick={() => {
-              scene.emit("action_mute");
-              SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_TOGGLE_MIC);
-            }}
+          <PopupPanelMenuArrow
+            ref={setDeviceSelectorArrowElement}
+            style={deviceSelectorStyles.arrow}
+            className="popper-arrow"
           />
-        </Tooltip>
-      </DeviceControls>
-      <DeviceSelectorPopup
-        scene={scene}
-        setPopperElement={setDeviceSelectorElement}
-        styles={deviceSelectorStyles}
-        attributes={deviceSelectorAttributes}
-        micDevices={micDevices}
-      >
-        <PopupPanelMenuArrow
-          ref={setDeviceSelectorArrowElement}
-          style={deviceSelectorStyles.arrow}
-          className="popper-arrow"
-        />
-      </DeviceSelectorPopup>
+        </DeviceSelectorPopup>
+      )}
       <AvatarEditorPopup
         scene={scene}
         setPopperElement={setAvatarEditorElement}
@@ -317,7 +324,8 @@ const SelfPanel = ({ scene, sessionId, onAvatarColorChangeComplete }) => {
 SelfPanel.propTypes = {
   scene: PropTypes.object,
   sessionId: PropTypes.string,
-  onAvatarColorChangeComplete: PropTypes.func
+  onAvatarColorChangeComplete: PropTypes.func,
+  projectionType: PropTypes.number
 };
 
 export { SelfPanel as default };

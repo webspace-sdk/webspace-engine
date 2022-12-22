@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import RenamePopup from "./rename-popup";
 import AtomTrail from "./atom-trail";
 import styled from "styled-components";
-import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
+import { cancelEventIfFocusedWithin, PROJECTION_TYPES } from "../utils/dom-utils";
 import HubContextMenu from "./hub-context-menu";
 import CreateSelectPopup from "./create-select-popup";
 import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi";
@@ -272,7 +272,7 @@ const ToggleFloorButton = forwardRef(() => {
 ToggleFloorButton.displayName = "ToggleFloorButton";
 
 function CanvasTop(props) {
-  const { hubCan, voxCan, worldTree, scene, spaceCan, createSelectPopupRef } = props;
+  const { hubCan, voxCan, worldTree, scene, spaceCan, createSelectPopupRef, projectionType } = props;
   const hubId = props.hub?.hub_id;
   const saveChangesToOrigin = props.hub?.save_changes_to_origin;
   const contentChangeRole = props.hub?.content_change_role;
@@ -493,6 +493,7 @@ function CanvasTop(props) {
     !atomAccessManager.hasAnotherWriterInPresence();
 
   const showInstallButton = !showSaveButton && pwaAvailable;
+  const isSpatial = projectionType === PROJECTION_TYPES.SPATIAL;
 
   if (!isInspecting && !isMobile) {
     cornerButtons = (
@@ -511,13 +512,13 @@ function CanvasTop(props) {
             <FormattedMessage id="writeback.save-changes" />
           </CornerButton>
         )}
-        {
+        {isSpatial && (
           <EnvironmentSettingsButton
             ref={environmentSettingsButtonRef}
             onMouseDown={e => cancelEventIfFocusedWithin(e, environmentSettingsPopupElement)}
             onClick={() => showEnvironmentSettingsPopup(environmentSettingsButtonRef)}
           />
-        }
+        )}
         {hubCan &&
           hubCan("update_hub_roles", hubId) && (
             <HubPermissionsButton
@@ -526,26 +527,29 @@ function CanvasTop(props) {
               onClick={() => showHubPermissionsPopup(hubPermissionsButtonRef)}
             />
           )}
-        {canSpawnAndMoveMedia && (
-          <HubCreateButton
-            ref={hubCreateButtonRef}
-            onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
+        {canSpawnAndMoveMedia &&
+          isSpatial && (
+            <HubCreateButton
+              ref={hubCreateButtonRef}
+              onMouseDown={e => cancelEventIfFocusedWithin(e, createSelectPopupElement)}
+              onClick={() => {
+                store.handleActivityFlag("createMenu");
+                showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
+              }}
+            />
+          )}
+        {isSpatial && (
+          <HubContextButton
+            ref={hubContextButtonRef}
+            onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
             onClick={() => {
-              store.handleActivityFlag("createMenu");
-              showCreateSelectPopup(hubCreateButtonRef, "bottom-end");
+              showHubContextMenuPopup(hubId, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
+                hideRename: true,
+                isCurrentWorld: hubId === atomAccessManager.currentHubId
+              });
             }}
           />
         )}
-        <HubContextButton
-          ref={hubContextButtonRef}
-          onMouseDown={e => cancelEventIfFocusedWithin(e, hubContextMenuElement)}
-          onClick={() => {
-            showHubContextMenuPopup(hubId, hubMetadata, hubContextButtonRef, "bottom-end", [0, 8], {
-              hideRename: true,
-              isCurrentWorld: hubId === atomAccessManager.currentHubId
-            });
-          }}
-        />
       </CornerButtons>
     );
   } else {
@@ -642,7 +646,8 @@ CanvasTop.propTypes = {
   memberships: PropTypes.array,
   hubSettings: PropTypes.array,
   subscriptions: PropTypes.object,
-  createSelectPopupRef: PropTypes.object
+  createSelectPopupRef: PropTypes.object,
+  projectionType: PropTypes.number
 };
 
 export default CanvasTop;

@@ -119,7 +119,7 @@ import "./components/shape-helper";
 
 import { SHADOW_DOM_STYLES } from "./styles";
 import AFRAME_DOM from "./aframe-dom";
-import { getIsWindowAtScreenEdges, isInEditableField } from "./utils/dom-utils";
+import { getIsWindowAtScreenEdges, isInEditableField, getProjectionType, PROJECTION_TYPES } from "./utils/dom-utils";
 import { patchWebGLRenderingContext, isSoftwareRenderer } from "./utils/webgl";
 import patchThreeNoProgramDispose from "./utils/threejs-avoid-disposing-programs";
 import "./utils/threejs-video-texture-pause";
@@ -473,7 +473,7 @@ function addGlobalEventListeners(scene, entryManager) {
 }
 
 // Attempts to pause a-frame scene and rendering if tabbed away or maximized and window is blurred
-function setupGameEnginePausing(scene) {
+function setupGameEnginePausing(scene, projectionType) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
   let disableAmbienceTimeout = null;
@@ -531,11 +531,10 @@ function setupGameEnginePausing(scene) {
     }
   };
 
-  // Special case - pause the whole thing if we're just rendering a page.
-  if (window.APP.showAsPage) {
+  // Special case - pause the whole thing if we're just rendering a flat page.
+  if (projectionType === PROJECTION_TYPES.FLAT) {
     apply(true);
     UI.classList.remove("paused");
-    UI.classList.add("as-page");
     return;
   }
 
@@ -892,6 +891,33 @@ async function patchUpManuallyAddedHtmlTags() {
   }
 }
 
+async function setupFlatProjection(scene) {
+  UI.classList.add("flat");
+
+  if (!scene.is("document-imported")) {
+    await new Promise(resolve => {
+      const handler = () => {
+        if (!scene.is("document-imported")) return;
+        scene.removeEventListener("stateadded", handler);
+        resolve();
+      };
+
+      scene.addEventListener("stateadded", handler);
+    });
+  }
+
+  const mediaTextEl = DOM_ROOT.querySelector("[media-text]");
+
+  if (!mediaTextEl) {
+    // TODO create
+  }
+
+  const mediaText = mediaTextEl.components["media-text"];
+  await mediaText.setMediaPresence(MEDIA_PRESENCE.PRESENT);
+  mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
+  SYSTEMS.mediaTextSystem.getQuill(mediaText).container.parentElement.classList.remove("fast-show-when-popped");
+}
+
 async function start() {
   if (!(await checkPrerequisites())) return;
   addMissingDefaultHtml();
@@ -1061,7 +1087,10 @@ async function start() {
     let rightDelta = 0;
     let bottomDelta = 0;
 
-    const triggerSizePx = DOM_ROOT.querySelector("#left-expand-trigger").offsetWidth;
+    const leftExpandTrigger = DOM_ROOT.querySelector("#left-expand-trigger");
+    if (!leftExpandTrigger) return;
+
+    const triggerSizePx = leftExpandTrigger.offsetWidth;
     const interaction = AFRAME.scenes[0].systems.interaction;
 
     // Ignore when holding.
@@ -1164,9 +1193,11 @@ async function start() {
     scene.addEventListener("loaded", () => initPhysicsThreeAndCursor(scene), { once: true });
   }
 
+  const projectionType = getProjectionType();
+
   addGlobalEventListeners(scene, entryManager, atomAccessManager);
   setupSidePanelLayout(scene);
-  setupGameEnginePausing(scene);
+  setupGameEnginePausing(scene, projectionType);
   await emojiLoadPromise;
 
   const sessionId = nodeCrypto.randomBytes(20).toString("hex");
@@ -1219,14 +1250,11 @@ async function start() {
   await joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
 
   entryManager.enterScene(false).then(() => {
-    remountUIRoot({ isDoneLoading: true });
+    remountUIRoot({ isDoneLoading: true, projectionType });
   });
 
-  if (window.APP.showAsPage) {
-    const mediaText = DOM_ROOT.querySelector("[media-text]").components["media-text"];
-    await mediaText.setMediaPresence(MEDIA_PRESENCE.PRESENT);
-    mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
-    SYSTEMS.mediaTextSystem.getQuill(mediaText).container.parentElement.classList.remove("fast-show-when-popped");
+  if (projectionType === PROJECTION_TYPES.FLAT) {
+    await setupFlatProjection(scene);
   }
 }
 

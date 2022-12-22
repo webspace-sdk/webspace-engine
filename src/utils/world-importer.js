@@ -123,7 +123,9 @@ export default class WorldImporter {
   }
 
   async importWebspacesDocument(doc, replaceExisting = true, removeEntitiesNotInTemplate = false) {
-    const { autoQualitySystem } = AFRAME.scenes[0].systems["hubs-systems"];
+    const scene = AFRAME.scenes[0];
+    const { autoQualitySystem } = scene.systems["hubs-systems"];
+
     autoQualitySystem.stopTracking();
 
     if (replaceExisting) {

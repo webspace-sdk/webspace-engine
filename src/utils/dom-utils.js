@@ -17,6 +17,22 @@ import Color from "color";
 export const HAS_ANNOYING_CURSOR_LOCK_POPUP = browser && (browser.name === "firefox" || browser.name === "safari");
 export const META_TAG_PREFIX = "webspace";
 
+export const PROJECTION_TYPES = {
+  FLAT: 1,
+  SPATIAL: 2
+};
+
+let projectionType;
+
+export const getProjectionType = () => {
+  if (!projectionType) {
+    const el = document.head.querySelector(`meta[name='${META_TAG_PREFIX}.projection.type']`);
+    projectionType = el && el.getAttribute("content") === "flat" ? PROJECTION_TYPES.FLAT : PROJECTION_TYPES.SPATIAL;
+  }
+
+  return projectionType;
+};
+
 const COLOR_BLACK = { r: 0, g: 0, b: 0 };
 const META_TAG_TERRAIN_TYPE_NAMES = ["unknown", "islands", "hills", "plains", "flat"];
 

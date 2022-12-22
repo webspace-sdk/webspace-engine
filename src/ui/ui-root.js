@@ -15,7 +15,7 @@ import ChatLog from "./chat-log";
 import { WrappedIntlProvider } from "./wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import KeyTips from "./key-tips";
-import { isInEditableField } from "../utils/dom-utils";
+import { isInEditableField, PROJECTION_TYPES } from "../utils/dom-utils";
 import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../utils/qs_truthy";
@@ -68,7 +68,7 @@ const Wrap = styled.div`
     pointer-events: auto;
   }
 
-  .as-page & {
+  .flat & {
     pointer-events: auto;
   }
 
@@ -313,9 +313,21 @@ const DeviceStatuses = styled.div`
 `;
 
 function UIRoot(props) {
-  const { scene, treeManager, hub, unavailableReason, voxTree, sceneTree, sessionId, hide, isDoneLoading } = props;
+  const {
+    scene,
+    treeManager,
+    hub,
+    unavailableReason,
+    voxTree,
+    sceneTree,
+    sessionId,
+    hide,
+    isDoneLoading,
+    projectionType
+  } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
+  const isSpatialProjection = projectionType === PROJECTION_TYPES.SPATIAL;
 
   const worldTree = treeManager && treeManager.worldNav;
   const { spaceMetadata, store } = window.APP;
@@ -404,6 +416,7 @@ function UIRoot(props) {
               {...props}
               worldTree={worldTree}
               worldTreeData={worldTreeData}
+              projectionType={projectionType}
               environmentSettingsButtonRef={environmentSettingsButtonRef}
               createSelectPopupRef={createSelectPopupRef}
             />
@@ -454,16 +467,18 @@ function UIRoot(props) {
           )}
         </Root>
         <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
-        {!isMobile && (
-          <>
-            <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
-            <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
-            <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
-          </>
-        )}
+        {!isMobile &&
+          isSpatialProjection && (
+            <>
+              <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
+              <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
+              <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
+            </>
+          )}
         <SelfPanel
           scene={scene}
           sessionId={sessionId}
+          projectionType={projectionType}
           onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
             const { store } = window.APP;
             const { profile } = store.state;
@@ -506,7 +521,8 @@ UIRoot.propTypes = {
   sceneTree: PropTypes.object,
   sessionId: PropTypes.string,
   hide: PropTypes.bool,
-  isDoneLoading: PropTypes.bool
+  isDoneLoading: PropTypes.bool,
+  projectionType: PropTypes.number
 };
 
 export default UIRoot;

@@ -1,10 +1,11 @@
 -- page mode
-can't toggle ui
-moving cursor to another window causes it to disappear
-can't interact with top menu
+bootstrap entity if missing
 should hide emoji button
 UI should show by default again, except on mobile
 try skipping loader
+right panel needs to have no blaster or toggle
+create button should just be "Create"
+"Worlds & Pages" header 
 --
 
 - add a ui toggle button in top left due to docks on side of screen
