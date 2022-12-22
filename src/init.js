@@ -283,7 +283,10 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
 
         new WorldImporter().importHtmlToCurrentWorld(initialWorldHTML, true, true).then(() => {
           scene.systems.networked.play();
+          scene.addState("document-imported");
         });
+      } else {
+        scene.addState("document-imported");
       }
 
       SYSTEMS.terrainSystem.startAutoLoadingChunks();
