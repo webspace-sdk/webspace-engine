@@ -325,6 +325,14 @@ a-scene.visible {
   align-items: center;
 }
 
+#webspace-ui.as-page .quill-editor-wrap {
+  pointer-events: none;
+}
+
+#webspace-ui.as-page .ql-container {
+  pointer-events: auto;
+}
+
 .a-enter-vr {
   display: none;
 }

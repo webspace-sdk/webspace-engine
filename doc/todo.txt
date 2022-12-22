@@ -15,7 +15,8 @@ try skipping loader
     - undo/redo buttons
 
 ---
-- quill toolbar not hiding when selection/cursor changes
+- emoji insertion point is wrong in quill if you just change the cursor position
+  - related: quill toolbar not hiding when selection/cursor changes
 - need to shut down audio worklet job and lip sync job when paused
 - index.html add networking config for TURN
 - copy networking config into new hubs

@@ -68,6 +68,10 @@ const Wrap = styled.div`
     pointer-events: auto;
   }
 
+  .as-page & {
+    pointer-events: auto;
+  }
+
   .paused & {
     pointer-events: auto;
     background-color: rgba(0, 0, 0, 0.6);
