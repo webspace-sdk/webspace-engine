@@ -24,6 +24,9 @@ export class MediaTextSystem extends EventTarget {
     this.maxIndex = -1;
 
     setInterval(() => {
+      // No need to update media text content when not rendering as a page
+      if (!window.APP.showAsPage) return;
+
       // When scene is off (since we're paused) we need to keep updating the text panels
       if (sceneEl.is("off") || !sceneEl.object3D.isPlaying) {
         this.beginUpdatingSelfAsync();

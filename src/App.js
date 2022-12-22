@@ -8,6 +8,8 @@ export class App {
     this.store = new Store();
     this.mediaSearchStore = new MediaSearchStore();
 
+    this.showAsPage = true;
+
     // Detail levels
     // 0 - Full
     // 1 - No reflections, simple sky, lower shadow map res

@@ -126,7 +126,12 @@ import "./utils/threejs-video-texture-pause";
 import nextTick from "./utils/next-tick";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./systems/sound-effects-system";
 import duckySvox from "!!raw-loader!./assets/models/ducky.svox";
-import { addMediaInFrontOfPlayerIfPermitted, hasActiveScreenShare } from "./utils/media-utils";
+import {
+  addMediaInFrontOfPlayerIfPermitted,
+  hasActiveScreenShare,
+  MEDIA_PRESENCE,
+  MEDIA_INTERACTION_TYPES
+} from "./utils/media-utils";
 import ReactDOM from "react-dom";
 import React from "react";
 import { Router, Route } from "react-router-dom";
@@ -230,7 +235,7 @@ const browser = detect();
 
 // Don't pause on blur on linux bc of gfx instability
 const performConservativePausing = browser.os === "Linux";
-const PAUSE_AFTER_BLUR_DURATION_MS = performConservativePausing ? 0 : 2 * 60000;
+const PAUSE_AFTER_BLUR_DURATION_MS = performConservativePausing ? 0 : 5000;
 
 if (isBotMode) {
   const token = qs.get("credentials_token");
@@ -525,6 +530,13 @@ function setupGameEnginePausing(scene) {
       }
     }
   };
+
+  // Special case - pause the whole thing if we're just rendering a page.
+  if (window.APP.showAsPage) {
+    apply(true);
+    UI.classList.remove("paused");
+    return;
+  }
 
   // Need a timeout since tabbing in browser causes blur then focus rapidly
   let windowBlurredTimeout = null;
@@ -1208,6 +1220,13 @@ async function start() {
   entryManager.enterScene(false).then(() => {
     remountUIRoot({ isDoneLoading: true });
   });
+
+  if (window.APP.showAsPage) {
+    const mediaText = DOM_ROOT.querySelector("[media-text]").components["media-text"];
+    await mediaText.setMediaPresence(MEDIA_PRESENCE.PRESENT);
+    mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
+    SYSTEMS.mediaTextSystem.getQuill(mediaText).container.parentElement.classList.remove("fast-show-when-popped");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", start);
