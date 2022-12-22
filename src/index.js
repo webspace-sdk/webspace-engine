@@ -892,7 +892,7 @@ async function patchUpManuallyAddedHtmlTags() {
 }
 
 async function setupFlatProjection(scene) {
-  UI.classList.add("flat");
+  UI.classList.add("projection-flat");
 
   if (!scene.is("document-imported")) {
     await new Promise(resolve => {
@@ -912,8 +912,7 @@ async function setupFlatProjection(scene) {
     // Create a media text for this flat document
     mediaTextEl = addMediaInFrontOfPlayerIfPermitted({
       contents: "",
-      contentSubtype: "page",
-      mediaOptions: { backgroundColor: "white", foregroundColor: "black" }
+      contentSubtype: "page"
     }).entity;
 
     while (!mediaTextEl.components["media-text"]) {
@@ -966,7 +965,6 @@ async function start() {
 
       <div id="nav-drag-target"></div>
       <div id="presence-drag-target"></div>
-      <div id="quill-container"></div>
 
       <div id="gaze-cursor">
           <div class="cursor"></div>

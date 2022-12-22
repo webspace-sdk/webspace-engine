@@ -68,7 +68,7 @@ const Wrap = styled.div`
     pointer-events: auto;
   }
 
-  .flat & {
+  .projection-flat & {
     pointer-events: auto;
   }
 
@@ -327,7 +327,7 @@ function UIRoot(props) {
   } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
-  const isSpatialProjection = projectionType === PROJECTION_TYPES.SPATIAL;
+  const isSpatial = projectionType === PROJECTION_TYPES.SPATIAL;
 
   const worldTree = treeManager && treeManager.worldNav;
   const { spaceMetadata, store } = window.APP;
@@ -426,10 +426,12 @@ function UIRoot(props) {
             >
               <KeyTips id="key-tips" />
             </KeyTipsWrap>
-            <DeviceStatuses id="device-statuses" style={isMobile ? { display: "none" } : {}}>
-              {triggerMode === "builder" && <EqippedBrushIcon />}
-              {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-            </DeviceStatuses>
+            {isSpatial && (
+              <DeviceStatuses id="device-statuses" style={isMobile ? { display: "none" } : {}}>
+                {triggerMode === "builder" && <EqippedBrushIcon />}
+                {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
+              </DeviceStatuses>
+            )}
             <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
               <ExternalCameraCanvas id="external-camera-canvas" />
               {showingExternalCamera && (
@@ -463,12 +465,13 @@ function UIRoot(props) {
               centerPopupRef={centerPopupRef}
               showInviteTip={showInviteTip}
               setHasShownInvite={setHasShownInvite}
+              projectionType={projectionType}
             />
           )}
         </Root>
         <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
         {!isMobile &&
-          isSpatialProjection && (
+          isSpatial && (
             <>
               <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
               <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />

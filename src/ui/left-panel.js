@@ -420,8 +420,9 @@ function LeftPanel({
         fileExtension="html"
         filePath=""
         attributes={createHubAttributes}
-        onCreate={async (name, filename) => {
-          const doc = createNewWebspaceDocument(name);
+        onCreate={async (name, filename, filePath, subobjectType) => {
+          const projectionType = subobjectType === "page" ? "flat" : "spatial";
+          const doc = createNewWebspaceDocument(name, projectionType);
           await window.APP.atomAccessManager.writeDocument(doc, filename);
           const url = new URL(window.location.href);
           const pathParts = url.pathname.split("/");

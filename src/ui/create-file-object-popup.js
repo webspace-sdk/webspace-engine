@@ -1,4 +1,4 @@
-import React, { useState, forwardRef } from "react";
+import React, { useState, forwardRef, useCallback } from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
@@ -109,9 +109,13 @@ const CreateFileObjectPopup = forwardRef(
                       name={"world"}
                       checked={objectSubtype === "world"}
                       value={"world"}
-                      onChange={() => {}}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setObjectSubType("world");
+                        }
+                      }}
                     />
-                    <Label htmlFor="subtype_world" style={{ cursor: "pointer" }}>
+                    <Label htmlFor="object_subtype_world" style={{ cursor: "pointer" }}>
                       <FormattedMessage id="create-hub-popup.subtype-world" />
                     </Label>
                   </RadioWrap>
@@ -122,9 +126,13 @@ const CreateFileObjectPopup = forwardRef(
                       name={"page"}
                       checked={objectSubtype === "page"}
                       value={"page"}
-                      onChange={() => {}}
+                      onChange={e => {
+                        if (e.target.checked) {
+                          setObjectSubType("page");
+                        }
+                      }}
                     />
-                    <Label htmlFor="subtype_page" style={{ cursor: "pointer" }}>
+                    <Label htmlFor="object_subtype_page" style={{ cursor: "pointer" }}>
                       <FormattedMessage id="create-hub-popup.subtype-page" />
                     </Label>
                   </RadioWrap>
