@@ -906,10 +906,19 @@ async function setupFlatProjection(scene) {
     });
   }
 
-  const mediaTextEl = DOM_ROOT.querySelector("[media-text]");
+  let mediaTextEl = DOM_ROOT.querySelector("[media-text]");
 
   if (!mediaTextEl) {
-    // TODO create
+    // Create a media text for this flat document
+    mediaTextEl = addMediaInFrontOfPlayerIfPermitted({
+      contents: "",
+      contentSubtype: "page",
+      mediaOptions: { backgroundColor: "white", foregroundColor: "black" }
+    }).entity;
+
+    while (!mediaTextEl.components["media-text"]) {
+      await nextTick();
+    }
   }
 
   const mediaText = mediaTextEl.components["media-text"];
