@@ -25,9 +25,6 @@ import createEmojiRegex from "emoji-regex/text.js";
 import Linkify from "linkify-it";
 import tlds from "tlds";
 
-import { detect } from "detect-browser";
-const browser = detect();
-
 export const BasisLoadingManager = new THREE.LoadingManager();
 const VIDEO_CORS_PROXY_PLACEHOLDER = "__VIDEO_CORS_PROXY__"; // Used for YTDL cache
 
@@ -546,7 +543,7 @@ export const addMedia = options => {
         });
       });
     } else {
-      uploadAsFilename = newAssetFileName;
+      uploadAsFilename = new Promise(res => res(newAssetFileName));
     }
   }
 
@@ -558,7 +555,9 @@ export const addMedia = options => {
 
   // Check for VOX. If it's a vox, convert it to SVOX
   if (src instanceof File && src.name.toLowerCase().endsWith(".vox")) {
-    uploadAsFilename = uploadAsFilename.replace(".vox", ".svox");
+    const voxFilename = src.name.toLowerCase();
+
+    uploadAsFilename = uploadAsFilename.then(filename => filename.replace(".vox", ".svox"));
 
     // uploadAsset can take a promise
     src = src.arrayBuffer().then(buffer => {
@@ -567,7 +566,7 @@ export const addMedia = options => {
 
       // Special case, the default object name in magicavoxel is name, so just replace it with the filename
       if (svoxString.indexOf("name = main") !== -1) {
-        svoxString = svoxString.replace("name = main", `name = ${uploadAsFilename.replace(/\.svox$/i, "")}`);
+        svoxString = svoxString.replace("name = main", `name = ${voxFilename.replace(/\.vox$/i, "")}`);
       }
 
       return new Blob([svoxString], { type: "model/vnd.svox" });

@@ -125,9 +125,8 @@ import patchThreeNoProgramDispose from "./utils/threejs-avoid-disposing-programs
 import "./utils/threejs-video-texture-pause";
 import nextTick from "./utils/next-tick";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./systems/sound-effects-system";
-import ducky from "!!url-loader!./assets/models/DuckyMesh.glb";
-import { getAbsoluteHref } from "./utils/media-url-utils";
-import { hasActiveScreenShare } from "./utils/media-utils";
+import duckySvox from "!!raw-loader!./assets/models/ducky.svox";
+import { addMediaInFrontOfPlayerIfPermitted, hasActiveScreenShare } from "./utils/media-utils";
 import ReactDOM from "react-dom";
 import React from "react";
 import { Router, Route } from "react-router-dom";
@@ -342,8 +341,11 @@ function addGlobalEventListeners(scene, entryManager) {
     let uploadAccept;
 
     switch (createAction) {
-      case "duck":
-        scene.emit("add_media", { src: getAbsoluteHref(location.href, ducky), contentType: "model/gltf-binary" });
+      case "duck": {
+        scene.emit("add_media_svox", duckySvox);
+        const media = addMediaInFrontOfPlayerIfPermitted({ contents: duckySvox, zOffset: -2 });
+        media.entity.object3D.scale.set(0.2, 0.2, 0.2);
+        media.entity.object3D.matrixNeedsUpdate = true;
 
         if (Math.random() < 0.01) {
           scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_SPECIAL_QUACK);
@@ -351,6 +353,7 @@ function addGlobalEventListeners(scene, entryManager) {
           scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_QUACK);
         }
         break;
+      }
       case "page":
         scene.emit("add_media_text", "page");
         break;

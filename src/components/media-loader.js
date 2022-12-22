@@ -744,7 +744,7 @@ AFRAME.registerComponent("media-loader", {
     return contents;
   },
 
-  async importVoxFromUrl(importUrl) {
+  async importVoxFromUrl(/*importUrl*/) {
     // TODO VOX
     //const spaceId = await getSpaceIdFromHistory();
     //const { voxSystem } = SYSTEMS;

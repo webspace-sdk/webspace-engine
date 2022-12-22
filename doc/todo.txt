@@ -1,21 +1,19 @@
-- deno cors proxying split + ytdl enable + move configs into index.html
-- video play button missing
-- index.html add networking config (TURN, CORSAnywhere)
-  - copy networking config into new hubs
 - add a ui toggle button in top left due to docks on side of screen
   - this can be back button out of editor too
-- duck should upload glb
-- quill toolbar not hiding when selection/cursor changes
+- duck should upload glb if another duck not in the scene
 - vox
   - editor UX
     - close button in vox editor, drop left panel
     - undo/redo buttons
 - show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
-- check thumbnails
-- html formatter adding a bunch of whitespace
 
 ---
+- quill toolbar not hiding when selection/cursor changes
+- index.html add networking config for TURN
+- copy networking config into new hubs
+- add support for some configs in index.html
 - clean up per frame allocations
+- video play button missing on ios safari
 - GIF not unpacking when using local filesystem
 - if space is held first, then object grabbed, enable snap
 - test iframe embedding
