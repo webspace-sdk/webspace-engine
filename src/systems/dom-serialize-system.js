@@ -33,7 +33,7 @@ AFRAME.registerComponent("dom-serialized-entity", {
   }
 });
 
-const FLUSH_DELAY = 1000;
+const FLUSH_DELAY = 250;
 
 const tagTypeForEl = el => {
   const { src } = el.components["media-loader"].data;

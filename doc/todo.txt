@@ -1,7 +1,6 @@
 -- page mode
 bootstrap entity if missing
 should hide emoji button
-UI should show by default again, except on mobile
 try skipping loader
 right panel needs to have no blaster or toggle
 create button should just be "Create"
@@ -25,6 +24,7 @@ create button should just be "Create"
 - clean up per frame allocations
 - video play button missing on ios safari
 - GIF not unpacking when using local filesystem
+- show a loading spinner in nav when you click on a link and we're waiting for it to flush
 - if space is held first, then object grabbed, enable snap
 - test iframe embedding
 - lazily allocate svox buffers
