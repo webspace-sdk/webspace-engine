@@ -15,6 +15,7 @@ create button should just be "Create"
     - undo/redo buttons
 
 ---
+- show an icon for a world vs a page in left side
 - emoji insertion point is wrong in quill if you just change the cursor position
   - related: quill toolbar not hiding when selection/cursor changes
 - need to shut down audio worklet job and lip sync job when paused

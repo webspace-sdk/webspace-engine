@@ -579,8 +579,12 @@ export async function getHubMetaFromDOM() {
   };
 }
 
-export function createNewHubDocument(title) {
-  const doc = new DOMParser().parseFromString(`<html><head><title></title></head><body></body></html>`, "text/html");
+export function createNewWebspaceDocument(title, flat = true) {
+  const metaTags = flat ? '<meta name="webspace.projection.type" content="flat" />' : "";
+  const doc = new DOMParser().parseFromString(
+    `<html><head><title></title>${metaTags}</head><body></body></html>`,
+    "text/html"
+  );
   doc.title = title;
 
   // Add existing script tags to ensure loading

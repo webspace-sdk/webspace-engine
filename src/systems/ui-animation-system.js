@@ -94,9 +94,10 @@ export class UIAnimationSystem {
     this.performPanelExpansion(PANEL_EXPANSION_STATES.COLLAPSING, animate);
     this.sceneEl.emit("side_panel_resize_started");
 
+    const leftExpandTrigger = DOM_ROOT.getElementById("left-expand-trigger");
     // Hide triggers upon collapse
-    if (!isMobile) {
-      const triggerSizePx = DOM_ROOT.getElementById("left-expand-trigger").offsetWidth;
+    if (leftExpandTrigger) {
+      const triggerSizePx = leftExpandTrigger.offsetWidth;
       DOM_ROOT.getElementById("left-expand-trigger").setAttribute("style", `left: ${-triggerSizePx}px`);
       DOM_ROOT.getElementById("right-expand-trigger").setAttribute("style", `right: ${-triggerSizePx}px`);
       DOM_ROOT.getElementById("bottom-expand-trigger").setAttribute("style", `bottom: ${-triggerSizePx}px`);

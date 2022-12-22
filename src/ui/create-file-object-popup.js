@@ -6,7 +6,7 @@ import PopupPanelMenu from "./popup-panel-menu";
 import { handleTextFieldFocus, handleTextFieldBlur } from "../utils/focus-utils";
 import { FormattedMessage } from "react-intl";
 import { getMessages } from "../utils/i18n";
-import { PanelWrap, Tip, TextInputWrap, Input, Info } from "./form-components";
+import { PanelWrap, Tip, TextInputWrap, Label, Input, Info, InputWrap, Radio, RadioWrap } from "./form-components";
 import SmallActionButton from "./small-action-button";
 
 import LoadingSpinner from "./loading-spinner";
@@ -21,6 +21,8 @@ const CreateFileObjectPopup = forwardRef(
     const [filename, setFilename] = useState("");
     const [exists, setExists] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [objectSubtype, setObjectSubType] = useState(objectType === "hub" ? "world" : null);
+    const translationSuffix = objectType === "hub" ? `-${objectSubtype}` : "";
 
     const popupInput = (
       <div
@@ -33,10 +35,10 @@ const CreateFileObjectPopup = forwardRef(
         <PopupPanelMenu style={{ padding: "12px", borderRadius: "12px" }} className="slide-up-when-popped">
           <PanelWrap>
             <Info>
-              <FormattedMessage id={`create-${objectType}-popup.info`} />
+              <FormattedMessage id={`create-${objectType}${translationSuffix}-popup.info`} />
             </Info>
             <Tip>
-              <FormattedMessage id={`create-${objectType}-popup.tip`} />&nbsp;
+              <FormattedMessage id={`create-${objectType}${translationSuffix}-popup.tip`} />&nbsp;
             </Tip>
             <form
               autoComplete="off"
@@ -56,7 +58,7 @@ const CreateFileObjectPopup = forwardRef(
                   return;
                 }
 
-                await onCreate(name, filename, filePath);
+                await onCreate(name, filename, filePath, objectSubtype);
 
                 setName("");
                 setFilename("");
@@ -72,10 +74,10 @@ const CreateFileObjectPopup = forwardRef(
                   name="name"
                   value={name}
                   required
-                  placeholder={messages[`create-${objectType}-popup.name-placeholder`]}
+                  placeholder={messages[`create-${objectType}${translationSuffix}-popup.name-placeholder`]}
                   min="3"
                   max="64"
-                  title={messages[`create-${objectType}-popup.name-validation-warning`]}
+                  title={messages[`create-${objectType}${translationSuffix}-popup.name-validation-warning`]}
                   onFocus={e => handleTextFieldFocus(e.target)}
                   onBlur={e => handleTextFieldBlur(e.target)}
                   onChange={e => {
@@ -98,10 +100,41 @@ const CreateFileObjectPopup = forwardRef(
                   }}
                 />
               </TextInputWrap>
+              {objectType === "hub" && (
+                <InputWrap style={{ minHeight: "48px", marginLeft: "24px" }}>
+                  <RadioWrap>
+                    <Radio
+                      type="radio"
+                      id={"object_subtype_world"}
+                      name={"world"}
+                      checked={objectSubtype === "world"}
+                      value={"world"}
+                      onChange={() => {}}
+                    />
+                    <Label htmlFor="subtype_world" style={{ cursor: "pointer" }}>
+                      <FormattedMessage id="create-hub-popup.subtype-world" />
+                    </Label>
+                  </RadioWrap>
+                  <RadioWrap>
+                    <Radio
+                      type="radio"
+                      id={"object_subtype_page"}
+                      name={"page"}
+                      checked={objectSubtype === "page"}
+                      value={"page"}
+                      onChange={() => {}}
+                    />
+                    <Label htmlFor="subtype_page" style={{ cursor: "pointer" }}>
+                      <FormattedMessage id="create-hub-popup.subtype-page" />
+                    </Label>
+                  </RadioWrap>
+                </InputWrap>
+              )}
+
               {exists &&
                 !creating && (
                   <Tip style={{ lineHeight: "24px" }}>
-                    <FormattedMessage id={`create-${objectType}-popup.exists`} />&nbsp;
+                    <FormattedMessage id={`create-${objectType}${translationSuffix}-popup.exists`} />&nbsp;
                   </Tip>
                 )}
               {!exists &&
@@ -109,11 +142,13 @@ const CreateFileObjectPopup = forwardRef(
                   <Tip style={{ lineHeight: "24px" }}>
                     {name && filename ? (
                       <span>
-                        <FormattedMessage id={`create-${objectType}-popup.dest-prefix`} />&nbsp;{filename}
+                        <FormattedMessage id={`create-${objectType}${translationSuffix}-popup.dest-prefix`} />&nbsp;{
+                          filename
+                        }
                       </span>
                     ) : (
                       <span>
-                        <FormattedMessage id={`create-${objectType}-popup.dest-empty`} />
+                        <FormattedMessage id={`create-${objectType}${translationSuffix}-popup.dest-empty`} />
                       </span>
                     )}
                   </Tip>
@@ -122,12 +157,12 @@ const CreateFileObjectPopup = forwardRef(
                 <Tip style={{ lineHeight: "24px" }}>
                   <LoadingSpinner style={{ marginRight: "8px" }} />
                   <span>
-                    <FormattedMessage id={`create-${objectType}-popup.waiting-for-deploy`} />
+                    <FormattedMessage id={`create-${objectType}${translationSuffix}-popup.waiting-for-deploy`} />
                   </span>
                 </Tip>
               )}
               <SmallActionButton disabled={!filename || !!exists || creating} type="submit">
-                <FormattedMessage id={`create-${objectType}-popup.create-object`} />
+                <FormattedMessage id={`create-${objectType}${translationSuffix}-popup.create-object`} />
               </SmallActionButton>
             </form>
           </PanelWrap>
