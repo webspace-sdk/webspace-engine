@@ -1,11 +1,9 @@
 - add a ui toggle button in top left due to docks on side of screen
   - this can be back button out of editor too
-- duck should upload glb if another duck not in the scene
 - vox
   - editor UX
     - close button in vox editor, drop left panel
     - undo/redo buttons
-- show cursor when create menu is opened via hotkey (any others?) - for ff/safari locking
 
 ---
 - quill toolbar not hiding when selection/cursor changes

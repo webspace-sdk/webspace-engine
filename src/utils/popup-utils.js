@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { usePopper } from "react-popper";
-import { toggleFocus } from "./dom-utils";
+import { toggleFocus, endCursorLock } from "./dom-utils";
 
 const EMPTY = {};
 
@@ -70,6 +70,7 @@ export function useAtomBoundPopupPopper(focusRef, initialPlacement = "bottom", i
       if (ref && ref.current) setReferenceElement(ref.current);
       if (newPopupOpenOptions) setPopupOpenOptions(newPopupOpenOptions || EMPTY);
 
+      endCursorLock();
       const elToFocus = focusRef ? focusRef.current : popupElement;
       toggleFocus(elToFocus);
     },
@@ -150,6 +151,7 @@ export function usePopupPopper(
         elToFocus = focusRefOrSelector ? focusRefOrSelector.current : popupElement;
       }
 
+      endCursorLock();
       toggleFocus(elToFocus);
     },
     [focusRefOrSelector, popupElement]
