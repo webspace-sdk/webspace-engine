@@ -48,6 +48,12 @@ const CornerButtonElement = styled.button`
 
   width: content-width;
   margin: 0px 12px 0 0;
+
+  &.left {
+    margin-right: 0;
+    margin-left: 8px;
+  }
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -71,6 +77,15 @@ const CornerButtonElement = styled.button`
   &:active {
     background-color: var(--canvas-overlay-item-active-background-color);
   }
+`;
+
+const BackButtonWrap = styled.div`
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px 0;
+  display: flex;
+  min-height: 64px;
 `;
 
 const CornerButtons = styled.div`
@@ -131,6 +146,16 @@ const CornerButtonIcon = styled.div`
   width: 22px;
   height: 22px;
 `;
+
+const BackButton = forwardRef((props, ref) => {
+  return (
+    <CornerButtonElement {...props} ref={ref} className="left">
+      <CornerButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
+    </CornerButtonElement>
+  );
+});
+
+BackButton.displayName = "BackButton";
 
 const HubContextButton = forwardRef((props, ref) => {
   return (
@@ -576,6 +601,17 @@ function CanvasTop(props) {
 
   return (
     <Top id="top-panel">
+      <BackButtonWrap>
+        <BackButton
+          onClick={useCallback(() => {
+            if (SYSTEMS.cameraSystem.isInspecting()) {
+              SYSTEMS.cameraSystem.uninspect();
+            } else {
+              SYSTEMS.uiAnimationSystem.toggleSidePanels();
+            }
+          }, [])}
+        />
+      </BackButtonWrap>
       {atomTrailAtomIds && (
         <AtomTrail
           atomIds={atomTrailAtomIds}

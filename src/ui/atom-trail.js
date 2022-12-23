@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import { navigateToHubUrl } from "../utils/url-utils";
-import { cancelEventIfFocusedWithin, PROJECTION_TYPES } from "../utils/dom-utils";
+import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
 
 const MAX_ITEMS_IN_TRAIL = 3;
 
@@ -19,7 +19,7 @@ const AtomTrailElement = styled.div`
   align-items: center;
   position: relative;
   margin: 0;
-  padding: 14px 0 14px 8px;
+  padding: 16px 0 14px 8px;
   user-select: none;
   width: 50%;
   color: var(--canvas-overlay-text-color);
