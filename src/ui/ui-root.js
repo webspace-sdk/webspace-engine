@@ -448,7 +448,9 @@ function UIRoot(props) {
               <PausedInfoLabel>
                 <FormattedMessage id="paused.info" />
               </PausedInfoLabel>
-              <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+              {isSpatial && (
+                <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+              )}
             </BottomLeftPanels>
           </Wrap>
           {!isInspecting &&

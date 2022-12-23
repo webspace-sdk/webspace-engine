@@ -39,6 +39,13 @@ const Top = styled.div`
 
 const CornerButtonElement = styled.button`
   color: var(--canvas-overlay-text-color);
+  text-shadow: 0px 0px 4px;
+
+  #webspace-ui.projection-flat & {
+    color: var(--page-overlay-text-color);
+    text-shadow: none;
+  }
+
   width: content-width;
   margin: 0px 12px 0 0;
   white-space: nowrap;
@@ -57,7 +64,6 @@ const CornerButtonElement = styled.button`
   font-weight: var(--canvas-overlay-item-text-weight);
   text-align: left;
   max-width: fit-content;
-  text-shadow: 0px 0px 4px;
   &:hover {
     background-color: var(--canvas-overlay-item-hover-background-color);
   }
@@ -80,6 +86,13 @@ const CornerButtons = styled.div`
 const CornerButton = styled.button`
   position: relative;
   color: var(--canvas-overlay-text-color);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+
+  #webspace-ui.projection-flat & {
+    color: var(--page-overlay-text-color);
+    text-shadow: none;
+  }
+
   width: content-width;
   display: flex;
   margin: 0 12px 0 0;
@@ -99,7 +112,6 @@ const CornerButton = styled.button`
   font-weight: var(--canvas-overlay-item-text-weight);
   text-align: left;
   max-width: fit-content;
-  text-shadow: 0px 0px 4px var(--menu-shadow-color);
   line-height: 22px;
 
   &:hover {

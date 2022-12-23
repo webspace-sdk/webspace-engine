@@ -9,6 +9,9 @@ const SCROLL_SENSITIVITY = 500.0;
 export class MediaTextSystem extends EventTarget {
   constructor(sceneEl) {
     super();
+
+    const { atomAccessManager } = window.APP;
+
     this.sceneEl = sceneEl;
     this.components = Array(MAX_COMPONENTS).fill(null);
     this.quills = Array(MAX_COMPONENTS).fill(null);
@@ -22,6 +25,20 @@ export class MediaTextSystem extends EventTarget {
 
     this.networkIdToComponent = new Map();
     this.maxIndex = -1;
+
+    atomAccessManager.addEventListener("permissions_updated", () => this.syncQuillEnableStateWithPermissions());
+  }
+
+  syncQuillEnableStateWithPermissions() {
+    const shouldEnable = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
+    console.log(shouldEnable);
+
+    for (let i = 0; i <= this.maxIndex; i++) {
+      const quill = this.quills[i];
+      if (!quill) continue;
+
+      quill.enable(shouldEnable);
+    }
   }
 
   registerMediaTextComponent(component) {
@@ -81,6 +98,8 @@ export class MediaTextSystem extends EventTarget {
     this.markComponentDirtyFns[index] = () => this.markDirty(component);
     quill = this.quills[index] = getQuill(networkId);
     let type = this.yTextTypes[index];
+
+    this.syncQuillEnableStateWithPermissions();
 
     // Type may already exist, if we are syncing it
     if (!type) {

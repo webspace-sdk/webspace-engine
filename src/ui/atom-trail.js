@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
 import { navigateToHubUrl } from "../utils/url-utils";
-import { cancelEventIfFocusedWithin } from "../utils/dom-utils";
+import { cancelEventIfFocusedWithin, PROJECTION_TYPES } from "../utils/dom-utils";
 
 const MAX_ITEMS_IN_TRAIL = 3;
 
@@ -14,7 +14,6 @@ const AtomTrailElement = styled.div`
   justify-content: flex-start;
   width: fit-content;
   align-items: center;
-  color: var(--canvas-overlay-text-color);
   font-size: var(--canvas-overlay-text-size);
   display: flex;
   align-items: center;
@@ -23,6 +22,13 @@ const AtomTrailElement = styled.div`
   padding: 14px 0 14px 8px;
   user-select: none;
   width: 50%;
+  color: var(--canvas-overlay-text-color);
+  text-shadow: 0px 0px 4px var(--menu-shadow-color);
+
+  #webspace-ui.projection-flat & {
+    color: var(--page-overlay-text-color);
+    text-shadow: none;
+  }
 `;
 
 const AtomTrailAtomItem = styled.button`
@@ -44,7 +50,6 @@ const AtomTrailAtomItem = styled.button`
   text-align: left;
   max-width: fit-content;
   line-height: calc(var(--canvas-overlay-text-size) + 2px);
-  text-shadow: 0px 0px 4px var(--menu-shadow-color);
   pointer-events: auto;
 
   &.short {

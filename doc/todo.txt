@@ -1,12 +1,11 @@
 -- page mode
 should hide emoji button
-try skipping loader
 make sure you can't edit if denied
-right panel needs to have no blaster or toggle
-create button should just be "Create"
-"Worlds & Pages" header 
+change colors in header buttons to black
+presence header should say Page or World
 --
 
+- create dialog getting blur when hitting enter
 - add a ui toggle button in top left due to docks on side of screen
   - this can be back button out of editor too
 - vox
@@ -15,6 +14,8 @@ create button should just be "Create"
     - undo/redo buttons
 
 ---
+- commit message says World when it should say Page
+- should avoid loading the page when there is a git deploy in flight
 - show an icon for a world vs a page in left side
 - emoji insertion point is wrong in quill if you just change the cursor position
   - related: quill toolbar not hiding when selection/cursor changes
