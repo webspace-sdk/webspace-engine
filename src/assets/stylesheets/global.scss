@@ -355,7 +355,8 @@ a-scene.visible {
 }
 
 #webspace-ui.projection-flat .ql-editor {
-  max-width: calc(min(100vw, 1000px));
+  --max-width: 1000px;
+  padding: 0 calc(max(24px, (100vw - var(--nav-width) - var(--presence-width) - min(var(--max-width), 1000vw - var(--nav-width) - var(--presence-width))) / 2)) !important;
 }
 
 .a-enter-vr {
