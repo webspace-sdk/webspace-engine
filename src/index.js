@@ -921,10 +921,12 @@ async function setupFlatProjection(scene) {
     }
   }
 
+  const oldActiveElement = DOM_ROOT.activeElement;
   const mediaText = mediaTextEl.components["media-text"];
   await mediaText.setMediaPresence(MEDIA_PRESENCE.PRESENT);
   mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
   SYSTEMS.mediaTextSystem.getQuill(mediaText).container.parentElement.classList.remove("fast-show-when-popped");
+  oldActiveElement?.focus();
 }
 
 async function start() {
