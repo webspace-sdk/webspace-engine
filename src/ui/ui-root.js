@@ -408,7 +408,7 @@ function UIRoot(props) {
             unavailableReason={unavailableReason}
           />
           <Wrap id="webspace-ui-wrap">
-            <FadeEdges />
+            {isSpatial && <FadeEdges />}
             <CreateSelectPopupRef ref={createSelectPopupRef} />
             <ModalPopupRef ref={modalPopupRef} />
             <CenterPopupRef ref={centerPopupRef} />
@@ -420,12 +420,14 @@ function UIRoot(props) {
               environmentSettingsButtonRef={environmentSettingsButtonRef}
               createSelectPopupRef={createSelectPopupRef}
             />
-            <KeyTipsWrap
-              style={isMobile ? { display: "none" } : {}}
-              onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
-            >
-              <KeyTips id="key-tips" />
-            </KeyTipsWrap>
+            {isSpatial && (
+              <KeyTipsWrap
+                style={isMobile ? { display: "none" } : {}}
+                onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
+              >
+                <KeyTips id="key-tips" />
+              </KeyTipsWrap>
+            )}
             {isSpatial && (
               <DeviceStatuses id="device-statuses" style={isMobile ? { display: "none" } : {}}>
                 {triggerMode === "builder" && <EqippedBrushIcon />}

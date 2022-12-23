@@ -1,7 +1,7 @@
 -- page mode
-bootstrap entity if missing
 should hide emoji button
 try skipping loader
+make sure you can't edit if denied
 right panel needs to have no blaster or toggle
 create button should just be "Create"
 "Worlds & Pages" header 
@@ -38,6 +38,8 @@ create button should just be "Create"
 - disable autocorrect on repo field in git dialog
 - avoid adding viseme to outgoing streams that can't decode it
 - go fullscreen on android when tapping in
+- drop external camera system
+- figure out black canvas flash when drawing flat
 - preview color wheel on swatch pages
 - make labels + banners start with a larger scale
 - disable LOD on flat + plains

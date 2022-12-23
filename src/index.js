@@ -535,6 +535,7 @@ function setupGameEnginePausing(scene, projectionType) {
   if (projectionType === PROJECTION_TYPES.FLAT) {
     apply(true);
     UI.classList.remove("paused");
+
     return;
   }
 
@@ -924,6 +925,11 @@ async function setupFlatProjection(scene) {
   await mediaText.setMediaPresence(MEDIA_PRESENCE.PRESENT);
   mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
   SYSTEMS.mediaTextSystem.getQuill(mediaText).container.parentElement.classList.remove("fast-show-when-popped");
+
+  // HACK, need to set the background color here, and draw it into the canvas.
+  // The UI animation system assumes the canvas is visible and the ground truth for the sizing.
+  scene.renderer.setClearColor("#FFFFFF");
+  scene.renderer.render(new THREE.Scene(), scene.camera);
 }
 
 async function start() {
