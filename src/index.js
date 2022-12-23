@@ -925,11 +925,6 @@ async function setupFlatProjection(scene) {
   await mediaText.setMediaPresence(MEDIA_PRESENCE.PRESENT);
   mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
   SYSTEMS.mediaTextSystem.getQuill(mediaText).container.parentElement.classList.remove("fast-show-when-popped");
-
-  // HACK, need to set the background color here, and draw it into the canvas.
-  // The UI animation system assumes the canvas is visible and the ground truth for the sizing.
-  scene.renderer.setClearColor("#FFFFFF");
-  scene.renderer.render(new THREE.Scene(), scene.camera);
 }
 
 async function start() {
@@ -1257,6 +1252,13 @@ async function start() {
   voxMetadata.bind(voxMetadataSource);
 
   remountUIRoot({ spaceId });
+
+  if (projectionType === PROJECTION_TYPES.FLAT) {
+    // HACK, need to set the background color here, and draw it into the canvas.
+    // The UI animation system assumes the canvas is visible and the ground truth for the sizing.
+    scene.renderer.setClearColor("#FFFFFF");
+    scene.renderer.render(new THREE.Scene(), scene.camera);
+  }
 
   // Don't await here, since this is just going to set up networking behind the scenes, which is slow
   // and we don't want to block on.
