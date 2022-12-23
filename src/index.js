@@ -300,19 +300,21 @@ function initPhysicsThreeAndCursor(scene) {
   patchThreeNoProgramDispose(renderer);
 }
 
-async function checkPrerequisites() {
+async function checkPrerequisites(projectionType) {
   if (platformUnsupported()) return false;
 
   const detectedOS = detectOS(navigator.userAgent);
 
-  // HACK - it seems if we don't initialize the mic track up-front, voices can drop out on iOS
-  // safari when initializing it later.
-  if (["iOS", "Mac OS"].includes(detectedOS) && ["safari", "ios"].includes(browser.name)) {
-    try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (e) {
-      // remountUI({ showSafariMicDialog: true });
-      return;
+  if (projectionType === PROJECTION_TYPES.SPATIAL) {
+    // HACK - it seems if we don't initialize the mic track up-front, voices can drop out on iOS
+    // safari when initializing it later.
+    if (["iOS", "Mac OS"].includes(detectedOS) && ["safari", "ios"].includes(browser.name)) {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (e) {
+        // remountUI({ showSafariMicDialog: true });
+        return;
+      }
     }
   }
 
@@ -924,13 +926,19 @@ async function setupFlatProjection(scene) {
   const oldActiveElement = DOM_ROOT.activeElement;
   const mediaText = mediaTextEl.components["media-text"];
   await mediaText.setMediaPresence(MEDIA_PRESENCE.PRESENT);
-  mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
+
+  if (atomAccessManager.hubCan("spawn_and_move_media")) {
+    mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
+  }
+
   SYSTEMS.mediaTextSystem.getQuill(mediaText).container.parentElement.classList.remove("fast-show-when-popped");
   oldActiveElement?.focus();
 }
 
 async function start() {
-  if (!(await checkPrerequisites())) return;
+  const projectionType = getProjectionType();
+
+  if (!(await checkPrerequisites(projectionType))) return;
   addMissingDefaultHtml();
   pauseAllPlayableElements();
 
@@ -1202,8 +1210,6 @@ async function start() {
   } else {
     scene.addEventListener("loaded", () => initPhysicsThreeAndCursor(scene), { once: true });
   }
-
-  const projectionType = getProjectionType();
 
   addGlobalEventListeners(scene, entryManager, atomAccessManager);
   setupSidePanelLayout(scene);

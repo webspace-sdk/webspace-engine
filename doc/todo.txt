@@ -3,6 +3,7 @@ should hide emoji button
 make sure you can't edit if denied
 change colors in header buttons to black
 presence header should say Page or World
+transparent background on normal edit
 --
 
 - create dialog getting blur when hitting enter
@@ -16,6 +17,7 @@ presence header should say Page or World
 ---
 - commit message says World when it should say Page
 - should avoid loading the page when there is a git deploy in flight
+- creating a duck without permission on spawner
 - show an icon for a world vs a page in left side
 - emoji insertion point is wrong in quill if you just change the cursor position
   - related: quill toolbar not hiding when selection/cursor changes
