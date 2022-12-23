@@ -31,7 +31,6 @@ export class MediaTextSystem extends EventTarget {
 
   syncQuillEnableStateWithPermissions() {
     const shouldEnable = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
-    console.log(shouldEnable);
 
     for (let i = 0; i <= this.maxIndex; i++) {
       const quill = this.quills[i];

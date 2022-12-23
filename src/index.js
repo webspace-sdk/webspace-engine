@@ -480,9 +480,9 @@ function setupGameEnginePausing(scene, projectionType) {
 
   const webglLoseContextExtension = scene.renderer.getContext().getExtension("WEBGL_lose_context");
 
-  const apply = hidden => {
+  const apply = (hidden, forcePause = false) => {
     if (document.visibilityState === "hidden" || hidden) {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" || forcePause) {
         scene.pause();
 
         // THREE bug - if this clock is not stopped we end up lerping audio listener positions over a long duration
@@ -533,7 +533,7 @@ function setupGameEnginePausing(scene, projectionType) {
 
   // Special case - pause the whole thing if we're just rendering a flat page.
   if (projectionType === PROJECTION_TYPES.FLAT) {
-    apply(true);
+    apply(true, true);
     UI.classList.remove("paused");
 
     return;
@@ -1256,8 +1256,11 @@ async function start() {
   if (projectionType === PROJECTION_TYPES.FLAT) {
     // HACK, need to set the background color here, and draw it into the canvas.
     // The UI animation system assumes the canvas is visible and the ground truth for the sizing.
-    scene.renderer.setClearColor("#FFFFFF");
-    scene.renderer.render(new THREE.Scene(), scene.camera);
+    window.requestAnimationFrame(() => {
+      scene.renderer.setClearColor("#FFFFFF");
+      scene.renderer.render(new THREE.Scene(), scene.camera);
+      scene.renderer.render = () => {};
+    });
   }
 
   // Don't await here, since this is just going to set up networking behind the scenes, which is slow
