@@ -40,6 +40,10 @@ const SelfPanelElement = styled.div`
     text-shadow: 0px 0px 4px var(--menu-shadow-color);
     border-radius: 0 12px 0 0;
   }
+
+  #webspace-ui.projection-flat.panels-collapsed & {
+    display: none;
+  }
 `;
 
 const SelfName = styled.div`
