@@ -12,6 +12,7 @@ import builderOffIcon from "../assets/images/icons/builder-off.svgi";
 import PresenceList from "./presence-list";
 import EmojiEquip from "./emoji-equip";
 import { getMessages } from "../utils/i18n";
+import { PROJECTION_TYPES } from "../utils/dom-utils";
 import { SOUND_TELEPORT_END } from "../systems/sound-effects-system";
 
 const Right = styled.div`
@@ -72,8 +73,9 @@ const TriggerModePanel = styled.div`
   z-index: 10;
 `;
 
-function RightPanel({ hub, hubCan, sessionId, scene, centerPopupRef }) {
+function RightPanel({ hub, hubCan, sessionId, scene, centerPopupRef, projectionType }) {
   const { builderSystem, launcherSystem, cameraSystem } = SYSTEMS;
+  const isSpatial = projectionType === PROJECTION_TYPES.SPATIAL;
 
   const [triggerMode, setTriggerMode] = useState(launcherSystem.enabled ? "launcher" : "builder");
   const [isInEditorView, setIsInEditorView] = useState(cameraSystem.isInspecting() && cameraSystem.allowCursor);
@@ -129,20 +131,23 @@ function RightPanel({ hub, hubCan, sessionId, scene, centerPopupRef }) {
             }}
           />
         </PresenceContent>
-        {triggerMode === "launcher" && (
-          <BlasterContent>
-            <PanelSectionHeader style={{ height: "16px" }}>
-              <FormattedMessage id="blaster.header" />
-            </PanelSectionHeader>
-            <EmojiEquip centerPopupRef={centerPopupRef} scene={scene} />
-          </BlasterContent>
-        )}
-        {triggerMode === "builder" && (
-          <BuilderContent style={{ marginTop: "8px" }}>
-            <BuilderControls />
-          </BuilderContent>
-        )}
+        {triggerMode === "launcher" &&
+          isSpatial && (
+            <BlasterContent>
+              <PanelSectionHeader style={{ height: "16px" }}>
+                <FormattedMessage id="blaster.header" />
+              </PanelSectionHeader>
+              <EmojiEquip centerPopupRef={centerPopupRef} scene={scene} />
+            </BlasterContent>
+          )}
+        {triggerMode === "builder" &&
+          isSpatial && (
+            <BuilderContent style={{ marginTop: "8px" }}>
+              <BuilderControls />
+            </BuilderContent>
+          )}
         {!isInEditorView &&
+          isSpatial &&
           hub &&
           hubCan("spawn_and_move_media", hub.hub_id) && (
             <TriggerModePanel>
@@ -184,7 +189,8 @@ RightPanel.propTypes = {
   centerPopupRef: PropTypes.object,
   spaceId: PropTypes.string,
   treeManager: PropTypes.object,
-  memberships: PropTypes.array
+  memberships: PropTypes.array,
+  projectionType: PropTypes.number
 };
 
 export default RightPanel;

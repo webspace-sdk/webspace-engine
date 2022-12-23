@@ -15,7 +15,7 @@ const LoadingPanelElement = styled.div`
   align-items: center;
   pointer-events: none;
   display: flex;
-  transition: opacity 0.25s, visibility 0s linear 0.25s;
+  transition: opacity 0.15s, visibility 0s linear 0.15s;
   opacity: 0;
   visibility: hidden;
 

@@ -33,7 +33,7 @@ AFRAME.registerComponent("dom-serialized-entity", {
   }
 });
 
-const FLUSH_DELAY = 1000;
+const FLUSH_DELAY = 250;
 
 const tagTypeForEl = el => {
   const { src } = el.components["media-loader"].data;
@@ -423,6 +423,8 @@ export class DomSerializeSystem {
   }
 
   tick() {
+    if (!this.scene.is("document-imported")) return;
+
     for (let i = 0; i <= this.maxRegisteredIndex; i++) {
       const el = this.els[i];
       if (el === null) continue;

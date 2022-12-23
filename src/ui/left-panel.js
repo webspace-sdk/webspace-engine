@@ -10,7 +10,7 @@ import addIcon from "../assets/images/icons/add.svgi";
 import HubContextMenu from "./hub-context-menu";
 import RenamePopup from "./rename-popup";
 import CreateFileObjectPopup from "./create-file-object-popup";
-import { createNewHubDocument, cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
+import { createNewWebspaceDocument, cancelEventIfFocusedWithin, toggleFocus } from "../utils/dom-utils";
 import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
 import Tooltip from "./tooltip";
@@ -363,7 +363,7 @@ function LeftPanel({
               onClick={() => showCreateHubPopup(createHubButtonRef)}
               style={{ width: "60%" }}
             >
-              <FormattedMessage id="nav.create-world" />
+              <FormattedMessage id="nav.new" />
             </ActionButton>
           )}
         </NavFoot>
@@ -420,8 +420,9 @@ function LeftPanel({
         fileExtension="html"
         filePath=""
         attributes={createHubAttributes}
-        onCreate={async (name, filename) => {
-          const doc = createNewHubDocument(name);
+        onCreate={async (name, filename, filePath, subobjectType) => {
+          const projectionType = subobjectType === "page" ? "flat" : "spatial";
+          const doc = createNewWebspaceDocument(name, projectionType);
           await window.APP.atomAccessManager.writeDocument(doc, filename);
           const url = new URL(window.location.href);
           const pathParts = url.pathname.split("/");

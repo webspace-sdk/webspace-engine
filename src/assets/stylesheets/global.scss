@@ -325,6 +325,40 @@ a-scene.visible {
   align-items: center;
 }
 
+#webspace-ui.projection-flat .quill-editor-wrap {
+  pointer-events: none;
+  top: 64px;
+  bottom: auto;
+}
+
+#webspace-ui .ql-container {
+  min-width: 600px; // see quill-pool.js for this value
+  min-height: calc(600px * 0.5625);
+  width: 600px;
+  height: calc(600px * 0.5625);
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0px 12px 28px #111749cc;
+  z-index: 10; 
+}
+
+#webspace-ui.projection-flat .ql-container {
+  min-width: auto;
+  min-height: auto;
+  width: 100%;
+  height: 100%;
+  background-color: auto;
+  pointer-events: auto;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  justify-content: center;
+}
+
+#webspace-ui.projection-flat .ql-editor {
+  --max-width: 1000px;
+  padding: 0 calc(max(24px, (100vw - var(--nav-width) - var(--presence-width) - min(var(--max-width), 1000vw - var(--nav-width) - var(--presence-width))) / 2)) !important;
+}
+
 .a-enter-vr {
   display: none;
 }

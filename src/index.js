@@ -119,14 +119,19 @@ import "./components/shape-helper";
 
 import { SHADOW_DOM_STYLES } from "./styles";
 import AFRAME_DOM from "./aframe-dom";
-import { getIsWindowAtScreenEdges, isInEditableField } from "./utils/dom-utils";
+import { getIsWindowAtScreenEdges, isInEditableField, getProjectionType, PROJECTION_TYPES } from "./utils/dom-utils";
 import { patchWebGLRenderingContext, isSoftwareRenderer } from "./utils/webgl";
 import patchThreeNoProgramDispose from "./utils/threejs-avoid-disposing-programs";
 import "./utils/threejs-video-texture-pause";
 import nextTick from "./utils/next-tick";
 import { SOUND_QUACK, SOUND_SPECIAL_QUACK } from "./systems/sound-effects-system";
 import duckySvox from "!!raw-loader!./assets/models/ducky.svox";
-import { addMediaInFrontOfPlayerIfPermitted, hasActiveScreenShare } from "./utils/media-utils";
+import {
+  addMediaInFrontOfPlayerIfPermitted,
+  hasActiveScreenShare,
+  MEDIA_PRESENCE,
+  MEDIA_INTERACTION_TYPES
+} from "./utils/media-utils";
 import ReactDOM from "react-dom";
 import React from "react";
 import { Router, Route } from "react-router-dom";
@@ -230,7 +235,7 @@ const browser = detect();
 
 // Don't pause on blur on linux bc of gfx instability
 const performConservativePausing = browser.os === "Linux";
-const PAUSE_AFTER_BLUR_DURATION_MS = performConservativePausing ? 0 : 2 * 60000;
+const PAUSE_AFTER_BLUR_DURATION_MS = performConservativePausing ? 0 : 5000;
 
 if (isBotMode) {
   const token = qs.get("credentials_token");
@@ -468,16 +473,16 @@ function addGlobalEventListeners(scene, entryManager) {
 }
 
 // Attempts to pause a-frame scene and rendering if tabbed away or maximized and window is blurred
-function setupGameEnginePausing(scene) {
+function setupGameEnginePausing(scene, projectionType) {
   const physics = scene.systems["hubs-systems"].physicsSystem;
   const autoQuality = scene.systems["hubs-systems"].autoQualitySystem;
   let disableAmbienceTimeout = null;
 
   const webglLoseContextExtension = scene.renderer.getContext().getExtension("WEBGL_lose_context");
 
-  const apply = hidden => {
+  const apply = (hidden, forcePause = false) => {
     if (document.visibilityState === "hidden" || hidden) {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" || forcePause) {
         scene.pause();
 
         // THREE bug - if this clock is not stopped we end up lerping audio listener positions over a long duration
@@ -525,6 +530,14 @@ function setupGameEnginePausing(scene) {
       }
     }
   };
+
+  // Special case - pause the whole thing if we're just rendering a flat page.
+  if (projectionType === PROJECTION_TYPES.FLAT) {
+    apply(true, true);
+    UI.classList.remove("paused");
+
+    return;
+  }
 
   // Need a timeout since tabbing in browser causes blur then focus rapidly
   let windowBlurredTimeout = null;
@@ -879,6 +892,43 @@ async function patchUpManuallyAddedHtmlTags() {
   }
 }
 
+async function setupFlatProjection(scene) {
+  UI.classList.add("projection-flat");
+
+  if (!scene.is("document-imported")) {
+    await new Promise(resolve => {
+      const handler = () => {
+        if (!scene.is("document-imported")) return;
+        scene.removeEventListener("stateadded", handler);
+        resolve();
+      };
+
+      scene.addEventListener("stateadded", handler);
+    });
+  }
+
+  let mediaTextEl = DOM_ROOT.querySelector("[media-text]");
+
+  if (!mediaTextEl) {
+    // Create a media text for this flat document
+    mediaTextEl = addMediaInFrontOfPlayerIfPermitted({
+      contents: "",
+      contentSubtype: "page"
+    }).entity;
+
+    while (!mediaTextEl.components["media-text"]) {
+      await nextTick();
+    }
+  }
+
+  const oldActiveElement = DOM_ROOT.activeElement;
+  const mediaText = mediaTextEl.components["media-text"];
+  await mediaText.setMediaPresence(MEDIA_PRESENCE.PRESENT);
+  mediaText.handleMediaInteraction(MEDIA_INTERACTION_TYPES.EDIT);
+  SYSTEMS.mediaTextSystem.getQuill(mediaText).container.parentElement.classList.remove("fast-show-when-popped");
+  oldActiveElement?.focus();
+}
+
 async function start() {
   if (!(await checkPrerequisites())) return;
   addMissingDefaultHtml();
@@ -918,7 +968,6 @@ async function start() {
 
       <div id="nav-drag-target"></div>
       <div id="presence-drag-target"></div>
-      <div id="quill-container"></div>
 
       <div id="gaze-cursor">
           <div class="cursor"></div>
@@ -1048,7 +1097,10 @@ async function start() {
     let rightDelta = 0;
     let bottomDelta = 0;
 
-    const triggerSizePx = DOM_ROOT.querySelector("#left-expand-trigger").offsetWidth;
+    const leftExpandTrigger = DOM_ROOT.querySelector("#left-expand-trigger");
+    if (!leftExpandTrigger) return;
+
+    const triggerSizePx = leftExpandTrigger.offsetWidth;
     const interaction = AFRAME.scenes[0].systems.interaction;
 
     // Ignore when holding.
@@ -1151,9 +1203,11 @@ async function start() {
     scene.addEventListener("loaded", () => initPhysicsThreeAndCursor(scene), { once: true });
   }
 
+  const projectionType = getProjectionType();
+
   addGlobalEventListeners(scene, entryManager, atomAccessManager);
   setupSidePanelLayout(scene);
-  setupGameEnginePausing(scene);
+  setupGameEnginePausing(scene, projectionType);
   await emojiLoadPromise;
 
   const sessionId = nodeCrypto.randomBytes(20).toString("hex");
@@ -1201,13 +1255,27 @@ async function start() {
 
   remountUIRoot({ spaceId });
 
+  if (projectionType === PROJECTION_TYPES.FLAT) {
+    // HACK, need to set the background color here, and draw it into the canvas.
+    // The UI animation system assumes the canvas is visible and the ground truth for the sizing.
+    window.requestAnimationFrame(() => {
+      scene.renderer.setClearColor("#FFFFFF");
+      scene.renderer.render(new THREE.Scene(), scene.camera);
+      scene.renderer.render = () => {};
+    });
+  }
+
   // Don't await here, since this is just going to set up networking behind the scenes, which is slow
   // and we don't want to block on.
   await joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
 
   entryManager.enterScene(false).then(() => {
-    remountUIRoot({ isDoneLoading: true });
+    remountUIRoot({ isDoneLoading: true, projectionType });
   });
+
+  if (projectionType === PROJECTION_TYPES.FLAT) {
+    await setupFlatProjection(scene);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", start);

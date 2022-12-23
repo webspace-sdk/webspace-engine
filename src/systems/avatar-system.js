@@ -198,29 +198,6 @@ export class AvatarSystem {
     this.loadedDecals = false;
 
     this.createMesh();
-
-    setInterval(() => {
-      // When scene is off (since we're paused) we need to keep updating the self avatar in the UI.
-      if (sceneEl.is("off") || !sceneEl.object3D.isPlaying) {
-        this.beginUpdatingSelfAsync();
-      }
-    }, 1000);
-  }
-
-  beginUpdatingSelfAsync() {
-    if (this.selfUpdateInterval) return;
-
-    // Update at 60 hz
-    this.selfUpdateInterval = setInterval(() => {
-      this.processAvatars(performance.now(), true);
-    }, 1000.0 / 60.0);
-  }
-
-  stopUpdatingSelfAsync() {
-    if (this.selfUpdateInterval) {
-      clearInterval(this.selfUpdateInterval);
-      this.selfUpdateInterval = null;
-    }
   }
 
   async loadDecalMap() {
@@ -299,8 +276,6 @@ export class AvatarSystem {
   }
 
   tick(t) {
-    this.stopUpdatingSelfAsync();
-
     if (!this.loadedDecals) {
       this.loadDecalMap();
       this.loadedDecals = true;

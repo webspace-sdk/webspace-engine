@@ -15,7 +15,7 @@ import ChatLog from "./chat-log";
 import { WrappedIntlProvider } from "./wrapped-intl-provider";
 import { useSceneMuteState } from "../utils/shared-effects";
 import KeyTips from "./key-tips";
-import { isInEditableField } from "../utils/dom-utils";
+import { isInEditableField, PROJECTION_TYPES } from "../utils/dom-utils";
 import LoadingPanel from "./loading-panel";
 import { CREATE_SELECT_WIDTH, CREATE_SELECT_LIST_HEIGHT } from "./create-select";
 import qsTruthy from "../utils/qs_truthy";
@@ -65,6 +65,10 @@ const Wrap = styled.div`
   flex-direction: column;
 
   #webspace-ui:focus-within & {
+    pointer-events: auto;
+  }
+
+  .projection-flat & {
     pointer-events: auto;
   }
 
@@ -309,9 +313,21 @@ const DeviceStatuses = styled.div`
 `;
 
 function UIRoot(props) {
-  const { scene, treeManager, hub, unavailableReason, voxTree, sceneTree, sessionId, hide, isDoneLoading } = props;
+  const {
+    scene,
+    treeManager,
+    hub,
+    unavailableReason,
+    voxTree,
+    sceneTree,
+    sessionId,
+    hide,
+    isDoneLoading,
+    projectionType
+  } = props;
 
   const { launcherSystem, cameraSystem, builderSystem, externalCameraSystem } = SYSTEMS;
+  const isSpatial = projectionType === PROJECTION_TYPES.SPATIAL;
 
   const worldTree = treeManager && treeManager.worldNav;
   const { spaceMetadata, store } = window.APP;
@@ -392,7 +408,7 @@ function UIRoot(props) {
             unavailableReason={unavailableReason}
           />
           <Wrap id="webspace-ui-wrap">
-            <FadeEdges />
+            {isSpatial && <FadeEdges />}
             <CreateSelectPopupRef ref={createSelectPopupRef} />
             <ModalPopupRef ref={modalPopupRef} />
             <CenterPopupRef ref={centerPopupRef} />
@@ -400,19 +416,24 @@ function UIRoot(props) {
               {...props}
               worldTree={worldTree}
               worldTreeData={worldTreeData}
+              projectionType={projectionType}
               environmentSettingsButtonRef={environmentSettingsButtonRef}
               createSelectPopupRef={createSelectPopupRef}
             />
-            <KeyTipsWrap
-              style={isMobile ? { display: "none" } : {}}
-              onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
-            >
-              <KeyTips id="key-tips" />
-            </KeyTipsWrap>
-            <DeviceStatuses id="device-statuses" style={isMobile ? { display: "none" } : {}}>
-              {triggerMode === "builder" && <EqippedBrushIcon />}
-              {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
-            </DeviceStatuses>
+            {isSpatial && (
+              <KeyTipsWrap
+                style={isMobile ? { display: "none" } : {}}
+                onClick={() => store.update({ settings: { hideKeyTips: !store.state.settings.hideKeyTips } })}
+              >
+                <KeyTips id="key-tips" />
+              </KeyTipsWrap>
+            )}
+            {isSpatial && (
+              <DeviceStatuses id="device-statuses" style={isMobile ? { display: "none" } : {}}>
+                {triggerMode === "builder" && <EqippedBrushIcon />}
+                {triggerMode === "builder" ? <EqippedColorIcon /> : <EquippedEmojiIcon />}
+              </DeviceStatuses>
+            )}
             <BottomLeftPanels className={`${showingExternalCamera ? "external-camera-on" : ""}`}>
               <ExternalCameraCanvas id="external-camera-canvas" />
               {showingExternalCamera && (
@@ -427,7 +448,9 @@ function UIRoot(props) {
               <PausedInfoLabel>
                 <FormattedMessage id="paused.info" />
               </PausedInfoLabel>
-              <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+              {isSpatial && (
+                <ChatLog leftOffset={showingExternalCamera ? 300 : 0} hub={hub} scene={scene} store={store} />
+              )}
             </BottomLeftPanels>
           </Wrap>
           {!isInspecting &&
@@ -446,20 +469,23 @@ function UIRoot(props) {
               centerPopupRef={centerPopupRef}
               showInviteTip={showInviteTip}
               setHasShownInvite={setHasShownInvite}
+              projectionType={projectionType}
             />
           )}
         </Root>
         <RootPopups centerPopupRef={centerPopupRef} scene={scene} />
-        {!isMobile && (
-          <>
-            <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
-            <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
-            <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
-          </>
-        )}
+        {!isMobile &&
+          isSpatial && (
+            <>
+              <LeftExpandTrigger id="left-expand-trigger" onClick={onExpandTriggerClick} />
+              <RightExpandTrigger id="right-expand-trigger" onClick={onExpandTriggerClick} />
+              <BottomExpandTrigger id="bottom-expand-trigger" onClick={onExpandTriggerClick} />
+            </>
+          )}
         <SelfPanel
           scene={scene}
           sessionId={sessionId}
+          projectionType={projectionType}
           onAvatarColorChangeComplete={({ rgb: { r, g, b } }) => {
             const { store } = window.APP;
             const { profile } = store.state;
@@ -502,7 +528,8 @@ UIRoot.propTypes = {
   sceneTree: PropTypes.object,
   sessionId: PropTypes.string,
   hide: PropTypes.bool,
-  isDoneLoading: PropTypes.bool
+  isDoneLoading: PropTypes.bool,
+  projectionType: PropTypes.number
 };
 
 export default UIRoot;

@@ -206,10 +206,7 @@ export default class AtomAccessManager extends EventTarget {
 
     // TODO add handler when saveChangesToOrigin is set to true that marks document dirty
     window.addEventListener("beforeunload", e => {
-      if (!this.writeback?.isOpen) return;
-      if (!this.documentIsDirty && !SYSTEMS.voxSystem.hasPendingWritebackFlush()) return;
-      if (this.hasAnotherWriterInPresence()) return;
-      if (!this.saveChangesToOrigin) return;
+      if (!this.hasUnsavedChanges) return;
 
       e.preventDefault();
       e.returnValue = "Unsaved changes are still being written. Do you want to leave and lose these changes?";
@@ -258,10 +255,11 @@ export default class AtomAccessManager extends EventTarget {
     }
   }
 
-  async ensureWritingComplete() {
-    while (this.documentIsDirty && this.isMasterWriter()) {
-      await new Promise(res => setTimeout(res, 100));
-    }
+  get hasUnsavedChanges() {
+    if (!this.isMasterWriter()) return false;
+    if (!this.documentIsDirty && !SYSTEMS.voxSystem.hasPendingWritebackFlush()) return false;
+    if (!this.saveChangesToOrigin) return false;
+    return true;
   }
 
   get writebackOriginType() {

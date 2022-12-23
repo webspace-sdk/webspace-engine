@@ -6,6 +6,7 @@ import qsTruthy from "./utils/qs_truthy";
 import HubStore from "./storage/hub-store";
 import MediaTree from "./utils/media-tree";
 import { clearVoxAttributePools } from "./objects/voxels-buffer-geometry";
+import { getProjectionType, PROJECTION_TYPES } from "./utils/dom-utils";
 import { restartPeriodicSyncs } from "./components/periodic-full-syncs";
 import { toByteArray as base64ToByteArray } from "base64-js";
 import { pushHubMetaUpdateIntoDOM } from "./utils/dom-utils";
@@ -283,7 +284,10 @@ const joinHubChannel = (hubId, spaceId, hubStore, hubMetadata, entryManager, rem
 
         new WorldImporter().importHtmlToCurrentWorld(initialWorldHTML, true, true).then(() => {
           scene.systems.networked.play();
+          scene.addState("document-imported");
         });
+      } else {
+        scene.addState("document-imported");
       }
 
       SYSTEMS.terrainSystem.startAutoLoadingChunks();

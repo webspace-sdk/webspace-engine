@@ -60,10 +60,13 @@ export async function getSpaceIdFromHistory() {
 }
 
 export async function navigateToHubUrl(url) {
-  // Performs a dissolve of the UI before navigation.
-  await window.APP.atomAccessManager.ensureWritingComplete();
-  DOM_ROOT.querySelector(".loading-complete").classList.add("loading");
-  setTimeout(() => (document.location = url), 400);
+  if (window.APP.atomAccessManager.hasUnsavedChanges) {
+    // Just do a direct nav to cause the prompt
+    document.location = url;
+  } else {
+    DOM_ROOT.querySelector(".loading-complete").classList.add("loading");
+    setTimeout(() => (document.location = url), 400);
+  }
 }
 
 export async function getSeedForHubIdFromHistory() {
