@@ -3,7 +3,6 @@ should hide emoji button
 make sure you can't edit if denied
 change colors in header buttons to black
 presence header should say Page or World
-transparent background on normal edit
 --
 
 - create dialog getting blur when hitting enter
@@ -13,6 +12,9 @@ transparent background on normal edit
   - editor UX
     - close button in vox editor, drop left panel
     - undo/redo buttons
+
+-- content
+- OG tags
 
 ---
 - commit message says World when it should say Page
@@ -26,6 +28,9 @@ transparent background on normal edit
 - index.html add networking config for TURN
 - copy networking config into new hubs
 - add support for some configs in index.html
+- grass popping in late
+- right panel flickers in on mobile
+- PWA
 - clean up per frame allocations
 - video play button missing on ios safari
 - GIF not unpacking when using local filesystem
