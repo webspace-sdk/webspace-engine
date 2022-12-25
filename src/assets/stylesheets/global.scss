@@ -361,7 +361,7 @@ a-scene.visible {
 }
 
 #webspace-ui.projection-flat.panels-collapsed .ql-editor {
-  --max-ql-editor-width: 650px;
+  --max-ql-editor-width: 850px;
   padding: 0 calc(max(24px, (100vw - min(var(--max-ql-editor-width), 100vw)) / 2)) !important;
 }
 
