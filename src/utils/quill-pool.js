@@ -59,9 +59,10 @@ export function getQuill(networkId) {
     container: [
       [{ header: 1 }, { header: 2 }], // custom button values
       ["bold", "italic", "underline", "strike"], // toggled buttons
+      [{ indent: "-1" }, { indent: "+1" }],
       ["emoji"],
       ["code-block", "blockquote"],
-      ["image"],
+      ["link", "image"],
       [{ list: "ordered" }, { list: "bullet" }],
       [{ align: [] }]
     ],
