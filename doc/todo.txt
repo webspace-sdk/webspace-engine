@@ -23,6 +23,7 @@ presence header should say Page or World
 - show an icon for a world vs a page in left side
 - emoji insertion point is wrong in quill if you just change the cursor position
   - related: quill toolbar not hiding when selection/cursor changes
+- set spawn point should hide menu
 - need to shut down audio worklet job and lip sync job when paused
 - make nav menu items actual A tags
 - index.html add networking config for TURN
