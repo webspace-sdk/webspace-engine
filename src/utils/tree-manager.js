@@ -149,6 +149,8 @@ class TreeManager extends EventTarget {
       doc.title = metadata.name;
     }
 
+    doc.body.setAttribute("style", "display: none");
+
     const aEl = doc.querySelector("nav ul li a");
 
     // Index should redirect to first world.
