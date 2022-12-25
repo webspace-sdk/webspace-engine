@@ -159,8 +159,12 @@ class TreeManager extends EventTarget {
         refreshTag = doc.createElement("meta");
       }
 
+      const htmlFile = aEl
+        .getAttribute("href")
+        .split("/")
+        .pop();
       refreshTag.setAttribute("http-equiv", "refresh");
-      refreshTag.setAttribute("content", `0;url=${aEl.href}`);
+      refreshTag.setAttribute("content", `0;url=${htmlFile}`);
       doc.head.appendChild(refreshTag);
     }
   }
