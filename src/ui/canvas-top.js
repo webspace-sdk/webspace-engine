@@ -12,7 +12,6 @@ import addIcon from "../assets/images/icons/add-shadow.svgi";
 import securityIcon from "../assets/images/icons/security-shadow.svgi";
 import sunIcon from "../assets/images/icons/sun-shadow.svgi";
 import menuIcon from "../assets/images/icons/menu-shadow.svgi";
-import expandIcon from "../assets/images/icons/expand-shadow.svgi";
 import backIcon from "../assets/images/icons/back-shadow.svgi";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { getMessages } from "../utils/i18n";
