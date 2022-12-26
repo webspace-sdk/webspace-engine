@@ -3,20 +3,14 @@ should hide emoji button
 presence header should say Page or World
 --
 
-- assets folder needs to be created, fails when dragging and dropping
-- can't scroll page on mobile
-- create dialog getting blur when hitting enter
-- add a ui toggle button in top left due to docks on side of screen
-  - this can be back button out of editor too
-- vox
-  - editor UX
-    - close button in vox editor, drop left panel
-    - undo/redo buttons
-
 -- content
 - OG tags
 
 ---
+
+- vox undo/redo buttons
+- create dialog getting blur when hitting enter during deploy
+- when mic dialog is open, can pinch and zoom UI on iOS
 - commit message says World when it should say Page
 - transparent PNGs have black background
 - should avoid loading the page when there is a git deploy in flight
