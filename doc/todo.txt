@@ -18,6 +18,7 @@ presence header should say Page or World
 
 ---
 - commit message says World when it should say Page
+- transparent PNGs have black background
 - should avoid loading the page when there is a git deploy in flight
 - creating a duck without permission on spawner
 - show an icon for a world vs a page in left side

@@ -217,7 +217,11 @@ export default class FileWriteback {
           return false;
         }
       } else {
-        handle = await handle.getDirectoryHandle(nextPart);
+        try {
+          handle = await handle.getDirectoryHandle(nextPart);
+        } catch (e) {
+          return false;
+        }
       }
 
       if (!handle) return false;
