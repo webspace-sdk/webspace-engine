@@ -1262,13 +1262,16 @@ async function start() {
   remountUIRoot({ spaceId });
 
   if (projectionType === PROJECTION_TYPES.FLAT) {
+    const tmpScene = new THREE.Scene();
+    scene.renderer.setClearColor("#FFFFFF");
+
+    const raf = () => {
+      scene.renderer.render(tmpScene, scene.camera);
+      window.requestAnimationFrame(raf);
+    };
     // HACK, need to set the background color here, and draw it into the canvas.
     // The UI animation system assumes the canvas is visible and the ground truth for the sizing.
-    window.requestAnimationFrame(() => {
-      scene.renderer.setClearColor("#FFFFFF");
-      scene.renderer.render(new THREE.Scene(), scene.camera);
-      scene.renderer.render = () => {};
-    });
+    window.requestAnimationFrame(raf);
   }
 
   // Don't await here, since this is just going to set up networking behind the scenes, which is slow
