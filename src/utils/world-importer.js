@@ -132,6 +132,7 @@ export default class WorldImporter {
       await this.removeEntitiesFromWebspacesDocument(doc);
     }
 
+    let fitToBox = false;
     const docEntityIds = new Set();
 
     for (const el of doc.body.childNodes) {
@@ -219,6 +220,7 @@ export default class WorldImporter {
       } else if (tagName === "MODEL") {
         // VOX or glTF
         src = el.getAttribute("src");
+        fitToBox = true;
       } else if (tagName === "VIDEO") {
         // Video
         src = el.getAttribute("src");
@@ -317,7 +319,7 @@ export default class WorldImporter {
         contentOrigin: ObjectContentOrigins.URL,
         contentSubtype,
         animate: false,
-        fitToBox: false,
+        fitToBox,
         mediaOptions,
         networkId: id,
         // Set the owner to 'world', which allows in-flight modifications from other clients that join to win

@@ -8,6 +8,9 @@ presence header should say Page or World
 
 ---
 
+- local gif upload not working
+- local gif paste not animated
+- V scale up/down is annoying and gets clipped
 - vox undo/redo buttons
 - create dialog getting blur when hitting enter during deploy
 - when mic dialog is open, can pinch and zoom UI on iOS
