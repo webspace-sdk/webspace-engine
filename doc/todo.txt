@@ -13,6 +13,7 @@ presence header should say Page or World
 
 ---
 
+- can't right or middle click on links in flat
 - should be able to switch between O/W X,Y,Z gestures during same drag
 - emoji popup is showing when typing normally in quill?
 - local gif upload not working
