@@ -359,11 +359,13 @@ a-scene.visible {
 #webspace-ui.projection-flat .ql-editor {
   --max-ql-editor-width: 650px;
   padding: 0 calc(max(24px, (100vw - var(--nav-width) - var(--presence-width) - min(var(--max-ql-editor-width), 100vw - var(--nav-width) - var(--presence-width))) / 2)) !important;
+  padding-bottom: 24px !important;
 }
 
 #webspace-ui.projection-flat.panels-collapsed .ql-editor {
   --max-ql-editor-width: 850px;
   padding: 0 calc(max(24px, (100vw - min(var(--max-ql-editor-width), 100vw)) / 2)) !important;
+  padding-bottom: 24px !important;
 }
 
 .a-enter-vr {
