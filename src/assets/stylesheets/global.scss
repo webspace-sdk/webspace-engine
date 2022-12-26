@@ -328,6 +328,7 @@ a-scene.visible {
 #webspace-ui.projection-flat .quill-editor-wrap {
   pointer-events: none;
   top: 64px;
+  height: calc(100% - 64px);
   bottom: auto;
 }
 
