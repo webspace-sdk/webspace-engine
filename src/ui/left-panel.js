@@ -15,7 +15,9 @@ import HubTree from "./hub-tree";
 import InvitePanel from "./invite-panel";
 import Tooltip from "./tooltip";
 import PanelItemButton, { PanelItemButtonSection } from "./panel-item-button";
+import IconButton from "./icon-button";
 import inviteIcon from "../assets/images/icons/invite.svgi";
+import cancelIcon from "../assets/images/icons/cancel.svgi";
 import { getMessages } from "../utils/i18n";
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import ReactDOM from "react-dom";
@@ -45,7 +47,7 @@ const NavHead = styled.div`
 
 const NavTop = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   flex-direction: row;
 `;
@@ -55,7 +57,7 @@ const SpaceBanner = styled.div`
   font-size: var(--panel-banner-text-size);
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
-  margin: 18px 0px 18px 16px;
+  margin: 18px 0px 18px 8px;
 `;
 
 const SpaceNameButton = styled.button`
@@ -63,7 +65,7 @@ const SpaceNameButton = styled.button`
   font-size: var(--panel-banner-text-size);
   font-weight: var(--panel-banner-text-weight);
   color: var(--panel-banner-text-color);
-  margin: 12px 0px 12px 16px;
+  margin: 12px 0px 12px 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -300,6 +302,12 @@ function LeftPanel({
       <Nav>
         <NavHead>
           <NavTop>
+            <IconButton
+              disableHover={true}
+              style={{ margin: "12px 0 12px 12px", opacity: 0.33 }}
+              iconSrc={cancelIcon}
+              onClick={() => SYSTEMS.uiAnimationSystem.toggleSidePanels()}
+            />
             {spaceCan("update_space_meta") && (
               <SpaceNameButton
                 ref={spaceBannerRef}

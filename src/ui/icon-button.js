@@ -21,14 +21,18 @@ const IconButtonElement = styled.button`
   display: flex;
   justify-content: center;
   align-items: center;
-
-  &:hover {
-    background-color: var(--action-button-hover-background-color);
-  }
-
   &:active {
     background-color: var(--action-button-active-background-color);
   }
+
+  ${props =>
+    !props.disableHover
+      ? `
+      &:hover {
+        background-color: var(--action-button-hover-background-color);
+        }
+    `
+      : ""};
 `;
 
 const IconButtonIcon = styled.div`
