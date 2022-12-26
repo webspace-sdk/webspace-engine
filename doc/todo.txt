@@ -3,14 +3,22 @@ should hide emoji button
 presence header should say Page or World
 --
 
+- locally creating a svox object embeds file:// URL
+
 -- content
-- OG tags
+- READMEs
+- images for blog post
+- tweet thread
+- load bugs
 
 ---
 
+- should be able to switch between O/W X,Y,Z gestures during same drag
+- emoji popup is showing when typing normally in quill?
 - local gif upload not working
 - local gif paste not animated
 - V scale up/down is annoying and gets clipped
+- fog color should match sky
 - vox undo/redo buttons
 - create dialog getting blur when hitting enter during deploy
 - when mic dialog is open, can pinch and zoom UI on iOS

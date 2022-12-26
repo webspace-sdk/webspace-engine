@@ -40,7 +40,7 @@ export const WORLD_SIZE = WORLD_MAX_COORD - WORLD_MIN_COORD;
 
 // Radius is artificial, want to have a specific curve effect not accurancy
 // TODO adjust based on world type, note also changed in unlit-batch.vert.
-export const WORLD_RADIUS = 128.0;
+export const WORLD_RADIUS = 1024.0;
 
 export const addVertexCurvingToShader = (shader, postCurveShader = "") => {
   return;
