@@ -11,6 +11,9 @@ import dotsIcon from "../assets/images/icons/dots-horizontal-overlay-shadow.svgi
 import addIcon from "../assets/images/icons/add-shadow.svgi";
 import securityIcon from "../assets/images/icons/security-shadow.svgi";
 import sunIcon from "../assets/images/icons/sun-shadow.svgi";
+import menuIcon from "../assets/images/icons/menu-shadow.svgi";
+import expandIcon from "../assets/images/icons/expand-shadow.svgi";
+import backIcon from "../assets/images/icons/back-shadow.svgi";
 import { useAtomBoundPopupPopper, usePopupPopper } from "../utils/popup-utils";
 import { getMessages } from "../utils/i18n";
 import Tooltip from "./tooltip";
@@ -38,7 +41,16 @@ const Top = styled.div`
 `;
 
 const CornerButtonElement = styled.button`
-  color: var(--canvas-overlay-text-color);
+  ${props =>
+    props.hideOnExpand
+      ? `
+    display: none;
+
+    #webspace-ui.panels-collapsed & {
+      display: flex;
+    }
+  `
+      : ""} color: var(--canvas-overlay-text-color);
   text-shadow: 0px 0px 4px;
 
   #webspace-ui.projection-flat & {
@@ -148,9 +160,12 @@ const CornerButtonIcon = styled.div`
 `;
 
 const BackButton = forwardRef((props, ref) => {
+  const inspecting = SYSTEMS.cameraSystem.isInspecting();
+  const icon = inspecting ? backIcon : menuIcon;
+
   return (
-    <CornerButtonElement {...props} ref={ref} className="left">
-      <CornerButtonIcon dangerouslySetInnerHTML={{ __html: dotsIcon }} />
+    <CornerButtonElement {...props} hideOnExpand={!inspecting} ref={ref} className="left">
+      <CornerButtonIcon dangerouslySetInnerHTML={{ __html: icon }} />
     </CornerButtonElement>
   );
 });

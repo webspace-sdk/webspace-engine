@@ -1,0 +1,5 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="svg-overlay-shadow">
+<rect x="5" y="16.1474" width="14.3506" height="4" rx="2" transform="rotate(-45 5 16.1474)" fill="currentColor"/>
+<rect width="14.3506" height="4" rx="2" transform="matrix(0.707107 0.707107 0.707107 -0.707107 5 16.1474)" fill="currentColor"/>
+<rect x="5.8" y="14.1474" width="22" height="4" rx="2" fill="currentColor"/>
+</svg>
