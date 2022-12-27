@@ -11,14 +11,9 @@ import { RENDER_ORDER, COLLISION_LAYERS } from "../constants";
 import { SVoxChunk as SerializedVoxels } from "../utils/svox-chunk";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../utils/media-utils";
 import { ensureOwnership } from "../utils/ownership-utils";
-import {
-  Voxels,
-  rgbtForVoxColor,
-  REMOVE_VOXEL_COLOR,
-  Buffers as SvoxBuffers,
-  SvoxBufferGeometry,
-  SvoxMeshGenerator
-} from "smoothvoxels";
+import { Voxels, rgbtForVoxColor, REMOVE_VOXEL_COLOR, ModelWriter } from "smoothvoxels";
+import { SvoxBufferGeometry } from "smoothvoxels/three";
+import VoxMesherWorker from "../workers/vox-mesher.worker.js";
 import {
   CompressionStream as CompressionStreamImpl,
   DecompressionStream as DecompressionStreamImpl
@@ -39,7 +34,6 @@ import { EventTarget } from "event-target-shim";
 
 const { ShaderMaterial, ShaderLib, UniformsUtils, MeshStandardMaterial, Matrix4, Mesh } = THREE;
 
-const svoxBuffers = new SvoxBuffers(1024 * 768 * 2);
 export const MAX_FRAMES_PER_VOX = 32;
 const MAX_INSTANCES_PER_VOX_ID = 255;
 const IDENTITY = new Matrix4();
@@ -51,6 +45,7 @@ const DELTA_RING_BUFFER_LENGTH = 32;
 const SVOX_ZERO_VECTOR = { x: 0, y: 0, z: 0 };
 const SVOX_DEFAULT_SCALE = { x: 0.125, y: 0.125, z: 0.125 };
 const SVOX_DEFAULT_POSITION = { x: 0, y: 0, z: 0 };
+const EMPTY_OBJECT = {};
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -231,6 +226,16 @@ export class VoxSystem extends EventTarget {
         entry.regenerateDirtyMeshesOnNextFrame = true;
       });
     }
+
+    this.lastMesherWorkerId = 0;
+    this.voxMesherWorker = new VoxMesherWorker();
+    this.voxMesherWorker.onmessage = msg => {
+      const {
+        id,
+        result: { voxId, iFrame, svoxMesh }
+      } = msg.data;
+      this.handleReceivedSvoxMesh(id, voxId, iFrame, svoxMesh);
+    };
   }
 
   tick() {
@@ -580,6 +585,7 @@ export class VoxSystem extends EventTarget {
       showVoxGeometry: false, // If true, show the vox mesh, otherwise show the svox mesh
       voxGeometries: Array(MAX_FRAMES_PER_VOX).fill(null), // Vox geometries for blockly look, one per frame
       svoxGeometries: Array(MAX_FRAMES_PER_VOX).fill(null), // Vox geometries for smooth look, one per frame
+      pendingVoxMeshWorkerJobIds: Array(MAX_FRAMES_PER_VOX).fill(null), // Pending svox ids from worker, one per frame
       models: Array(MAX_FRAMES_PER_VOX).fill(null),
       meshBoundingBoxes: Array(MAX_FRAMES_PER_VOX).fill(null),
       sourceBoundingBoxes: Array(MAX_INSTANCES_PER_VOX_ID).fill(null),
@@ -774,6 +780,7 @@ export class VoxSystem extends EventTarget {
       pendingVoxels,
       pendingVoxelsOffset,
       showVoxGeometry,
+      pendingVoxMeshWorkerJobIds,
       hasWalkableSources
     } = entry;
 
@@ -837,7 +844,6 @@ export class VoxSystem extends EventTarget {
       if (remesh) {
         let voxels = model.frames[i];
         const voxGeometry = entry.voxGeometries[i];
-        const svoxGeometry = entry.svoxGeometries[i];
 
         // If no pending + walkable update the walk geometry to match the first frame.
         if (!pendingVoxels && i === 0 && hasWalkableSources) {
@@ -868,7 +874,19 @@ export class VoxSystem extends EventTarget {
           mesh.geometry = voxGeometry;
           mesh.material = voxMaterial;
           mesh.receiveShadow = true;
+
+          this.updateShapeOffset(voxId, xMin, xMax, yMin, yMax, zMin, zMax);
+
+          if (!pendingVoxels) {
+            generateMeshBVH(mesh, true);
+            dirtyFrameBoundingBoxes[i] = true;
+            regenerateSizeBox = true;
+          }
+
+          this.updateTargettingMeshIfNeeded(voxId);
         } else {
+          const iFrame = i;
+
           const modelScale = model.scale;
           const modelRotation = model.rotation;
           const modelPosition = model.position;
@@ -879,50 +897,52 @@ export class VoxSystem extends EventTarget {
           model.position = SVOX_DEFAULT_POSITION;
           model.resize = "skip";
           model.origin = "x y z";
-          const svoxMesh = SvoxMeshGenerator.generate(model, svoxBuffers);
+
+          const modelString = ModelWriter.writeToString(
+            model,
+            false /* compressed */,
+            false /* repeat */,
+            null /* modelLine */,
+            null /* materialLine */,
+            EMPTY_OBJECT,
+            true /* skip voxels */
+          );
+
           model.scale = modelScale;
           model.rotation = modelRotation;
           model.position = modelPosition;
           model.origin = modelOrigin;
           model.resize = modelResize;
 
-          const bounds = svoxMesh.bounds;
-          xMin = bounds.minX;
-          yMin = bounds.minY;
-          zMin = bounds.minZ;
-          xMax = bounds.maxX;
-          yMax = bounds.maxY;
-          zMax = bounds.maxZ;
-          svoxGeometry.update(svoxMesh, false);
-          mesh.geometry = svoxGeometry;
-          mesh.material = svoxMaterial;
-          mesh.receiveShadow = false;
-        }
+          const voxelPackage = [
+            [...voxels.size],
+            voxels.bitsPerIndex,
+            voxels.palette.buffer.slice(0),
+            voxels.indices.view.buffer.slice(0),
+            voxels.palette.byteOffset,
+            voxels.palette.byteLength,
+            voxels.indices.view.byteOffset,
+            voxels.indices.view.byteLength
+          ];
 
-        // TODO show XZ plane
+          const jobId = this.lastMesherWorkerId++;
+          entry.pendingVoxMeshWorkerJobIds[iFrame] = jobId;
 
-        const xExtent = xMax - xMin;
-        const yExtent = yMax - yMin;
-        const zExtent = zMax - zMin;
-
-        // Offset the hull by the min and half the size
-        const dx = xMin + xExtent / 2;
-        const dy = yMin + yExtent / 2;
-        const dz = zMin + zExtent / 2;
-
-        entry.shapeOffset[0] = dx;
-        entry.shapeOffset[1] = dy;
-        entry.shapeOffset[2] = dz;
-
-        if (!pendingVoxels) {
-          generateMeshBVH(mesh, true);
-          dirtyFrameBoundingBoxes[i] = true;
-          regenerateSizeBox = true;
+          this.voxMesherWorker.postMessage(
+            {
+              id: jobId,
+              payload: {
+                voxId,
+                iFrame,
+                modelString,
+                voxelPackage
+              }
+            },
+            [voxelPackage[2], voxelPackage[3]]
+          );
         }
 
         dirtyFrameMeshes[i] = false;
-
-        this.updateTargettingMeshIfNeeded(voxId);
       }
     }
 
@@ -932,29 +952,7 @@ export class VoxSystem extends EventTarget {
     }
 
     if (regenerateSizeBox) {
-      // Size box is a mesh that contains the full animated voxel, used for culling.
-      const size = [VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE];
-
-      for (let i = 0; i < model.frames.length; i++) {
-        size[0] = Math.max(size[0], model.frames[i].size[0] * VOXEL_SIZE);
-        size[1] = Math.max(size[1], model.frames[i].size[1] * VOXEL_SIZE);
-        size[2] = Math.max(size[2], model.frames[i].size[2] * VOXEL_SIZE);
-      }
-
-      const geo = new THREE.BoxBufferGeometry(size[0], size[1], size[2]);
-
-      // Set size box geometry on sources.
-      for (let j = 0; j <= maxRegisteredIndex; j++) {
-        const source = sources[j];
-        if (source === null) continue;
-        source.geometry = geo;
-      }
-
-      if (entry.sizeBoxGeometry) {
-        entry.sizeBoxGeometry.dispose();
-      }
-
-      entry.sizeBoxGeometry = geo;
+      this.regenerateSizeBox(voxId);
     }
 
     for (let i = 0; i < meshes.length; i++) {
@@ -962,6 +960,103 @@ export class VoxSystem extends EventTarget {
         entry.maxMeshIndex = i;
       }
     }
+  }
+
+  handleReceivedSvoxMesh(jobId, voxId, iFrame, svoxMesh) {
+    const { voxIdToEntry } = this;
+
+    const entry = voxIdToEntry.get(voxId);
+    if (!entry) return;
+    const { meshes, svoxGeometries, showVoxGeometry, pendingVoxMeshWorkerJobIds, dirtyFrameBoundingBoxes } = entry;
+
+    const pendingVoxMeshWorkerJobId = pendingVoxMeshWorkerJobIds[iFrame];
+
+    if (jobId !== pendingVoxMeshWorkerJobId) return;
+    entry.pendingVoxMeshWorkerJobIds[iFrame] = null;
+
+    if (meshes[iFrame] === null) return;
+    if (showVoxGeometry) return;
+
+    const svoxGeometry = svoxGeometries[iFrame];
+
+    const mesh = meshes[iFrame];
+
+    const bounds = svoxMesh.bounds;
+    svoxGeometry.update(svoxMesh, false);
+    mesh.geometry = svoxGeometry;
+    mesh.material = svoxMaterial;
+    mesh.receiveShadow = false;
+
+    this.updateShapeOffset(voxId, bounds.xMin, bounds.xMax, bounds.yMin, bounds.yMax, bounds.zMin, bounds.zMax);
+
+    if (!this.hasPendingVoxels(voxId)) {
+      generateMeshBVH(mesh, true);
+      dirtyFrameBoundingBoxes[iFrame] = true;
+      this.regenerateSizeBox(voxId);
+    }
+
+    this.updateTargettingMeshIfNeeded(voxId);
+  }
+
+  hasPendingVoxels(voxId) {
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
+    if (!entry) return;
+  }
+
+  updateShapeOffset(voxId, xMin, xMax, yMin, yMax, zMin, zMax) {
+    const { voxIdToEntry } = this;
+    const entry = voxIdToEntry.get(voxId);
+    if (!entry) return;
+
+    const xExtent = xMax - xMin;
+    const yExtent = yMax - yMin;
+    const zExtent = zMax - zMin;
+
+    // Offset the hull by the min and half the size
+    const dx = xMin + xExtent / 2;
+    const dy = yMin + yExtent / 2;
+    const dz = zMin + zExtent / 2;
+
+    entry.shapeOffset[0] = dx;
+    entry.shapeOffset[1] = dy;
+    entry.shapeOffset[2] = dz;
+  }
+
+  regenerateSizeBox(voxId) {
+    const { voxIdToEntry, voxIdToModel } = this;
+
+    const entry = voxIdToEntry.get(voxId);
+    if (!entry) return;
+
+    const model = voxIdToModel.get(voxId);
+    if (!model) return;
+
+    const { sources, maxRegisteredIndex } = entry;
+
+    // Size box is a mesh that contains the full animated voxel, used for culling.
+    const size = [VOXEL_SIZE, VOXEL_SIZE, VOXEL_SIZE];
+
+    for (let i = 0; i < model.frames.length; i++) {
+      size[0] = Math.max(size[0], model.frames[i].size[0] * VOXEL_SIZE);
+      size[1] = Math.max(size[1], model.frames[i].size[1] * VOXEL_SIZE);
+      size[2] = Math.max(size[2], model.frames[i].size[2] * VOXEL_SIZE);
+    }
+
+    const geo = new THREE.BoxBufferGeometry(size[0], size[1], size[2]);
+
+    // Set size box geometry on sources.
+    for (let j = 0; j <= maxRegisteredIndex; j++) {
+      const source = sources[j];
+      if (source === null) continue;
+      source.geometry = geo;
+    }
+
+    if (entry.sizeBoxGeometry) {
+      entry.sizeBoxGeometry.dispose();
+    }
+
+    entry.sizeBoxGeometry = geo;
   }
 
   regenerateShapesForVoxId(voxId) {
