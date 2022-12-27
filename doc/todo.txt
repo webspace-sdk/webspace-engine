@@ -17,6 +17,7 @@ presence header should say Page or World
 - should be able to switch between O/W X,Y,Z gestures during same drag
 - emoji popup is showing when typing normally in quill?
 - local gif upload not working
+- precompile ssao effect pass to avoid hitch on load
 - local gif paste not animated
 - V scale up/down is annoying and gets clipped
 - fog color should match sky
