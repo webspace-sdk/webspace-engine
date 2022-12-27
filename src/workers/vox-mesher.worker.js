@@ -1,5 +1,7 @@
 import { Voxels, SvoxMeshGenerator, ModelReader, Buffers as SvoxBuffers } from "smoothvoxels";
-const svoxBuffers = new SvoxBuffers(1024 * 768 * 2);
+
+// Based on testing with a bunch of models
+const svoxBuffers = new SvoxBuffers(375000);
 
 const EMPTY_OBJECT = {};
 
