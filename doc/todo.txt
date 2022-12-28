@@ -18,8 +18,10 @@ presence header should say Page or World
 - emoji popup is showing when typing normally in quill?
 - local gif upload not working
 - precompile ssao effect pass to avoid hitch on load
+- ignore adding ids and draggables to script tags
 - local gif paste not animated
 - V scale up/down is annoying and gets clipped
+- figure out why mozilla svox model gets messed up
 - fog color should match sky
 - vox undo/redo buttons
 - create dialog getting blur when hitting enter during deploy
