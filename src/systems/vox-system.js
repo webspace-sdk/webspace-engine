@@ -11,7 +11,7 @@ import { RENDER_ORDER, COLLISION_LAYERS } from "../constants";
 import { SVoxChunk as SerializedVoxels } from "../utils/svox-chunk";
 import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../utils/media-utils";
 import { ensureOwnership } from "../utils/ownership-utils";
-import { Voxels, rgbtForVoxColor, REMOVE_VOXEL_COLOR, ModelWriter } from "smoothvoxels";
+import { Voxels, rgbtForVoxColor, REMOVE_VOXEL_COLOR, ModelWriter, Color } from "smoothvoxels";
 import { SvoxBufferGeometry } from "smoothvoxels/three";
 import VoxMesherWorker from "../workers/vox-mesher.worker.js";
 import {
@@ -45,6 +45,7 @@ const DELTA_RING_BUFFER_LENGTH = 32;
 const SVOX_ZERO_VECTOR = { x: 0, y: 0, z: 0 };
 const SVOX_DEFAULT_SCALE = { x: 0.125, y: 0.125, z: 0.125 };
 const SVOX_DEFAULT_POSITION = { x: 0, y: 0, z: 0 };
+const SVOX_DEFAULT_AO = { color: Color.fromHex("#000"), maxDistance: 3, strength: 1, angle: 70.0 };
 const EMPTY_OBJECT = {};
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
@@ -892,11 +893,14 @@ export class VoxSystem extends EventTarget {
           const modelPosition = model.position;
           const modelOrigin = model.origin;
           const modelResize = model.resize;
+          const modelAO = model.ao;
+
           model.scale = SVOX_DEFAULT_SCALE;
           model.rotation = SVOX_ZERO_VECTOR;
           model.position = SVOX_DEFAULT_POSITION;
           model.resize = "skip";
           model.origin = "x y z";
+          model.setAo(SVOX_DEFAULT_AO);
 
           const modelString = ModelWriter.writeToString(
             model,
@@ -913,6 +917,7 @@ export class VoxSystem extends EventTarget {
           model.position = modelPosition;
           model.origin = modelOrigin;
           model.resize = modelResize;
+          model.setAo(modelAO);
 
           const voxelPackage = [
             [...voxels.size],
