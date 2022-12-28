@@ -81,6 +81,17 @@ const OriginAccessConfigurationPanel = forwardRef(({ onConnectClicked, failedOri
                 <FormattedMessage id={`origin-access-config.error-${originType}-${failedOriginState}`} />
               )}
           </Tip>
+          <Tip style={{ lineHeight: "24px" }}>
+            <FormattedMessage id={`origin-access-config.${originType}-secret1`} />&nbsp;
+            <a
+              target="_blank"
+              rel="noreferrer"
+              href="https://github.com/webspace-sdk/webspace-engine/blob/master/github-writeback.md"
+            >
+              <FormattedMessage id={`origin-access-config.${originType}-secret2`} />
+            </a>&nbsp;
+            <FormattedMessage id={`origin-access-config.${originType}-secret3`} />
+          </Tip>
           <form
             autoComplete="off"
             onSubmit={async e => {
