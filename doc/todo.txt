@@ -31,6 +31,7 @@ presence header should say Page or World
 - should avoid loading the page when there is a git deploy in flight
 - creating a duck without permission on spawner
 - show an icon for a world vs a page in left side
+- agora.io
 - emoji insertion point is wrong in quill if you just change the cursor position
   - related: quill toolbar not hiding when selection/cursor changes
 - set spawn point should hide menu
@@ -45,6 +46,7 @@ presence header should say Page or World
 - clean up per frame allocations
 - video play button missing on ios safari
 - GIF not unpacking when using local filesystem
+- tablets not working
 - show a loading spinner in nav when you click on a link and we're waiting for it to flush
 - if space is held first, then object grabbed, enable snap
 - test iframe embedding
