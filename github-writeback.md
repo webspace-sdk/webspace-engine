@@ -18,8 +18,8 @@ The tricky part is creating the **GitHub Personal Access Token**. To get one:
 
 ![image](https://user-images.githubusercontent.com/220020/209758531-8b372422-f49e-4924-aed0-09d87e143af5.png)
 
-- Now, proceed to select **only select repositories** and find your particular webspace repo. Please **don't** add other repositories as it can cause security issues
-
+- Now, proceed to select **only select repositories** and find your particular webspace repo. **Don't** add other repositories since they are unneeded, and it's better security practice to avoid unnecessary permissions.
+- 
 ![image](https://media.discordapp.net/attachments/723384793034784901/1057525527235285012/repo_access.png)
 
 - We will now be selecting the required permission for the personal access token, which is, **Contents** : 
@@ -30,7 +30,7 @@ The tricky part is creating the **GitHub Personal Access Token**. To get one:
 
 ![image](https://user-images.githubusercontent.com/220020/209758560-0335d355-7e1c-4551-9f71-7ecb62b4680c.png)
 
-- Ta-da! You are now the owner of a very special Personal Access Token.
+- Ta-da! You are now the owner of a very special Personal Access Token. Plug this into the webspaces dialog and changes to your world will start landing back into GitHub.
 
 ### Recap
 
