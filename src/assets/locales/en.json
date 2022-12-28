@@ -429,7 +429,7 @@
   "folder-access-request.unsupported-notice": "Your browser doesn't support the Local File System API.",
   "folder-access-request.unsupported-tip": "To edit this world locally, try Chrome or Edge.",
   "origin-access-config.title": "Web Origin Access",
-  "origin-access-config.info": "Is this your domain? You can save changes back to Github.",
+  "origin-access-config.info": "Is this your webspace? If so, you can save changes to GitHub.",
   "origin-access-config.tip": "These settings are stored locally on your device and won't be shared.",
   "origin-access-config.github": "GitHub",
   "origin-access-config.confirming": "Checking credentials...",
