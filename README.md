@@ -20,3 +20,22 @@ Then, to create a new webspace, save this to a new HTML file in a new folder:
 ```
 
 And open it up in chrome via File->Open. You will then be able to edit the HTML file as a 3D world.
+
+## Alternative Starting Point
+
+You can use the publicly available webspace base in your websites too! You can do this by inserting this line into your html script:
+
+```
+<script src="https://webspace.run"
+```
+
+An example html document with this method is:
+```
+<html>
+<head>
+<script src="https://webspace.run"></script>
+<title>Webspaces are Cool</title>
+</head>
+<body></body>
+</html>
+```
