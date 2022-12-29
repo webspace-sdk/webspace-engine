@@ -1287,4 +1287,8 @@ async function start() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", start);
+if (document.readyState === "complete" || document.readyState === "loaded" || document.readyState === "interactive") {
+  start();
+} else {
+  document.addEventListener("DOMContentLoaded", start);
+}
