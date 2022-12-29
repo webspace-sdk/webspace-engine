@@ -152,7 +152,7 @@ import { setupTreeManagers, joinHub } from "./init";
 import { disableiOSZoom } from "./utils/disable-ios-zoom";
 import { getSpaceIdFromHistory } from "./utils/url-utils";
 import SceneEntryManager from "./scene-entry-manager";
-import AtomAccessManager from "./utils/atom-access-manager";
+import AtomAccessManager, { SERVICE_WORKER_VERSION } from "./utils/atom-access-manager";
 import EditRingManager from "./utils/edit-ring-manager";
 
 import {
@@ -1061,7 +1061,7 @@ async function start() {
 
   if (navigator.serviceWorker && document.location.protocol !== "file:") {
     try {
-      navigator.serviceWorker.register("/webspace.service.js");
+      navigator.serviceWorker.register(`/webspace.service.${SERVICE_WORKER_VERSION}.js`);
     } catch (e) { // eslint-disable-line
     }
   }

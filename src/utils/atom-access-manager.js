@@ -10,6 +10,8 @@ import { ROLES } from "./permissions-utils";
 import { getUrlFromVoxId } from "./vox-utils";
 import SERVICE_WORKER_JS from "!!raw-loader!../webspace.service.js";
 
+export const SERVICE_WORKER_VERSION = "1.0.1";
+
 const OWNER_PUBLIC_KEY_META_TAG_NAME = `${META_TAG_PREFIX}.keys.owner`;
 
 export const WRITEBACK_ORIGIN_STATE = {
@@ -329,8 +331,9 @@ export default class AtomAccessManager extends EventTarget {
   async ensureServiceWorker() {
     if (!this.writeback?.isOpen) return;
 
-    if (!(await this.fileExists("webspace.service.js"))) {
-      this.writeback.write(SERVICE_WORKER_JS, "webspace.service.js");
+    const serviceWorkerFilename = `webspace.service.${SERVICE_WORKER_VERSION}.js`;
+    if (!(await this.fileExists(serviceWorkerFilename))) {
+      this.writeback.write(SERVICE_WORKER_JS, serviceWorkerFilename);
     }
   }
 
