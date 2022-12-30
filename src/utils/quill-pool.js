@@ -3,12 +3,15 @@ import javascript from "highlight.js/lib/languages/javascript";
 import { getMessages } from "./i18n";
 import "quill-emoji";
 import Quill from "quill";
+import { getProjectionType, PROJECTION_TYPES } from "../utils/dom-utils";
 
 hljs.registerLanguage("javascript", javascript);
 
 hljs.configure({
   languages: ["javascript"]
 });
+
+const isFlatProjection = () => getProjectionType() === PROJECTION_TYPES.FLAT;
 
 export const EDITOR_WIDTH = 600;
 export const EDITOR_HEIGHT = Math.floor(EDITOR_WIDTH * 0.5625);
@@ -62,7 +65,7 @@ export function getQuill(networkId) {
       [{ indent: "-1" }, { indent: "+1" }],
       ["emoji"],
       ["code-block", "blockquote"],
-      ["link", "image"],
+      isFlatProjection() ? ["link", "image"] : ["image"],
       [{ list: "ordered" }, { list: "bullet" }],
       [{ align: [] }]
     ],
