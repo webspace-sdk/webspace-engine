@@ -2,6 +2,10 @@
 
 This is the engine for [Webspaces](https://webspaces.space), which allows you to create 3D worlds using just HTML.
 
+##Notice
+
+If you want to get started with **webspaces.space** instead of the engine it works on, please go to [webpsace-sdk](https://github.com/webspace-sdk/webspace-sdk.github.io)
+
 ## Getting started
 
 Clone the repo and run:
