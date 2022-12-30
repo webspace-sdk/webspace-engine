@@ -2,7 +2,7 @@
 
 This is the engine for [Webspaces](https://webspaces.space), which allows you to create 3D worlds using just HTML.
 
-If you aren't interested in working on the **Webspace Engine** but wish to create your own webspaces, please visit the [**webspace for Webspace**](https://webspaces.space)
+If you aren't interested in working on the **Webspace Engine** but wish to create your own webspaces, please visit the [**webspace for Webspaces**](https://webspaces.space)
 
 ## Getting started
 
