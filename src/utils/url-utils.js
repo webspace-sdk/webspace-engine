@@ -10,6 +10,20 @@ let currentHubId = null;
 let currentHubSeed = null;
 let currentSpaceId = null;
 
+export function getFilenameForCurrentLocation() {
+  if (!document.location.pathname.endsWith(".html")) {
+    return "index.html";
+  }
+
+  const pathParts = document.location.pathname.split("/");
+  return decodeURIComponent(pathParts[pathParts.length - 1]);
+}
+
+export function getPathForCurrentLocation() {
+  const pathParts = document.location.pathname.split("/");
+  return decodeURIComponent(pathParts.slice(1, pathParts.length - 1).join("/"));
+}
+
 export async function getHubIdFromUrl(url) {
   let parsedUrl;
 

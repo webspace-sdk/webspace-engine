@@ -1061,7 +1061,7 @@ async function start() {
 
   if (navigator.serviceWorker && document.location.protocol !== "file:") {
     try {
-      navigator.serviceWorker.register(`/webspace.service.${SERVICE_WORKER_VERSION}.js`);
+      navigator.serviceWorker.register(`webspace.service.${SERVICE_WORKER_VERSION}.js`);
     } catch (e) { // eslint-disable-line
     }
   }

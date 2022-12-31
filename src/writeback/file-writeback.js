@@ -291,4 +291,8 @@ export default class FileWriteback {
   }
 
   updatePresenceWithOriginInfo() {}
+
+  rawOriginUrlForRelativePath() {
+    throw new Error("Not implemented");
+  }
 }

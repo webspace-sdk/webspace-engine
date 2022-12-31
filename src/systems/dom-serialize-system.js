@@ -49,7 +49,8 @@ const tagTypeForEl = el => {
       !imageSrc.startsWith("blob:") &&
       imageSrc !== src &&
       imageSrc.replace(`${getCorsProxyUrl("image/png")}/`, "") !== src &&
-      !imageSrc.startsWith("assets/")
+      !imageSrc.startsWith("assets/") &&
+      !src.startsWith("assets/")
     ) {
       return "a";
     } else {
