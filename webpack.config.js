@@ -5,7 +5,6 @@ const path = require("path");
 const webpack = require("webpack");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const TOML = require("@iarna/toml");
-const fetch = require("node-fetch");
 
 function createDefaultAppConfig() {
   const schemaPath = path.join(__dirname, "src", "schema.toml");
@@ -40,50 +39,6 @@ function createDefaultAppConfig() {
   return appConfig;
 }
 
-async function fetchAppConfigAndEnvironmentVars() {
-  if (!fs.existsSync(".ret.credentials")) {
-    throw new Error("Not logged in to Hubs Cloud. Run `npm run login` first.");
-  }
-
-  const { host, token } = JSON.parse(fs.readFileSync(".ret.credentials"));
-
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json"
-  };
-
-  // Load the Hubs Cloud instance's app config in development
-  const appConfigsResponse = await fetch(`https://${host}/api/v1/app_configs`, { headers });
-
-  if (!appConfigsResponse.ok) {
-    throw new Error(`Error fetching Hubs Cloud config "${appConfigsResponse.statusText}"`);
-  }
-
-  const appConfig = await appConfigsResponse.json();
-
-  // dev.reticulum.io doesn't run ita
-  if (host === "dev.reticulum.io") {
-    return appConfig;
-  }
-
-  const hubsConfigsResponse = await fetch(`https://${host}/api/ita/configs/hubs`, { headers });
-
-  const hubsConfigs = await hubsConfigsResponse.json();
-
-  if (!hubsConfigsResponse.ok) {
-    throw new Error(`Error fetching Hubs Cloud config "${hubsConfigsResponse.statusText}"`);
-  }
-
-  const { shortlink_domain, thumbnail_server, terra_server } = hubsConfigs.general;
-
-  process.env.RETICULUM_SERVER = host;
-  process.env.SHORTLINK_DOMAIN = shortlink_domain;
-  process.env.THUMBNAIL_SERVER = thumbnail_server;
-  process.env.TERRA_SERVER = terra_server;
-
-  return appConfig;
-}
-
 const threeExamplesDir = path.resolve(__dirname, "node_modules", "three", "examples");
 const basisTranscoderPath = path.resolve(threeExamplesDir, "js", "libs", "basis", "basis_transcoder.js");
 const basisWasmPath = path.resolve(threeExamplesDir, "js", "libs", "basis", "basis_transcoder.wasm");
@@ -100,34 +55,18 @@ module.exports = async (env, argv) => {
   let appConfig = undefined;
 
   /**
-   * Initialize the Webpack build envrionment for the provided environment.
+   * Initialize the Webpack build environment for the provided environment.
    */
 
   if (argv.mode !== "production" || env.bundleAnalyzer) {
-    if (env.loadAppConfig || process.env.LOAD_APP_CONFIG) {
-      if (!env.localDev) {
-        // Load and set the app config and environment variables from the remote server.
-        // A Hubs Cloud server or dev.reticulum.io can be used.
-        appConfig = await fetchAppConfigAndEnvironmentVars();
-      }
-    } else {
-      // Use the default app config with all featured enabled.
-      appConfig = createDefaultAppConfig();
-    }
-
-    Object.assign(process.env, {
-      HOST: "hubs.local"
-    });
+    // Use the default app config with all featured enabled.
+    appConfig = createDefaultAppConfig();
 
     if (env.localDev) {
       // Local Dev Environment (npm run local)
       Object.assign(process.env, {
-        HOST: "hubs.local",
-        RETICULUM_SOCKET_SERVER: "hubs.local",
         BASE_ASSETS_PATH: "http://localhost:8001/",
-        RETICULUM_SERVER: "hubs.local:4000",
-        POSTGREST_SERVER: "",
-        ITA_SERVER: ""
+        RETICULUM_SERVER: "hubs.local:4000"
       });
     }
   }
@@ -143,12 +82,12 @@ module.exports = async (env, argv) => {
       alias: {
         // aframe and networked-aframe are still using commonjs modules. this will resolve yjs
         yjs$: path.resolve(__dirname, "./node_modules/yjs/dist/yjs.mjs"),
-        // aframe and networked-aframe are still using commonjs modules. three and bitecs are peer dependanciees
+        // aframe and networked-aframe are still using commonjs modules. three and bitecs are peer dependences
         // but they are "smart" and have builds for both ESM and CJS depending on if import or require is used.
         // This forces the ESM version to be used otherwise we end up with multiple instances of the libraries,
         // and for example AFRAME.THREE.Object3D !== THREE.Object3D in Hubs code, which breaks many things.
         three$: path.resolve(__dirname, "./node_modules/three/build/three.module.js"),
-        // TODO these aliases are reequired because `three` only "exports" stuff in examples/jsm
+        // TODO these aliases are required because `three` only "exports" stuff in examples/jsm
         "three/examples/js/libs/basis/basis_transcoder.js": basisTranscoderPath,
         "three/examples/js/libs/basis/basis_transcoder.wasm": basisWasmPath
       },
@@ -304,15 +243,9 @@ module.exports = async (env, argv) => {
       new webpack.DefinePlugin({
         "process.env": JSON.stringify({
           NODE_ENV: argv.mode,
-          SHORTLINK_DOMAIN: process.env.SHORTLINK_DOMAIN,
           RETICULUM_SERVER: process.env.RETICULUM_SERVER,
-          RETICULUM_SOCKET_SERVER: process.env.RETICULUM_SOCKET_SERVER,
-          THUMBNAIL_SERVER: process.env.THUMBNAIL_SERVER,
           TERRA_SERVER: process.env.TERRA_SERVER,
           BUILD_VERSION: process.env.BUILD_VERSION,
-          SENTRY_DSN: process.env.SENTRY_DSN,
-          MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN,
-          GA_TRACKING_ID: process.env.GA_TRACKING_ID,
           POSTGREST_SERVER: process.env.POSTGREST_SERVER,
           BASE_ASSETS_PATH: process.env.BASE_ASSETS_PATH,
           APP_CONFIG: appConfig
