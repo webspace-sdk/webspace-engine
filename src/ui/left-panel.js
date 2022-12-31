@@ -178,6 +178,19 @@ const NavSpill = styled.div`
   }
 `;
 
+const PoweredByLink = styled.div`
+  color: var(--panel-header-text-color);
+  font-size: 12px;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  & a {
+    text-decoration: underline;
+  }
+`;
+
 let popupRoot = null;
 waitForShadowDOMContentLoaded().then(() => (popupRoot = DOM_ROOT.getElementById("popup-root")));
 
@@ -374,6 +387,12 @@ function LeftPanel({
               <FormattedMessage id="nav.new" />
             </ActionButton>
           )}
+          <PoweredByLink>
+            <FormattedMessage id="powered-by.tip" />&nbsp;
+            <a href="https://webspaces.space" target="_blank" rel="noreferrer">
+              webspaces
+            </a>
+          </PoweredByLink>
         </NavFoot>
       </Nav>
       <Invite setPopperElement={setInviteElement} styles={inviteStyles} attributes={inviteAttributes}>

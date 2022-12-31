@@ -448,5 +448,6 @@
   "origin-access-config.save-github": "Connect to GitHub",
   "origin-access-config.error-github-2": "Invalid username, organization, or access token.",
   "origin-access-config.error-github-3": "Repository or branch not found.",
-  "origin-access-config.error-github-4": "This HTML file was not found in the repository."
+  "origin-access-config.error-github-4": "This HTML file was not found in the repository.",
+  "powered-by.tip": "Powered by"
 }
