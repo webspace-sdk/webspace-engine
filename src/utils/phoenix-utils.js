@@ -5,14 +5,12 @@ const MIN_DEFAULT_WORLD_TYPE = 1;
 const MAX_DEFAULT_WORLD_TYPE = 3;
 
 export function hasReticulumServer() {
-  debugger
   return !!configs.RETICULUM_SERVER;
 }
 
 const resolverLink = document.createElement("a");
 
 export function getReticulumFetchUrl(path, absolute = false, host = null, port = null) {
-  debugger
   if (host || hasReticulumServer()) {
     return `https://${host || configs.RETICULUM_SERVER}${port ? `:${port}` : ""}${path}`;
   } else if (absolute) {
@@ -24,7 +22,6 @@ export function getReticulumFetchUrl(path, absolute = false, host = null, port =
 }
 
 export function fetchReticulumAuthenticated(url, method = "GET", payload) {
-  debugger;
   const { token } = window.APP.store.state.credentials;
   const retUrl = getReticulumFetchUrl(url);
   const params = {
