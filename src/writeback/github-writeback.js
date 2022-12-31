@@ -1,15 +1,10 @@
 import Octokat from "octokat";
 import { fromByteArray } from "base64-js";
 import { WRITEBACK_ORIGIN_STATE } from "../utils/atom-access-manager";
+import { getFilenameForCurrentLocation, getPathForCurrentLocation } from "../utils/url-utils";
 
 export default class GitHubWriteback {
   constructor(options = {}) {
-    const pathParts = document.location.pathname.split("/");
-    this.filename = decodeURIComponent(pathParts.pop());
-    this.root = pathParts
-      .map(decodeURIComponent)
-      .join("/")
-      .substring(1);
     this.originState = WRITEBACK_ORIGIN_STATE.UNINITIALIZED;
 
     this.isOpening = false;
@@ -40,9 +35,11 @@ export default class GitHubWriteback {
     this.repoIsPrivate = false;
   }
 
-  static rawOriginUrlForRelativePath({ owner, repo, branch }, path) {
+  rawOriginUrlForRelativePath({ owner, repo, branch }, path) {
     // Thankfully, this has CORS headers
-    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
+    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${this.repoRoot}${
+      this.repoRoot ? "/" : ""
+    }${path}`;
   }
 
   async init() {
@@ -63,6 +60,17 @@ export default class GitHubWriteback {
     this.secret = options.secret || this.secret;
     this.repo = options.repo || this.repo;
     this.branch = options.branch || this.branch;
+
+    this.filename = getFilenameForCurrentLocation();
+    this.repoRoot = getPathForCurrentLocation();
+
+    if (this.repoRoot.startsWith(`${this.repo}`)) {
+      this.repoRoot = this.repoRoot.substring(this.repo.length + 1);
+    }
+
+    if (this.repoRoot.startsWith("/")) {
+      this.repoRoot = this.repoRoot.substring(1);
+    }
 
     while (this.isOpening) {
       await new Promise(res => setTimeout(res, 250));
@@ -164,7 +172,7 @@ export default class GitHubWriteback {
   }
 
   getFullTreePathToFile(path) {
-    return `${this.root ? `${this.root}/` : ""}${path}`;
+    return `${this.repoRoot ? `${this.repoRoot}/` : ""}${path}`;
   }
 
   async write(content, path = null, progressCallback = () => {}) {

@@ -369,7 +369,7 @@ export default class AtomAccessManager extends EventTarget {
 
       switch (writerPresence.origin.type) {
         case "github":
-          return GitHubWriteback.rawOriginUrlForRelativePath(writerPresence.origin, path);
+          return this.writeback.rawOriginUrlForRelativePath(writerPresence.origin, path);
       }
     }
 
