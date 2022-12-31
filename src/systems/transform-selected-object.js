@@ -340,7 +340,7 @@ AFRAME.registerSystem("transform-selected-object", {
       finalProjectedVec: new THREE.Vector3(),
       planeCastObjectOffset: new THREE.Vector3(),
       planeMoveAlongX: null,
-      planeMoveFlipDelta: false
+      planeMoveOrAxisFlipDelta: false
     };
 
     this.el.object3D.add(this.planarInfo.plane);
@@ -454,10 +454,19 @@ AFRAME.registerSystem("transform-selected-object", {
 
       // Now check if we need to flip the sign of the distance, which is the case if the plane-projected movement direction
       // runs opposite to the + direction of the coordinate we're moving along
-      this.planarInfo.planeMoveFlipDelta = planeMoveAlongX
+      this.planarInfo.planeMoveOrAxisFlipDelta = planeMoveAlongX
         ? slidePlaneLocalDirection.x < 0
         : slidePlaneLocalDirection.y < 0;
     } else {
+      v.copy(ZAXIS);
+
+      this.target.updateMatrices();
+      v.transformDirection(this.target.matrixWorld);
+
+      tmpRaycaster.setFromCamera(ORIGIN_VECTOR2, this.el.camera);
+
+      const dot = tmpRaycaster.ray.direction.dot(v);
+      this.planarInfo.planeMoveOrAxisFlipDelta = dot < 0;
       this.target.getWorldPosition(plane.position);
       plane.quaternion.copy(CAMERA_WORLD_QUATERNION);
       plane.matrixNeedsUpdate = true;
@@ -649,7 +658,7 @@ AFRAME.registerSystem("transform-selected-object", {
       planeWorldToLocal,
       finalProjectedVec,
       planeMoveAlongX,
-      planeMoveFlipDelta
+      planeMoveOrAxisFlipDelta
     } = this.planarInfo;
 
     if (
@@ -721,7 +730,8 @@ AFRAME.registerSystem("transform-selected-object", {
     if (this.mode === TRANSFORM_MODE.AXIS) {
       // For axis mode just keep an aggregate delta
       // Doing increments inhibits snapping
-      this.dxAll += finalProjectedVec.x;
+      const flipDelta = this.planarInfo.planeMoveOrAxisFlipDelta ? -1 : 1;
+      this.dxAll += finalProjectedVec.x * flipDelta;
       this.dyAll += finalProjectedVec.y;
 
       tmpMatrix.extractRotation(this.targetInitialMatrix);
@@ -790,7 +800,7 @@ AFRAME.registerSystem("transform-selected-object", {
 
       const currentOffsetPlaneLocal = planeMoveAlongX ? currentPointOnPlaneLocal.x : currentPointOnPlaneLocal.y;
       const initialOffsetPlaneLocal = planeMoveAlongX ? initialPointOnPlaneLocal.x : initialPointOnPlaneLocal.y;
-      const localDelta = (currentOffsetPlaneLocal - initialOffsetPlaneLocal) * (planeMoveFlipDelta ? -1 : 1);
+      const localDelta = (currentOffsetPlaneLocal - initialOffsetPlaneLocal) * (planeMoveOrAxisFlipDelta ? -1 : 1);
       const dist = Math.max(-MAX_MOVE_DISTANCE, Math.min(MAX_MOVE_DISTANCE, localDelta));
 
       const { elements } = this.targetInitialMatrix;
