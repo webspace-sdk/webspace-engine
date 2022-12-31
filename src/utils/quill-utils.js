@@ -135,6 +135,7 @@ export async function renderQuillToImg(
     .ql-editor p:before,h1:before,h2:before{
       content: attr(data-contents);
       position: absolute;
+      width: calc(100% - 40px);
       -webkit-text-stroke: 4px;
       -webkit-text-stroke-color: ${backgroundColor};
       z-index: -2;
@@ -143,9 +144,12 @@ export async function renderQuillToImg(
     .ql-editor p:after,h1:after,h2:after{
       content: attr(data-contents);
       position: absolute;
+      color: transparent;
+      width: calc(100% - 40px);
       -webkit-text-stroke: 1px black;
       z-index: -1;
       left: 20px;
+      top: 16px;
     }
 
     .ql-blank::before {
