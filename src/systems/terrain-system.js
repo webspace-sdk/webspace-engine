@@ -844,28 +844,23 @@ export class TerrainSystem {
   }
 
   worldTypeHasFog() {
-    // Flat worlds disable fog
-    return this.worldType !== WORLD_TYPES.FLAT;
+    return true;
   }
 
   worldTypeDelaysMediaPresence() {
-    // Flat worlds load all objects immediately
-    return this.worldType !== WORLD_TYPES.FLAT;
+    return true;
   }
 
   worldTypeWraps() {
-    // Flat worlds don't wrap
-    return this.worldType !== WORLD_TYPES.FLAT;
+    return true;
   }
 
   worldTypeLODs() {
-    // Flat + plain worlds don't LOD
-    return this.worldType !== WORLD_TYPES.FLAT;
+    return this.worldType !== WORLD_TYPES.ISLANDS;
   }
 
   worldTypeChunkedLoads() {
-    // Flat + plain worlds don't load in chunks
-    return this.worldType !== WORLD_TYPES.FLAT;
+    return this.worldType === WORLD_TYPES.ISLANDS || this.worldType === WORLD_TYPES.HILLS;
   }
 
   cullChunksAndFeatureGroups = (() => {
