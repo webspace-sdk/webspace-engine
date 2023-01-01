@@ -756,6 +756,8 @@ export const groundMedia = (sourceEl, faceUp, bbox = null, meshOffset = 0.0, ani
 // Resets the transform rotation of the media
 export const resetMediaRotation = sourceEl => {
   const { object3D } = sourceEl;
+  object3D.updateMatrices();
+  const oldMatrix = new THREE.Matrix4().copy(object3D.matrix);
 
   const floatyObject = sourceEl.components["floaty-object"];
 
@@ -771,6 +773,8 @@ export const resetMediaRotation = sourceEl => {
 
       // For animation timeline.
       if (value.x === lastValue.x && value.y === lastValue.y && value.z === lastValue.z) {
+        object3D.updateMatrices();
+        SYSTEMS.undoSystem.pushMatrixUpdateUndo(sourceEl, oldMatrix, object3D.matrix);
         return;
       }
 
