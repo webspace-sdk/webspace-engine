@@ -1,5 +1,5 @@
 import TreeSync, { TREE_PROJECTION_TYPE } from "./tree-sync";
-import { getSpaceIdFromHistory } from "./url-utils";
+import { getSpaceIdFromHistory, isCurrentLocationIndexWorld } from "./url-utils";
 
 const EXPANDED_TREE_NODE_STORE_KEY = "__WebspacesExpandedTreeNodes";
 
@@ -62,8 +62,11 @@ class TreeManager extends EventTarget {
     super();
     this.navExpandedTreeNodes = new ExpandedTreeNodes();
 
+    // Disable the tree syncing if the world is saved in index.html
+    const docPath = isCurrentLocationIndexWorld() ? null : "index.html";
+
     this.worldNav = new TreeSync(
-      "index.html",
+      docPath,
       this.navExpandedTreeNodes,
       hubMetadata,
       TREE_PROJECTION_TYPE.NESTED,
