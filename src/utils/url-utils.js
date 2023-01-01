@@ -19,6 +19,11 @@ export function getFilenameForCurrentLocation() {
   return decodeURIComponent(pathParts[pathParts.length - 1]);
 }
 
+// Returns true if the world are are on is an index.html based world
+export function isCurrentLocationIndexWorld() {
+  return getFilenameForCurrentLocation() === "index.html";
+}
+
 export function getPathForCurrentLocation() {
   const pathParts = document.location.pathname.split("/");
   return decodeURIComponent(pathParts.slice(1, pathParts.length - 1).join("/"));

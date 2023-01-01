@@ -23,7 +23,7 @@ import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import ReactDOM from "react-dom";
 import PopupPanel from "./popup-panel";
 import { useNameUpdateFromMetadata } from "../utils/atom-metadata";
-import { navigateToHubUrl } from "../utils/url-utils";
+import { navigateToHubUrl, isCurrentLocationIndexWorld } from "../utils/url-utils";
 
 const Left = styled.div`
   pointer-events: auto;
@@ -237,6 +237,8 @@ function LeftPanel({
   const createHubButtonRef = useRef();
   const createHubFocusRef = useRef();
 
+  const isIndexWorld = isCurrentLocationIndexWorld();
+
   useEffect(
     () => {
       if (!spaceMetadata) return () => {};
@@ -363,17 +365,21 @@ function LeftPanel({
             )}
         </NavHead>
         <NavSpill>
-          <PanelSectionHeader>
-            <FormattedMessage id="nav.space-worlds" />
-          </PanelSectionHeader>
-          <HubTree
-            treeManager={treeManager}
-            hub={hub}
-            spaceCan={spaceCan}
-            hubCan={hubCan}
-            showHubContextMenuPopup={showHubContextMenuPopup}
-            setAtomRenameReferenceElement={setAtomRenameReferenceElement}
-          />
+          {!isIndexWorld && (
+            <>
+              <PanelSectionHeader>
+                <FormattedMessage id="nav.space-worlds" />
+              </PanelSectionHeader>
+              <HubTree
+                treeManager={treeManager}
+                hub={hub}
+                spaceCan={spaceCan}
+                hubCan={hubCan}
+                showHubContextMenuPopup={showHubContextMenuPopup}
+                setAtomRenameReferenceElement={setAtomRenameReferenceElement}
+              />
+            </>
+          )}
         </NavSpill>
         <NavFoot>
           {spaceCan("create_world_hub") && (
