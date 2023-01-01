@@ -856,7 +856,7 @@ export class TerrainSystem {
   }
 
   worldTypeLODs() {
-    return this.worldType !== WORLD_TYPES.ISLANDS;
+    return this.worldType === WORLD_TYPES.ISLANDS;
   }
 
   worldTypeChunkedLoads() {
