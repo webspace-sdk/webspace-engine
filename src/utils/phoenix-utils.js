@@ -1,4 +1,3 @@
-import { Socket, Presence } from "phoenix";
 import configs from "./configs";
 import { getDefaultWorldColorPreset } from "./world-color-presets";
 
@@ -7,10 +6,6 @@ const MAX_DEFAULT_WORLD_TYPE = 3;
 
 export function hasReticulumServer() {
   return !!configs.RETICULUM_SERVER;
-}
-
-export function isLocalClient() {
-  return hasReticulumServer() && document.location.host !== configs.RETICULUM_SERVER;
 }
 
 const resolverLink = document.createElement("a");
@@ -24,79 +19,6 @@ export function getReticulumFetchUrl(path, absolute = false, host = null, port =
   } else {
     return path;
   }
-}
-
-let directReticulumHostAndPort;
-
-async function refreshDirectReticulumHostAndPort() {
-  const qs = new URLSearchParams(location.search);
-  let host = qs.get("phx_host");
-  host = "hubs.local";
-  const port = "4000";
-  directReticulumHostAndPort = { host, port };
-}
-
-export function getDirectReticulumFetchUrl(path, absolute = false) {
-  if (!directReticulumHostAndPort) {
-    console.warn("Cannot call getDirectReticulumFetchUrl before connectToReticulum. Returning non-direct url.");
-    return getReticulumFetchUrl(path, absolute);
-  }
-
-  const { host, port } = directReticulumHostAndPort;
-  return getReticulumFetchUrl(path, absolute, host, port);
-}
-
-export async function connectToReticulum(debug = false, params = null, socketClass = Socket, existingSocket = null) {
-  const qs = new URLSearchParams(location.search);
-
-  const getNewSocketUrl = async () => {
-    await refreshDirectReticulumHostAndPort();
-    const { host, port } = directReticulumHostAndPort;
-    const protocol =
-      qs.get("phx_protocol") ||
-      configs.RETICULUM_SOCKET_PROTOCOL ||
-      (document.location.protocol === "https:" ? "wss:" : "ws:");
-
-    return `${protocol}//${host}${port ? `:${port}` : ""}`;
-  };
-
-  const socketUrl = await getNewSocketUrl();
-  console.log(`Phoenix Socket URL: ${socketUrl}`);
-
-  const socketSettings = {};
-
-  if (debug) {
-    socketSettings.logger = (kind, msg, data) => {
-      console.log(`${kind}: ${msg}`, data);
-    };
-  }
-
-  let socket = existingSocket;
-
-  if (!socket) {
-    if (params) {
-      socketSettings.params = params;
-    }
-
-    socket = new socketClass(`${socketUrl}/socket`, socketSettings);
-
-    socket.onError(async () => {
-      const endPointPath = new URL(socket.endPoint).pathname;
-      const newSocketUrl = await getNewSocketUrl();
-      const newEndPoint = `${newSocketUrl}${endPointPath}`;
-      console.log(`Socket error, changed endpoint to ${newEndPoint}`);
-      socket.endPoint = newEndPoint;
-    });
-  }
-
-  socket.connect();
-
-  return socket;
-}
-
-export function getLandingPageForPhoto(photoUrl) {
-  const parsedUrl = new URL(photoUrl);
-  return getReticulumFetchUrl(parsedUrl.pathname.replace(".png", ".html") + parsedUrl.search, true);
 }
 
 export function fetchReticulumAuthenticated(url, method = "GET", payload) {
@@ -229,27 +151,4 @@ export function getPresenceContextForSession(presences, sessionId) {
 
 export function getPresenceProfileForSession(presences, sessionId) {
   return (getPresenceEntryForSession(presences, sessionId) || {}).profile || {};
-}
-
-// Unbinds presence, and returns a function that must be passed the new channel to rebind.
-export function unbindPresence(presence) {
-  if (!presence) return () => presence;
-
-  const presenceBindings = {
-    onJoin: presence.caller.onJoin,
-    onLeave: presence.caller.onLeave,
-    onSync: presence.caller.onSync
-  };
-
-  presence.onJoin(function() {});
-  presence.onLeave(function() {});
-  presence.onSync(function() {});
-
-  return channel => {
-    const presence = new Presence(channel);
-    presence.onJoin(presenceBindings.onJoin);
-    presence.onLeave(presenceBindings.onLeave);
-    presence.onSync(presenceBindings.onSync);
-    return presence;
-  };
 }
