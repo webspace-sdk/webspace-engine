@@ -409,8 +409,10 @@ export class CharacterControllerSystem {
       }
 
       if (this.fly) {
+        const terrainY = this.terrainSystem.getTerrainHeightAtWorldCoord(newPOV.elements[13], newPOV.elements[15]);
+
         // Clamp y when flying to be above ground and below high in the sky
-        newPOV.elements[13] = Math.max(groundSnappedPOVPosition.y, Math.min(CHARACTER_MAX_Y, newPOV.elements[13]));
+        newPOV.elements[13] = Math.max(terrainY + 0.1, Math.min(CHARACTER_MAX_Y, newPOV.elements[13]));
       }
 
       childMatch(this.avatarRig.object3D, this.avatarPOV.object3D, newPOV);
