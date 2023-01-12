@@ -1806,6 +1806,78 @@ export class VoxSystem extends EventTarget {
     };
   })();
 
+  // Efficiently raycast to search for walls at knee-height of all walkable sources.
+  // sources and avoiding extra raycasts. Casts along a walk direction.
+  raycastForWallCheckToClosestWalkableSource = (function() {
+    const tmpMesh = new Mesh();
+    const instanceLocalMatrix = new Matrix4();
+    const instanceWorldMatrix = new Matrix4();
+    const instanceIntersects = [];
+    const raycaster = new THREE.Raycaster();
+    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+    raycaster.near = 0.01;
+    raycaster.far = 0.75; // Add a little buffer for avatar body + cel shading
+
+    return function(origin, walkDirection) {
+      const { voxIdToEntry } = this;
+
+      let intersection = null;
+
+      raycaster.ray.origin.copy(origin);
+      raycaster.ray.direction.copy(walkDirection);
+      raycaster.ray.direction.normalize();
+
+      for (const entry of voxIdToEntry.values()) {
+        if (!entry.hasWalkableSources) continue;
+        const voxMesh = entry.meshes[0];
+        if (voxMesh === null) continue;
+
+        const { sources, walkableSources, walkGeometry } = entry;
+        if (walkGeometry === null) continue;
+
+        for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
+          const source = sources[instanceId];
+          if (source === null) continue;
+          if (!walkableSources[instanceId]) continue;
+
+          // Bounding box check for origin X,Z, with a meter buffer since we raycast that far.
+          const bbox = this.getBoundingBoxForSource(source, true);
+
+          if (
+            origin.x < bbox.min.x - 1 ||
+            origin.x > bbox.max.x + 1 ||
+            origin.z < bbox.min.z - 1 ||
+            origin.z > bbox.max.z + 1
+          )
+            continue;
+
+          // Raycast once for each walkable source.
+          tmpMesh.geometry = walkGeometry;
+          tmpMesh.material = voxMaterial;
+          voxMesh.updateMatrices();
+          voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
+          instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
+          tmpMesh.matrixWorld = instanceWorldMatrix;
+          tmpMesh.raycast(raycaster, instanceIntersects);
+
+          if (instanceIntersects.length === 0) continue;
+
+          const newIntersection = instanceIntersects[0];
+
+          if (intersection === null || intersection.distance > newIntersection.distance) {
+            intersection = newIntersection;
+            intersection.instanceId = instanceId;
+            intersection.object = voxMesh;
+          }
+
+          instanceIntersects.length = 0;
+        }
+      }
+
+      return intersection;
+    };
+  })();
+
   raycastToVoxSource = (function() {
     const raycaster = new THREE.Raycaster();
     raycaster.firstHitOnly = false; // flag specific to three-mesh-bvh

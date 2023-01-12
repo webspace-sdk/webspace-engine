@@ -304,6 +304,45 @@ export class CharacterControllerSystem {
             displacementToDesiredPOV
           );
 
+          const wallRaycastOrigin = new THREE.Vector3();
+          wallRaycastOrigin.x = newPOV.elements[12];
+          wallRaycastOrigin.y = newPOV.elements[13] - 0.33 * playerScale; // Move origin to "knee" level
+          wallRaycastOrigin.z = newPOV.elements[14];
+
+          const wallBlockIntersection = SYSTEMS.voxSystem.raycastForWallCheckToClosestWalkableSource(
+            wallRaycastOrigin,
+            displacementToDesiredPOV
+          );
+
+          // Something is blocking us along X, Z
+
+          if (wallBlockIntersection) {
+            const blockedByNormal = wallBlockIntersection.face.normal;
+            const displacementXZ = new THREE.Vector3();
+            displacementXZ.copy(displacementToDesiredPOV);
+            displacementXZ.y = 0;
+            const displacementXZLength = displacementXZ.length();
+            displacementXZ.normalize();
+
+            const dot = displacementXZ.dot(blockedByNormal);
+
+            if (dot < 0) {
+              // Normal of wall and displacement vector are pointing in opposite directions
+              //
+              // We hit a wall - the x, z displayment needs to slide along the wall proportional to the dot product
+              // of the two vectors, scaled by the original displacement amount.
+              const newDistance = displacementXZLength * (1 - Math.abs(dot));
+
+              // Project the displacement XZ onto the plane
+              displacementXZ.projectOnPlane(blockedByNormal);
+              displacementXZ.normalize();
+              displacementXZ.multiplyScalar(newDistance);
+
+              displacementToDesiredPOV.x = displacementXZ.x;
+              displacementToDesiredPOV.z = displacementXZ.z;
+            }
+          }
+
           newPOV
             .makeTranslation(displacementToDesiredPOV.x, displacementToDesiredPOV.y, displacementToDesiredPOV.z)
             .multiply(snapRotatedPOV);
