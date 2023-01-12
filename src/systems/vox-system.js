@@ -13,6 +13,7 @@ import { addMedia, isLockedMedia, addMediaInFrontOfPlayerIfPermitted } from "../
 import { ensureOwnership } from "../utils/ownership-utils";
 import { Voxels, rgbtForVoxColor, REMOVE_VOXEL_COLOR, ModelWriter, Color } from "smoothvoxels";
 import { SvoxBufferGeometry } from "smoothvoxels/three";
+import { generateAllWalkableMeshesWithinXZ } from "../utils/walk-utils";
 import VoxMesherWorker from "../workers/vox-mesher.worker.js";
 import {
   CompressionStream as CompressionStreamImpl,
@@ -1806,35 +1807,13 @@ export class VoxSystem extends EventTarget {
     };
   })();
 
-  // Efficiently raycast to search for walls at knee-height of all walkable sources.
-  // sources and avoiding extra raycasts. Casts along a walk direction.
-  //
-  // We sample several ray directions to basically "sweep" the walk direction looking for any
-  // surfaces that could block the walk direction. This is necessary for things like stone walls
-  // that have crevices.
-  //
-  // For each surface we keep projecting a new walk direction onto that plane, carving down the
-  // possible walk direction that is compatible with all of them.
-  raycastForWallCheckToClosestWalkableSource = (function() {
+  generateWalkableMeshesWithinXZ = (function() {
     const tmpMesh = new Mesh();
     const instanceLocalMatrix = new Matrix4();
     const instanceWorldMatrix = new Matrix4();
-    const instanceIntersects = [];
-    const raycaster = new THREE.Raycaster();
-    const normalizedWalkDirection = new THREE.Vector3();
-    const finalWalkDirection = new THREE.Vector3();
-    const worldFaceNormal = new THREE.Vector3();
-    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
-    raycaster.near = 0.01;
-    raycaster.far = 0.75; // Add a little buffer for avatar body + cel shading
 
-    return function(origin, walkDirection) {
+    return function*(origin, xMargin = 0, zMargin = 0) {
       const { voxIdToEntry } = this;
-
-      let sawIntersection = false;
-      normalizedWalkDirection.copy(walkDirection).normalize();
-      finalWalkDirection.copy(walkDirection).normalize();
-      raycaster.ray.origin.copy(origin);
 
       for (const entry of voxIdToEntry.values()) {
         if (!entry.hasWalkableSources) continue;
@@ -1853,10 +1832,10 @@ export class VoxSystem extends EventTarget {
           const bbox = this.getBoundingBoxForSource(source, true);
 
           if (
-            origin.x < bbox.min.x - 1 ||
-            origin.x > bbox.max.x + 1 ||
-            origin.z < bbox.min.z - 1 ||
-            origin.z > bbox.max.z + 1
+            origin.x < bbox.min.x - xMargin ||
+            origin.x > bbox.max.x + xMargin ||
+            origin.z < bbox.min.z - zMargin ||
+            origin.z > bbox.max.z + zMargin
           )
             continue;
 
@@ -1868,38 +1847,69 @@ export class VoxSystem extends EventTarget {
           instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
           tmpMesh.matrixWorld = instanceWorldMatrix;
 
-          for (let dX = -0.5; dX <= 0.5; dX += 0.5) {
-            for (let dZ = -0.5; dZ <= 0.5; dZ += 0.5) {
-              raycaster.ray.direction.copy(normalizedWalkDirection);
-              raycaster.ray.direction.x += raycaster.ray.direction.x * dX;
-              raycaster.ray.direction.z += raycaster.ray.direction.z * dZ;
-
-              raycaster.ray.direction.normalize();
-
-              tmpMesh.raycast(raycaster, instanceIntersects);
-
-              if (instanceIntersects.length === 0) continue;
-
-              sawIntersection = true;
-
-              for (const intersection of instanceIntersects) {
-                worldFaceNormal.copy(intersection.face.normal);
-                intersection.object.updateMatrices();
-                worldFaceNormal.transformDirection(intersection.object.matrixWorld);
-
-                if (worldFaceNormal.dot(normalizedWalkDirection) < 0) {
-                  finalWalkDirection.projectOnPlane(worldFaceNormal);
-                  finalWalkDirection.normalize();
-                }
-              }
-
-              instanceIntersects.length = 0;
-            }
-          }
+          yield tmpMesh;
         }
       }
+    };
+  })();
 
-      return sawIntersection ? finalWalkDirection : null;
+  // Efficiently raycast to search for walls at knee-height of all walkable sources.
+  // sources and avoiding extra raycasts. Casts along a walk direction.
+  //
+  // We sample several ray directions to basically "sweep" the walk direction looking for any
+  // surfaces that could block the walk direction. This is necessary for things like stone walls
+  // that have crevices.
+  //
+  // For each surface we keep projecting a new walk direction onto that plane, carving down the
+  // possible walk direction that is compatible with all of them.
+  raycastForWallCheckToClosestWalkableSource = (function() {
+    const instanceIntersects = [];
+    const raycaster = new THREE.Raycaster();
+    const normalizedWalkDirection = new THREE.Vector3();
+    const finalWalkDirection = new THREE.Vector3();
+    const worldFaceNormal = new THREE.Vector3();
+    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+    raycaster.near = 0.01;
+    raycaster.far = 0.75; // Add a little buffer for avatar body + cel shading
+
+    return function(origin, walkDirection) {
+      let sawIntersection = false;
+      normalizedWalkDirection.copy(walkDirection).normalize();
+      finalWalkDirection.copy(walkDirection).normalize();
+      raycaster.ray.origin.copy(origin);
+
+      for (const mesh of generateAllWalkableMeshesWithinXZ(origin, 1, 1)) {
+        for (let dX = -0.5; dX <= 0.5; dX += 0.5) {
+          for (let dZ = -0.5; dZ <= 0.5; dZ += 0.5) {
+            raycaster.ray.direction.copy(normalizedWalkDirection);
+            raycaster.ray.direction.x += raycaster.ray.direction.x * dX;
+            raycaster.ray.direction.z += raycaster.ray.direction.z * dZ;
+
+            raycaster.ray.direction.normalize();
+
+            mesh.raycast(raycaster, instanceIntersects);
+
+            if (instanceIntersects.length === 0) continue;
+
+            sawIntersection = true;
+
+            for (const intersection of instanceIntersects) {
+              worldFaceNormal.copy(intersection.face.normal);
+              intersection.object.updateMatrices();
+              worldFaceNormal.transformDirection(intersection.object.matrixWorld);
+
+              if (worldFaceNormal.dot(normalizedWalkDirection) < 0) {
+                finalWalkDirection.projectOnPlane(worldFaceNormal);
+                finalWalkDirection.normalize();
+              }
+            }
+
+            instanceIntersects.length = 0;
+          }
+        }
+
+        return sawIntersection ? finalWalkDirection : null;
+      }
     };
   })();
 
