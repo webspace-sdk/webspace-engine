@@ -1834,47 +1834,48 @@ export class VoxSystem extends EventTarget {
       let sawIntersection = false;
       normalizedWalkDirection.copy(walkDirection).normalize();
       finalWalkDirection.copy(walkDirection).normalize();
+      raycaster.ray.origin.copy(origin);
 
-      for (let dX = -0.5; dX <= 0.5; dX += 0.5) {
-        for (let dZ = -0.5; dZ <= 0.5; dZ += 0.5) {
-          raycaster.ray.origin.copy(origin);
-          raycaster.ray.direction.copy(normalizedWalkDirection);
-          raycaster.ray.direction.x += raycaster.ray.direction.x * dX;
-          raycaster.ray.direction.z += raycaster.ray.direction.z * dZ;
+      for (const entry of voxIdToEntry.values()) {
+        if (!entry.hasWalkableSources) continue;
+        const voxMesh = entry.meshes[0];
+        if (voxMesh === null) continue;
 
-          raycaster.ray.direction.normalize();
+        const { sources, walkableSources, walkGeometry } = entry;
+        if (walkGeometry === null) continue;
 
-          for (const entry of voxIdToEntry.values()) {
-            if (!entry.hasWalkableSources) continue;
-            const voxMesh = entry.meshes[0];
-            if (voxMesh === null) continue;
+        for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
+          const source = sources[instanceId];
+          if (source === null) continue;
+          if (!walkableSources[instanceId]) continue;
 
-            const { sources, walkableSources, walkGeometry } = entry;
-            if (walkGeometry === null) continue;
+          // Bounding box check for origin X,Z, with a meter buffer since we raycast that far.
+          const bbox = this.getBoundingBoxForSource(source, true);
 
-            for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
-              const source = sources[instanceId];
-              if (source === null) continue;
-              if (!walkableSources[instanceId]) continue;
+          if (
+            origin.x < bbox.min.x - 1 ||
+            origin.x > bbox.max.x + 1 ||
+            origin.z < bbox.min.z - 1 ||
+            origin.z > bbox.max.z + 1
+          )
+            continue;
 
-              // Bounding box check for origin X,Z, with a meter buffer since we raycast that far.
-              const bbox = this.getBoundingBoxForSource(source, true);
+          // Raycast once for each walkable source.
+          tmpMesh.geometry = walkGeometry;
+          tmpMesh.material = voxMaterial;
+          voxMesh.updateMatrices();
+          voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
+          instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
+          tmpMesh.matrixWorld = instanceWorldMatrix;
 
-              if (
-                origin.x < bbox.min.x - 1 ||
-                origin.x > bbox.max.x + 1 ||
-                origin.z < bbox.min.z - 1 ||
-                origin.z > bbox.max.z + 1
-              )
-                continue;
+          for (let dX = -0.5; dX <= 0.5; dX += 0.5) {
+            for (let dZ = -0.5; dZ <= 0.5; dZ += 0.5) {
+              raycaster.ray.direction.copy(normalizedWalkDirection);
+              raycaster.ray.direction.x += raycaster.ray.direction.x * dX;
+              raycaster.ray.direction.z += raycaster.ray.direction.z * dZ;
 
-              // Raycast once for each walkable source.
-              tmpMesh.geometry = walkGeometry;
-              tmpMesh.material = voxMaterial;
-              voxMesh.updateMatrices();
-              voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
-              instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
-              tmpMesh.matrixWorld = instanceWorldMatrix;
+              raycaster.ray.direction.normalize();
+
               tmpMesh.raycast(raycaster, instanceIntersects);
 
               if (instanceIntersects.length === 0) continue;
