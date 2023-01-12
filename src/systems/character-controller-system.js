@@ -163,6 +163,7 @@ export class CharacterControllerSystem {
 
     const desiredPOVPosition = new THREE.Vector3();
     const groundSnappedPOVPosition = new THREE.Vector3();
+    const wallRaycastOrigin = new THREE.Vector3();
     const m = new THREE.Matrix4();
     const v = new THREE.Vector3();
     const v2 = new THREE.Vector3();
@@ -304,42 +305,35 @@ export class CharacterControllerSystem {
             displacementToDesiredPOV
           );
 
-          const wallRaycastOrigin = new THREE.Vector3();
-          wallRaycastOrigin.x = newPOV.elements[12];
-          wallRaycastOrigin.y = newPOV.elements[13] - 0.33 * playerScale; // Move origin to "knee" level
-          wallRaycastOrigin.z = newPOV.elements[14];
+          // Don't do wall collision checks in build mode so we cannot get stuck
+          const shouldCheckForWallCollision = !SYSTEMS.builderSystem.enabled;
 
-          const wallBlockIntersection = SYSTEMS.voxSystem.raycastForWallCheckToClosestWalkableSource(
-            wallRaycastOrigin,
-            displacementToDesiredPOV
-          );
+          if (shouldCheckForWallCollision) {
+            wallRaycastOrigin.x = newPOV.elements[12];
+            wallRaycastOrigin.y = newPOV.elements[13] - 0.33 * playerScale; // Move origin to "knee" level
+            wallRaycastOrigin.z = newPOV.elements[14];
 
-          // Something is blocking us along X, Z
+            const wallBlockIntersection = SYSTEMS.voxSystem.raycastForWallCheckToClosestWalkableSource(
+              wallRaycastOrigin,
+              displacementToDesiredPOV
+            );
 
-          if (wallBlockIntersection) {
-            const blockedByNormal = wallBlockIntersection.face.normal;
-            const displacementXZ = new THREE.Vector3();
-            displacementXZ.copy(displacementToDesiredPOV);
-            displacementXZ.y = 0;
-            const displacementXZLength = displacementXZ.length();
-            displacementXZ.normalize();
+            // Something is blocking us
+            if (wallBlockIntersection) {
+              const blockedByNormal = wallBlockIntersection.face.normal;
+              const displacementLength = displacementToDesiredPOV.length();
+              displacementToDesiredPOV.normalize();
 
-            const dot = displacementXZ.dot(blockedByNormal);
+              const dot = displacementToDesiredPOV.dot(blockedByNormal);
+              displacementToDesiredPOV.multiplyScalar(displacementLength);
 
-            if (dot < 0) {
-              // Normal of wall and displacement vector are pointing in opposite directions
-              //
-              // We hit a wall - the x, z displayment needs to slide along the wall proportional to the dot product
-              // of the two vectors, scaled by the original displacement amount.
-              const newDistance = displacementXZLength * (1 - Math.abs(dot));
-
-              // Project the displacement XZ onto the plane
-              displacementXZ.projectOnPlane(blockedByNormal);
-              displacementXZ.normalize();
-              displacementXZ.multiplyScalar(newDistance);
-
-              displacementToDesiredPOV.x = displacementXZ.x;
-              displacementToDesiredPOV.z = displacementXZ.z;
+              if (dot < 0) {
+                // Normal of wall and displacement vector are pointing in opposite directions
+                // Project the displacement XZ onto the plane we need to slide along
+                displacementToDesiredPOV.normalize();
+                displacementToDesiredPOV.projectOnPlane(blockedByNormal);
+                displacementToDesiredPOV.multiplyScalar(displacementLength);
+              }
             }
           }
 
@@ -450,6 +444,7 @@ export class CharacterControllerSystem {
       const playerHeight = getCurrentPlayerHeight(true);
       desiredFeetPosition.copy(desiredPOVPosition);
       desiredFeetPosition.y -= playerHeight;
+
       this.findGroundedPosition(desiredFeetPosition, outPOVPosition, shouldSnapImmediately);
       outPOVPosition.y += playerHeight;
       return outPOVPosition;
