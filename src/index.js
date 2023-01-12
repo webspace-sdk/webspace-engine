@@ -1278,9 +1278,15 @@ async function start() {
   // and we don't want to block on.
   await joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
 
-  entryManager.enterScene(false).then(() => {
-    remountUIRoot({ isDoneLoading: true, projectionType });
-  });
+  window.addEventListener(
+    "mousedown",
+    () => {
+      entryManager.enterScene(true).then(() => {
+        remountUIRoot({ isDoneLoading: true, projectionType });
+      });
+    },
+    { once: true }
+  );
 
   if (projectionType === PROJECTION_TYPES.FLAT) {
     await setupFlatProjection(scene);

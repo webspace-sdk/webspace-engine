@@ -35,15 +35,15 @@ import { daydreamUserBindings } from "./bindings/daydream-user";
 import { cardboardUserBindings } from "./bindings/cardboard-user";
 
 import generate3DOFTriggerBindings from "./bindings/oculus-go-user";
+const oculusGoUserBindings = generate3DOFTriggerBindings(paths.device.oculusgo);
+const gearVRControllerUserBindings = generate3DOFTriggerBindings(paths.device.gearVRController);
+
 import { resolveActionSets } from "./resolve-action-sets";
 import { GamepadDevice } from "./devices/gamepad";
 import { gamepadBindings } from "./bindings/generic-gamepad";
 import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "../../utils/vr-caps-detect";
 import { hackyMobileSafariTest } from "../../utils/detect-touchscreen";
 import { ArrayBackedSet } from "./array-backed-set";
-
-const oculusGoUserBindings = generate3DOFTriggerBindings(paths.device.oculusgo);
-const gearVRControllerUserBindings = generate3DOFTriggerBindings(paths.device.gearVRController);
 
 function arrayContentsDiffer(a, b) {
   if (a.length !== b.length) return true;
@@ -204,30 +204,33 @@ AFRAME.registerSystem("userinput", {
 
   init() {
     this.frame = {
-      values: new Map(),
+      generation: 0,
+      values: {},
+      generations: {},
       get: function(path) {
-        return this.values.get(path);
+        if (this.generations[path] !== this.generation) return undefined;
+        return this.values[path];
       },
       setValueType: function(path, value) {
-        this.values.set(path, value);
+        this.values[path] = value;
+        this.generations[path] = this.generation;
       },
       setVector2: function(path, a, b) {
-        const value = this.values.get(path) || [];
+        const value = this.values[path] || [];
         value[0] = a;
         value[1] = b;
-        this.values.set(path, value);
+        this.values[path] = value;
+        this.generations[path] = this.generation;
       },
       setPose: function(path, pose) {
         this.setValueType(path, pose);
       },
       setMatrix4: function(path, mat4) {
         // Should we assume the incoming mat4 is safe to store instead of copying values?
-        const value = this.values.get(path) || new THREE.Matrix4();
+        const value = this.values[path] || new THREE.Matrix4();
         value.copy(mat4);
-        this.values.set(path, value);
-      },
-      clear: function() {
-        this.values.clear();
+        this.values[path] = value;
+        this.generations[path] = this.generation;
       }
     };
 
@@ -242,12 +245,12 @@ AFRAME.registerSystem("userinput", {
     const forceEnableTouchscreen = hackyMobileSafariTest();
 
     if (!(isMobile || isMobileVR || forceEnableTouchscreen)) {
-      this.activeDevices.add(new KeyboardDevice());
       this.activeDevices.add(new MouseDevice());
       this.activeDevices.add(new AppAwareMouseDevice());
-    } else if (!isMobileVR || forceEnableTouchscreen) {
       this.activeDevices.add(new KeyboardDevice());
+    } else if (!isMobileVR || forceEnableTouchscreen) {
       this.activeDevices.add(new AppAwareTouchscreenDevice());
+      this.activeDevices.add(new KeyboardDevice());
       this.activeDevices.add(new GyroDevice());
     }
 
@@ -409,8 +412,11 @@ AFRAME.registerSystem("userinput", {
       gamepad && gamepadConnected({ gamepad });
     }
 
-    const retrieveXRGamepads = ({ session }) => {
-      for (const inputSource of session.inputSources) {
+    const retrieveXRGamepads = ({ added, removed }) => {
+      for (const inputSource of removed) {
+        gamepadDisconnected(inputSource);
+      }
+      for (const inputSource of added) {
         inputSource.gamepad.isWebXRGamepad = true;
         inputSource.gamepad.targetRaySpace = inputSource.targetRaySpace;
         inputSource.gamepad.primaryProfile = inputSource.profiles[0];
@@ -431,7 +437,9 @@ AFRAME.registerSystem("userinput", {
         xrSession.requestReferenceSpace("local-floor").then(referenceSpace => {
           this.xrReferenceSpace = referenceSpace;
         });
-        retrieveXRGamepads({ session: xrSession });
+        xrSession.addEventListener("end", () => {
+          this.activeDevices.items.filter(d => d.gamepad && d.gamepad.isWebXRGamepad).forEach(gamepadDisconnected);
+        });
       }
       updateBindingsForVRMode();
     });
@@ -462,8 +470,8 @@ AFRAME.registerSystem("userinput", {
     }
   },
 
-  tick2() {
-    this.frame.clear();
+  tick2(xrFrame) {
+    this.frame.generation += 1;
     const registeredMappingsChanged = this.registeredMappingsChanged;
     if (registeredMappingsChanged) {
       this.registeredMappingsChanged = false;
@@ -508,7 +516,7 @@ AFRAME.registerSystem("userinput", {
     }
 
     for (let i = 0; i < this.activeDevices.items.length; i++) {
-      this.activeDevices.items[i].write(this.frame, this.el.sceneEl, this.xrReferenceSpace);
+      this.activeDevices.items[i].write(this.frame, xrFrame, this.xrReferenceSpace);
     }
 
     for (let i = 0; i < this.sortedBindings.length; i++) {
