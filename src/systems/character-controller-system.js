@@ -313,27 +313,17 @@ export class CharacterControllerSystem {
             wallRaycastOrigin.y = newPOV.elements[13] - 0.33 * playerScale; // Move origin to "knee" level
             wallRaycastOrigin.z = newPOV.elements[14];
 
-            const wallBlockIntersection = SYSTEMS.voxSystem.raycastForWallCheckToClosestWalkableSource(
+            const displacementLength = displacementToDesiredPOV.length();
+
+            const wallBlockedWalkDirection = SYSTEMS.voxSystem.raycastForWallCheckToClosestWalkableSource(
               wallRaycastOrigin,
               displacementToDesiredPOV
             );
 
             // Something is blocking us
-            if (wallBlockIntersection) {
-              const blockedByNormal = wallBlockIntersection.face.normal;
-              const displacementLength = displacementToDesiredPOV.length();
-              displacementToDesiredPOV.normalize();
-
-              const dot = displacementToDesiredPOV.dot(blockedByNormal);
+            if (wallBlockedWalkDirection) {
+              displacementToDesiredPOV.copy(wallBlockedWalkDirection);
               displacementToDesiredPOV.multiplyScalar(displacementLength);
-
-              if (dot < 0) {
-                // Normal of wall and displacement vector are pointing in opposite directions
-                // Project the displacement XZ onto the plane we need to slide along
-                displacementToDesiredPOV.normalize();
-                displacementToDesiredPOV.projectOnPlane(blockedByNormal);
-                displacementToDesiredPOV.multiplyScalar(displacementLength);
-              }
             }
           }
 

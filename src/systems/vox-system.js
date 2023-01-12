@@ -1808,12 +1808,22 @@ export class VoxSystem extends EventTarget {
 
   // Efficiently raycast to search for walls at knee-height of all walkable sources.
   // sources and avoiding extra raycasts. Casts along a walk direction.
+  //
+  // We sample several ray directions to basically "sweep" the walk direction looking for any
+  // surfaces that could block the walk direction. This is necessary for things like stone walls
+  // that have crevices.
+  //
+  // For each surface we keep projecting a new walk direction onto that plane, carving down the
+  // possible walk direction that is compatible with all of them.
   raycastForWallCheckToClosestWalkableSource = (function() {
     const tmpMesh = new Mesh();
     const instanceLocalMatrix = new Matrix4();
     const instanceWorldMatrix = new Matrix4();
     const instanceIntersects = [];
     const raycaster = new THREE.Raycaster();
+    const normalizedWalkDirection = new THREE.Vector3();
+    const finalWalkDirection = new THREE.Vector3();
+    const worldFaceNormal = new THREE.Vector3();
     raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
     raycaster.near = 0.01;
     raycaster.far = 0.75; // Add a little buffer for avatar body + cel shading
@@ -1821,60 +1831,74 @@ export class VoxSystem extends EventTarget {
     return function(origin, walkDirection) {
       const { voxIdToEntry } = this;
 
-      let intersection = null;
+      let sawIntersection = false;
+      normalizedWalkDirection.copy(walkDirection).normalize();
+      finalWalkDirection.copy(walkDirection).normalize();
 
-      raycaster.ray.origin.copy(origin);
-      raycaster.ray.direction.copy(walkDirection);
-      raycaster.ray.direction.normalize();
+      for (let dX = -0.5; dX <= 0.5; dX += 0.5) {
+        for (let dZ = -0.5; dZ <= 0.5; dZ += 0.5) {
+          raycaster.ray.origin.copy(origin);
+          raycaster.ray.direction.copy(normalizedWalkDirection);
+          raycaster.ray.direction.x += raycaster.ray.direction.x * dX;
+          raycaster.ray.direction.z += raycaster.ray.direction.z * dZ;
 
-      for (const entry of voxIdToEntry.values()) {
-        if (!entry.hasWalkableSources) continue;
-        const voxMesh = entry.meshes[0];
-        if (voxMesh === null) continue;
+          raycaster.ray.direction.normalize();
 
-        const { sources, walkableSources, walkGeometry } = entry;
-        if (walkGeometry === null) continue;
+          for (const entry of voxIdToEntry.values()) {
+            if (!entry.hasWalkableSources) continue;
+            const voxMesh = entry.meshes[0];
+            if (voxMesh === null) continue;
 
-        for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
-          const source = sources[instanceId];
-          if (source === null) continue;
-          if (!walkableSources[instanceId]) continue;
+            const { sources, walkableSources, walkGeometry } = entry;
+            if (walkGeometry === null) continue;
 
-          // Bounding box check for origin X,Z, with a meter buffer since we raycast that far.
-          const bbox = this.getBoundingBoxForSource(source, true);
+            for (let instanceId = 0, l = sources.length; instanceId < l; instanceId++) {
+              const source = sources[instanceId];
+              if (source === null) continue;
+              if (!walkableSources[instanceId]) continue;
 
-          if (
-            origin.x < bbox.min.x - 1 ||
-            origin.x > bbox.max.x + 1 ||
-            origin.z < bbox.min.z - 1 ||
-            origin.z > bbox.max.z + 1
-          )
-            continue;
+              // Bounding box check for origin X,Z, with a meter buffer since we raycast that far.
+              const bbox = this.getBoundingBoxForSource(source, true);
 
-          // Raycast once for each walkable source.
-          tmpMesh.geometry = walkGeometry;
-          tmpMesh.material = voxMaterial;
-          voxMesh.updateMatrices();
-          voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
-          instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
-          tmpMesh.matrixWorld = instanceWorldMatrix;
-          tmpMesh.raycast(raycaster, instanceIntersects);
+              if (
+                origin.x < bbox.min.x - 1 ||
+                origin.x > bbox.max.x + 1 ||
+                origin.z < bbox.min.z - 1 ||
+                origin.z > bbox.max.z + 1
+              )
+                continue;
 
-          if (instanceIntersects.length === 0) continue;
+              // Raycast once for each walkable source.
+              tmpMesh.geometry = walkGeometry;
+              tmpMesh.material = voxMaterial;
+              voxMesh.updateMatrices();
+              voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
+              instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
+              tmpMesh.matrixWorld = instanceWorldMatrix;
+              tmpMesh.raycast(raycaster, instanceIntersects);
 
-          const newIntersection = instanceIntersects[0];
+              if (instanceIntersects.length === 0) continue;
 
-          if (intersection === null || intersection.distance > newIntersection.distance) {
-            intersection = newIntersection;
-            intersection.instanceId = instanceId;
-            intersection.object = voxMesh;
+              sawIntersection = true;
+
+              for (const intersection of instanceIntersects) {
+                worldFaceNormal.copy(intersection.face.normal);
+                intersection.object.updateMatrices();
+                worldFaceNormal.transformDirection(intersection.object.matrixWorld);
+
+                if (worldFaceNormal.dot(normalizedWalkDirection) < 0) {
+                  finalWalkDirection.projectOnPlane(worldFaceNormal);
+                  finalWalkDirection.normalize();
+                }
+              }
+
+              instanceIntersects.length = 0;
+            }
           }
-
-          instanceIntersects.length = 0;
         }
       }
 
-      return intersection;
+      return sawIntersection ? finalWalkDirection : null;
     };
   })();
 
