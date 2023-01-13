@@ -6,7 +6,6 @@ import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import { isNextPrevMedia } from "../utils/media-utils";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "./terrain-system";
-import { projectWalkDirectionOnToNearbyWalls, raycastVerticallyToClosestWalkableSource } from "../utils/walk-utils";
 import qsTruthy from "../utils/qs_truthy";
 
 const CHARACTER_MAX_Y = 25;
@@ -45,6 +44,7 @@ const JUMP_GRAVITY = -16.0;
 const INITIAL_JUMP_VELOCITY = 5.0;
 
 const isBotMode = qsTruthy("bot_move");
+const bbox = new THREE.Box3();
 
 export class CharacterControllerSystem {
   constructor(scene, terrainSystem, builderSystem) {
@@ -59,6 +59,7 @@ export class CharacterControllerSystem {
     this.dXZ = 0;
     this.movedThisFrame = false;
     this.jumpYVelocity = null;
+    this.walkableModels = [];
 
     this.scene.addEventListener("terrain_chunk_loaded", () => {
       if (!this.fly) {
@@ -316,7 +317,7 @@ export class CharacterControllerSystem {
 
             const displacementLength = displacementToDesiredPOV.length();
 
-            const wallBlockedWalkDirection = projectWalkDirectionOnToNearbyWalls(
+            const wallBlockedWalkDirection = this.projectWalkDirectionOnToNearbyWalls(
               wallRaycastOrigin,
               displacementToDesiredPOV
             );
@@ -457,7 +458,7 @@ export class CharacterControllerSystem {
       origin.copy(end);
       origin.y += MAX_VOX_HOP_SIZE;
 
-      let intersection = raycastVerticallyToClosestWalkableSource(origin, false);
+      let intersection = this.raycastVerticallyToClosestWalkableSource(origin, false);
 
       if (intersection !== null) {
         voxFloorY = intersection.point.y;
@@ -465,7 +466,7 @@ export class CharacterControllerSystem {
 
       // Intersect backsides to find floors above us and determine if we need
       // to jump up to one.
-      intersection = raycastVerticallyToClosestWalkableSource(origin, true, true);
+      intersection = this.raycastVerticallyToClosestWalkableSource(origin, true, true);
 
       if (intersection !== null) {
         // Check to see if we should jump up to a higher level.
@@ -473,7 +474,7 @@ export class CharacterControllerSystem {
         if (aboveFloorHeight > end.y) {
           // Check if there is an intermediate ceiling below the floor we may jump to.
           if (aboveFloorHeight - end.y >= MAX_VOX_HOP_SIZE) {
-            intersection = raycastVerticallyToClosestWalkableSource(origin, true);
+            intersection = this.raycastVerticallyToClosestWalkableSource(origin, true);
             if (intersection === null || intersection.point.y > aboveFloorHeight) {
               voxFloorY = Math.max(voxFloorY, aboveFloorHeight);
             }
@@ -503,4 +504,146 @@ export class CharacterControllerSystem {
   isMoving() {
     return this.relativeMotion && this.relativeMotion.lengthSq() > 0.1;
   }
+
+  addWalkableModel(model) {
+    const { walkableModels } = this;
+    if (walkableModels.indexOf(model) !== -1) return;
+    walkableModels.push(model);
+  }
+
+  removeWalkableModel(model) {
+    const { walkableModels } = this;
+    const index = walkableModels.indexOf(model);
+    if (index === -1) return;
+    walkableModels.splice(index, 1);
+  }
+
+  *getAllWalkableMeshesWithinXZ(origin, xMargin = 0, zMargin = 0) {
+    const { walkableModels } = this;
+
+    for (const mesh of SYSTEMS.voxSystem.getWalkableMeshesWithinXZ(origin, xMargin, zMargin)) {
+      yield mesh;
+    }
+
+    for (const model of walkableModels) {
+      bbox.setFromObject(model);
+
+      if (
+        origin.x < bbox.min.x - xMargin ||
+        origin.x > bbox.max.x + xMargin ||
+        origin.z < bbox.min.z - zMargin ||
+        origin.z > bbox.max.z + zMargin
+      )
+        continue;
+
+      yield model;
+    }
+  }
+
+  // Efficiently raycast to search for walls at knee-height of all walkable sources.
+  // sources and avoiding extra raycasts. Casts along a walk direction.
+  //
+  // We sample several ray directions to basically "sweep" the walk direction looking for any
+  // surfaces that could block the walk direction. This is necessary for things like stone walls
+  // that have crevices.
+  //
+  // For each surface we keep projecting a new walk direction onto that plane, carving down the
+  // possible walk direction that is compatible with all of them.
+  projectWalkDirectionOnToNearbyWalls = (function() {
+    const instanceIntersects = [];
+    const raycaster = new THREE.Raycaster();
+    const normalizedWalkDirection = new THREE.Vector3();
+    const finalWalkDirection = new THREE.Vector3();
+    const worldFaceNormal = new THREE.Vector3();
+    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+    raycaster.near = 0.01;
+    raycaster.far = 0.75; // Add a little buffer for avatar body + cel shading
+
+    return function(origin, walkDirection) {
+      let sawIntersection = false;
+      normalizedWalkDirection.copy(walkDirection).normalize();
+      finalWalkDirection.copy(walkDirection).normalize();
+      raycaster.ray.origin.copy(origin);
+
+      for (const mesh of this.getAllWalkableMeshesWithinXZ(origin, 1, 1)) {
+        for (let dX = -0.5; dX <= 0.5; dX += 0.5) {
+          for (let dZ = -0.5; dZ <= 0.5; dZ += 0.5) {
+            raycaster.ray.direction.copy(normalizedWalkDirection);
+            raycaster.ray.direction.x += raycaster.ray.direction.x * dX;
+            raycaster.ray.direction.z += raycaster.ray.direction.z * dZ;
+
+            raycaster.ray.direction.normalize();
+
+            raycaster.intersectObject(mesh, true, instanceIntersects);
+
+            if (instanceIntersects.length === 0) continue;
+
+            sawIntersection = true;
+
+            for (const intersection of instanceIntersects) {
+              worldFaceNormal.copy(intersection.face.normal);
+              intersection.object.updateMatrices();
+              worldFaceNormal.transformDirection(intersection.object.matrixWorld);
+
+              if (worldFaceNormal.dot(normalizedWalkDirection) < 0) {
+                finalWalkDirection.projectOnPlane(worldFaceNormal);
+                finalWalkDirection.normalize();
+              }
+            }
+
+            instanceIntersects.length = 0;
+          }
+        }
+      }
+
+      return sawIntersection ? finalWalkDirection : null;
+    };
+  })();
+
+  // Efficiently raycast to the closest walkable source, skipping non-walkable
+  // sources and avoiding extra raycasts. Only can cast up or down, so we can use
+  // bounding box to quickly cull as well.
+  raycastVerticallyToClosestWalkableSource = (function() {
+    const instanceIntersects = [];
+    const raycaster = new THREE.Raycaster();
+    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
+    raycaster.near = 0.01;
+    raycaster.far = 40;
+    raycaster.ray.direction.set(0, 1, 0);
+
+    return function(origin, up = true, backSide = false) {
+      let intersection = null;
+
+      raycaster.ray.origin.copy(origin);
+      raycaster.ray.direction.y = up ? 1 : -1;
+
+      let side = null;
+
+      for (const mesh of this.getAllWalkableMeshesWithinXZ(origin)) {
+        if (mesh.material && backSide) {
+          side = mesh.material.side;
+          mesh.material.side = THREE.BackSide;
+        }
+
+        raycaster.intersectObject(mesh, true, instanceIntersects);
+
+        if (side !== null) {
+          mesh.material.side = side;
+          side = null;
+        }
+
+        if (instanceIntersects.length === 0) continue;
+
+        const newIntersection = instanceIntersects[0];
+
+        if (intersection === null || intersection.distance > newIntersection.distance) {
+          intersection = newIntersection;
+        }
+
+        instanceIntersects.length = 0;
+      }
+
+      return intersection;
+    };
+  })();
 }

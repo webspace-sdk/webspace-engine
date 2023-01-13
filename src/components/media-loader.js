@@ -14,7 +14,6 @@ import {
 import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
 import { parseUrlAndCheckRelative } from "../utils/url-utils";
 import { addAnimationComponents } from "../utils/animation";
-import { addWalkableModel, removeWalkableModel } from "../utils/walk-utils";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { disposeExistingMesh, disposeNode } from "../utils/three-utils";
@@ -121,6 +120,7 @@ AFRAME.registerComponent("media-loader", {
 
     SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
     SYSTEMS.undoSystem.unregister(this.el);
+    SYSTEMS.characterController.removeWalkableModel(this.el.object3D);
 
     if (SYSTEMS.cameraSystem.inspected === this.el.object3D) {
       SYSTEMS.cameraSystem.uninspect();
@@ -296,7 +296,7 @@ AFRAME.registerComponent("media-loader", {
       el.emit("media-loaded");
 
       if (this.el.components["gltf-model-plus"] && this.data.locked) {
-        addWalkableModel(this.el.object3D);
+        SYSTEMS.characterController.addWalkableModel(this.el.object3D);
       }
     };
 
@@ -344,13 +344,13 @@ AFRAME.registerComponent("media-loader", {
         SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
 
         if (isModel) {
-          addWalkableModel(this.el.object3D);
+          SYSTEMS.characterController.addWalkableModel(this.el.object3D);
         }
       } else {
         SYSTEMS.skyBeamSystem.register(this.el.object3D);
 
         if (isModel) {
-          removeWalkableModel(this.el.object3D);
+          SYSTEMS.characterController.removeWalkableModel(this.el.object3D);
         }
       }
 
