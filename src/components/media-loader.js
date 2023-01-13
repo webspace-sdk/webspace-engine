@@ -120,6 +120,7 @@ AFRAME.registerComponent("media-loader", {
 
     SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
     SYSTEMS.undoSystem.unregister(this.el);
+    SYSTEMS.characterController.removeWalkableModel(this.el.object3D);
 
     if (SYSTEMS.cameraSystem.inspected === this.el.object3D) {
       SYSTEMS.cameraSystem.uninspect();
@@ -293,6 +294,10 @@ AFRAME.registerComponent("media-loader", {
       }
 
       el.emit("media-loaded");
+
+      if (this.el.components["gltf-model-plus"] && this.data.locked) {
+        SYSTEMS.characterController.addWalkableModel(this.el.object3D);
+      }
     };
 
     if (this.shouldShowLoader() && this.data.animate) {
@@ -333,10 +338,20 @@ AFRAME.registerComponent("media-loader", {
     const lockedChanged = oldData.locked !== undefined && oldData.locked !== locked;
 
     if (lockedChanged) {
+      const isModel = !!this.el.components["gltf-model-plus"];
+
       if (this.data.locked) {
         SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
+
+        if (isModel) {
+          SYSTEMS.characterController.addWalkableModel(this.el.object3D);
+        }
       } else {
         SYSTEMS.skyBeamSystem.register(this.el.object3D);
+
+        if (isModel) {
+          SYSTEMS.characterController.removeWalkableModel(this.el.object3D);
+        }
       }
 
       this.el.emit("media_locked_changed");

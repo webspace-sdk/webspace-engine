@@ -781,7 +781,6 @@ export class VoxSystem extends EventTarget {
       pendingVoxels,
       pendingVoxelsOffset,
       showVoxGeometry,
-      pendingVoxMeshWorkerJobIds,
       hasWalkableSources
     } = entry;
 
@@ -1731,32 +1730,13 @@ export class VoxSystem extends EventTarget {
     return !entry.shapeIsEnvironmental;
   }
 
-  // Efficiently raycast to the closest walkable source, skipping non-walkable
-  // sources and avoiding extra raycasts. Only can cast up or down, so we can use
-  // bounding box to quickly cull as well.
-  raycastVerticallyToClosestWalkableSource = (function() {
+  getWalkableMeshesWithinXZ = (function() {
     const tmpMesh = new Mesh();
     const instanceLocalMatrix = new Matrix4();
     const instanceWorldMatrix = new Matrix4();
-    const instanceIntersects = [];
-    const raycaster = new THREE.Raycaster();
-    raycaster.firstHitOnly = true; // flag specific to three-mesh-bvh
-    raycaster.near = 0.01;
-    raycaster.far = 40;
-    raycaster.ray.direction.set(0, 1, 0);
 
-    return function(origin, up = true, backSide = false) {
+    return function*(origin, xMargin = 0, zMargin = 0) {
       const { voxIdToEntry } = this;
-
-      const { side } = voxMaterial;
-      let intersection = null;
-
-      if (backSide) {
-        voxMaterial.side = THREE.BackSide;
-      }
-
-      raycaster.ray.origin.copy(origin);
-      raycaster.ray.direction.y = up ? 1 : -1;
 
       for (const entry of voxIdToEntry.values()) {
         if (!entry.hasWalkableSources) continue;
@@ -1771,10 +1751,15 @@ export class VoxSystem extends EventTarget {
           if (source === null) continue;
           if (!walkableSources[instanceId]) continue;
 
-          // Bounding box check for origin X,Z since we are casting up/down
+          // Bounding box check for origin X,Z, with a meter buffer since we raycast that far.
           const bbox = this.getBoundingBoxForSource(source, true);
 
-          if (origin.x < bbox.min.x || origin.x > bbox.max.x || origin.z < bbox.min.z || origin.z > bbox.max.z)
+          if (
+            origin.x < bbox.min.x - xMargin ||
+            origin.x > bbox.max.x + xMargin ||
+            origin.z < bbox.min.z - zMargin ||
+            origin.z > bbox.max.z + zMargin
+          )
             continue;
 
           // Raycast once for each walkable source.
@@ -1784,25 +1769,10 @@ export class VoxSystem extends EventTarget {
           voxMesh.getMatrixAt(instanceId, instanceLocalMatrix);
           instanceWorldMatrix.multiplyMatrices(voxMesh.matrixWorld, instanceLocalMatrix);
           tmpMesh.matrixWorld = instanceWorldMatrix;
-          tmpMesh.raycast(raycaster, instanceIntersects);
 
-          if (instanceIntersects.length === 0) continue;
-
-          const newIntersection = instanceIntersects[0];
-
-          if (intersection === null || intersection.distance > newIntersection.distance) {
-            intersection = newIntersection;
-            intersection.instanceId = instanceId;
-            intersection.object = voxMesh;
-          }
-
-          instanceIntersects.length = 0;
+          yield tmpMesh;
         }
       }
-
-      voxMaterial.side = side;
-
-      return intersection;
     };
   })();
 
