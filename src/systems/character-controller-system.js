@@ -6,10 +6,7 @@ import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import { isNextPrevMedia } from "../utils/media-utils";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "./terrain-system";
-import {
-  raycastForWallCheckToClosestWalkableSource,
-  raycastVerticallyToClosestWalkableSource
-} from "../utils/walk-utils";
+import { projectWalkDirectionOnToNearbyWalls, raycastVerticallyToClosestWalkableSource } from "../utils/walk-utils";
 import qsTruthy from "../utils/qs_truthy";
 
 const CHARACTER_MAX_Y = 25;
@@ -319,7 +316,7 @@ export class CharacterControllerSystem {
 
             const displacementLength = displacementToDesiredPOV.length();
 
-            const wallBlockedWalkDirection = raycastForWallCheckToClosestWalkableSource(
+            const wallBlockedWalkDirection = projectWalkDirectionOnToNearbyWalls(
               wallRaycastOrigin,
               displacementToDesiredPOV
             );

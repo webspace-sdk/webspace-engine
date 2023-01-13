@@ -1,6 +1,37 @@
-export function* generateAllWalkableMeshesWithinXZ(origin, xMargin = 0, zMargin = 0) {
-  for (const mesh of SYSTEMS.voxSystem.generateWalkableMeshesWithinXZ(origin, xMargin, zMargin)) {
+const walkableModels = [];
+
+export function addWalkableModel(model) {
+  if (walkableModels.indexOf(model) === -1) {
+    walkableModels.push(model);
+  }
+}
+
+export function removeWalkableModel(model) {
+  const index = walkableModels.indexOf(model);
+  if (index !== -1) {
+    walkableModels.splice(index, 1);
+  }
+}
+
+const bbox = new THREE.Box3();
+
+export function* getAllWalkableMeshesWithinXZ(origin, xMargin = 0, zMargin = 0) {
+  for (const mesh of SYSTEMS.voxSystem.getWalkableMeshesWithinXZ(origin, xMargin, zMargin)) {
     yield mesh;
+  }
+
+  for (const model of walkableModels) {
+    bbox.setFromObject(model);
+
+    if (
+      origin.x < bbox.min.x - xMargin ||
+      origin.x > bbox.max.x + xMargin ||
+      origin.z < bbox.min.z - zMargin ||
+      origin.z > bbox.max.z + zMargin
+    )
+      continue;
+
+    yield model;
   }
 }
 
@@ -13,7 +44,7 @@ export function* generateAllWalkableMeshesWithinXZ(origin, xMargin = 0, zMargin 
 //
 // For each surface we keep projecting a new walk direction onto that plane, carving down the
 // possible walk direction that is compatible with all of them.
-export const raycastForWallCheckToClosestWalkableSource = (function() {
+export const projectWalkDirectionOnToNearbyWalls = (function() {
   const instanceIntersects = [];
   const raycaster = new THREE.Raycaster();
   const normalizedWalkDirection = new THREE.Vector3();
@@ -29,7 +60,7 @@ export const raycastForWallCheckToClosestWalkableSource = (function() {
     finalWalkDirection.copy(walkDirection).normalize();
     raycaster.ray.origin.copy(origin);
 
-    for (const mesh of generateAllWalkableMeshesWithinXZ(origin, 1, 1)) {
+    for (const mesh of getAllWalkableMeshesWithinXZ(origin, 1, 1)) {
       for (let dX = -0.5; dX <= 0.5; dX += 0.5) {
         for (let dZ = -0.5; dZ <= 0.5; dZ += 0.5) {
           raycaster.ray.direction.copy(normalizedWalkDirection);
@@ -38,7 +69,7 @@ export const raycastForWallCheckToClosestWalkableSource = (function() {
 
           raycaster.ray.direction.normalize();
 
-          mesh.raycast(raycaster, instanceIntersects);
+          raycaster.intersectObject(mesh, true, instanceIntersects);
 
           if (instanceIntersects.length === 0) continue;
 
@@ -81,15 +112,20 @@ export const raycastVerticallyToClosestWalkableSource = (function() {
     raycaster.ray.origin.copy(origin);
     raycaster.ray.direction.y = up ? 1 : -1;
 
-    for (const mesh of generateAllWalkableMeshesWithinXZ(origin)) {
-      const { side } = mesh.material;
+    let side = null;
 
-      if (backSide) {
+    for (const mesh of getAllWalkableMeshesWithinXZ(origin)) {
+      if (mesh.material && backSide) {
+        side = mesh.material.side;
         mesh.material.side = THREE.BackSide;
       }
 
-      mesh.raycast(raycaster, instanceIntersects);
-      mesh.material.side = side;
+      raycaster.intersectObject(mesh, true, instanceIntersects);
+
+      if (side !== null) {
+        mesh.material.side = side;
+        side = null;
+      }
 
       if (instanceIntersects.length === 0) continue;
 

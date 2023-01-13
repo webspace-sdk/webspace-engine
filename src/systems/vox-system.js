@@ -1730,7 +1730,7 @@ export class VoxSystem extends EventTarget {
     return !entry.shapeIsEnvironmental;
   }
 
-  generateWalkableMeshesWithinXZ = (function() {
+  getWalkableMeshesWithinXZ = (function() {
     const tmpMesh = new Mesh();
     const instanceLocalMatrix = new Matrix4();
     const instanceWorldMatrix = new Matrix4();

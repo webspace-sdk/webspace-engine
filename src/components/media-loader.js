@@ -14,6 +14,7 @@ import {
 import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
 import { parseUrlAndCheckRelative } from "../utils/url-utils";
 import { addAnimationComponents } from "../utils/animation";
+import { addWalkableModel, removeWalkableModel } from "../utils/walk-utils";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { disposeExistingMesh, disposeNode } from "../utils/three-utils";
@@ -293,6 +294,10 @@ AFRAME.registerComponent("media-loader", {
       }
 
       el.emit("media-loaded");
+
+      if (this.el.components["gltf-model-plus"] && this.data.locked) {
+        addWalkableModel(this.el.object3D);
+      }
     };
 
     if (this.shouldShowLoader() && this.data.animate) {
@@ -333,10 +338,20 @@ AFRAME.registerComponent("media-loader", {
     const lockedChanged = oldData.locked !== undefined && oldData.locked !== locked;
 
     if (lockedChanged) {
+      const isModel = !!this.el.components["gltf-model-plus"];
+
       if (this.data.locked) {
         SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
+
+        if (isModel) {
+          addWalkableModel(this.el.object3D);
+        }
       } else {
         SYSTEMS.skyBeamSystem.register(this.el.object3D);
+
+        if (isModel) {
+          removeWalkableModel(this.el.object3D);
+        }
       }
 
       this.el.emit("media_locked_changed");
