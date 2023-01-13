@@ -6,6 +6,10 @@ import { getCurrentPlayerHeight } from "../utils/get-current-player-height";
 import { isNextPrevMedia } from "../utils/media-utils";
 //import { m4String } from "../utils/pretty-print";
 import { WORLD_MAX_COORD, WORLD_MIN_COORD, WORLD_SIZE } from "./terrain-system";
+import {
+  raycastForWallCheckToClosestWalkableSource,
+  raycastVerticallyToClosestWalkableSource
+} from "../utils/walk-utils";
 import qsTruthy from "../utils/qs_truthy";
 
 const CHARACTER_MAX_Y = 25;
@@ -315,7 +319,7 @@ export class CharacterControllerSystem {
 
             const displacementLength = displacementToDesiredPOV.length();
 
-            const wallBlockedWalkDirection = SYSTEMS.voxSystem.raycastForWallCheckToClosestWalkableSource(
+            const wallBlockedWalkDirection = raycastForWallCheckToClosestWalkableSource(
               wallRaycastOrigin,
               displacementToDesiredPOV
             );
@@ -456,7 +460,7 @@ export class CharacterControllerSystem {
       origin.copy(end);
       origin.y += MAX_VOX_HOP_SIZE;
 
-      let intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, false);
+      let intersection = raycastVerticallyToClosestWalkableSource(origin, false);
 
       if (intersection !== null) {
         voxFloorY = intersection.point.y;
@@ -464,7 +468,7 @@ export class CharacterControllerSystem {
 
       // Intersect backsides to find floors above us and determine if we need
       // to jump up to one.
-      intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, true, true);
+      intersection = raycastVerticallyToClosestWalkableSource(origin, true, true);
 
       if (intersection !== null) {
         // Check to see if we should jump up to a higher level.
@@ -472,7 +476,7 @@ export class CharacterControllerSystem {
         if (aboveFloorHeight > end.y) {
           // Check if there is an intermediate ceiling below the floor we may jump to.
           if (aboveFloorHeight - end.y >= MAX_VOX_HOP_SIZE) {
-            intersection = SYSTEMS.voxSystem.raycastVerticallyToClosestWalkableSource(origin, true);
+            intersection = raycastVerticallyToClosestWalkableSource(origin, true);
             if (intersection === null || intersection.point.y > aboveFloorHeight) {
               voxFloorY = Math.max(voxFloorY, aboveFloorHeight);
             }
