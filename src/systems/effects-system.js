@@ -12,7 +12,7 @@ AFRAME.registerSystem("effects", {
 
     this.el.addEventListener("side_panel_resize_complete", () => (this.updateComposer = true));
 
-    this.updateComposer = true;
+    this.updateComposer = false;
   },
 
   tick: function() {

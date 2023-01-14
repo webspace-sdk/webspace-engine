@@ -1278,11 +1278,26 @@ async function start() {
   // and we don't want to block on.
   await joinHub(scene, history, entryManager, remountUIRoot, initialWorldHTML);
 
+  const useVRMode = true;
+
   window.addEventListener(
     "mousedown",
     () => {
-      entryManager.enterScene(true).then(() => {
-        remountUIRoot({ isDoneLoading: true, projectionType });
+      entryManager.enterScene(useVRMode).then(() => {
+        remountUIRoot({ isDoneLoading: true, projectionType, hide: useVRMode });
+
+        if (useVRMode) {
+          scene.systems.effects.disableEffects = true;
+        }
+
+        setTimeout(() => {
+          // Hacky, WebXR emulator adds a a-canvas in the main dom we need to move it into shadow dom
+          const xrCanvas = document.querySelector(".a-canvas");
+          if (xrCanvas) {
+            xrCanvas.parentElement.remove();
+            DOM_ROOT.querySelector("a-scene").appendChild(xrCanvas);
+          }
+        }, 250);
       });
     },
     { once: true }

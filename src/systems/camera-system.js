@@ -7,6 +7,7 @@ import { qsGet } from "../utils/qs_truthy";
 import SkyboxBufferGeometry from "../objects/skybox-buffer-geometry";
 import { EventTarget } from "event-target-shim";
 import { ATOM_TYPES } from "../utils/atom-metadata";
+import { Layers } from "../components/layers";
 
 const customFOV = qsGet("fov");
 
@@ -15,6 +16,9 @@ const FAR_PLANE_FOR_INSPECT = 100;
 const MAX_INSPECT_CAMERA_DISTANCE = 40;
 const FAR_PLANE_FOR_FOG = 26;
 const FAR_PLANE_FOR_NO_FOG = 2000;
+
+const tmpProjectionMatrix = new THREE.Matrix4();
+const tmpProjectionMatrixInverse = new THREE.Matrix4();
 
 export function getInspectable(child) {
   let el = child;
@@ -51,46 +55,44 @@ export const CAMERA_MODE_THIRD_PERSON_FAR = 2;
 export const CAMERA_MODE_INSPECT = 3;
 export const CAMERA_MODE_SCENE_PREVIEW = 4;
 
-const CAMERA_LAYER_INSPECT = 4;
-
 const ensureLightsAreSeenByCamera = function(o) {
   if (o.isLight) {
-    o.layers.enable(CAMERA_LAYER_INSPECT);
+    o.layers.enable(Layers.CAMERA_LAYER_INSPECT);
   }
 };
 const enableInspectLayer = function(o) {
-  o.layers.enable(CAMERA_LAYER_INSPECT);
+  o.layers.enable(Layers.CAMERA_LAYER_INSPECT);
 
   // Check for vox/voxmoji
   const sourceMesh = o.el.getObject3D("mesh");
 
   if (sourceMesh) {
     for (const mesh of SYSTEMS.voxSystem.getMeshesForSource(sourceMesh)) {
-      mesh.layers.enable(CAMERA_LAYER_INSPECT);
+      mesh.layers.enable(Layers.CAMERA_LAYER_INSPECT);
     }
 
     const mesh = SYSTEMS.voxmojiSystem.getMeshForSource(sourceMesh);
 
     if (mesh) {
-      mesh.layers.enable(CAMERA_LAYER_INSPECT);
+      mesh.layers.enable(Layers.CAMERA_LAYER_INSPECT);
     }
   }
 };
 const disableInspectLayer = function(o) {
-  o.layers.disable(CAMERA_LAYER_INSPECT);
+  o.layers.disable(Layers.CAMERA_LAYER_INSPECT);
 
   // Check for vox/voxmoji
   const sourceMesh = o.el && o.el.getObject3D("mesh");
 
   if (sourceMesh) {
     for (const mesh of SYSTEMS.voxSystem.getMeshesForSource(sourceMesh)) {
-      mesh.layers.disable(CAMERA_LAYER_INSPECT);
+      mesh.layers.disable(Layers.CAMERA_LAYER_INSPECT);
     }
 
     const mesh = SYSTEMS.voxmojiSystem.getMeshForSource(sourceMesh);
 
     if (mesh) {
-      mesh.layers.disable(CAMERA_LAYER_INSPECT);
+      mesh.layers.disable(Layers.CAMERA_LAYER_INSPECT);
     }
   }
 };
@@ -126,6 +128,25 @@ export class CameraSystem extends EventTarget {
     this.inspectingWithEphemeralBuildEnabled = false;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();
+
+    // xr.updateCamera gets called every render to copy the active cameras properties to the XR cameras. We also want to copy layers.
+    // TODO this logic should either be moved into THREE or removed when we ditch aframe camera system
+    const xrManager = scene.renderer.xr;
+    const updateXRCamera = xrManager.updateCamera;
+    xrManager.updateCamera = function(camera) {
+      if (camera !== scene.camera) return;
+
+      updateXRCamera(camera);
+      const xrCamera = xrManager.getCamera(scene.camera);
+      xrCamera.layers.mask = camera.layers.mask;
+      if (xrCamera.cameras.length) {
+        xrCamera.cameras[0].layers.set(Layers.CAMERA_LAYER_XR_LEFT_EYE);
+        xrCamera.cameras[0].layers.mask |= camera.layers.mask;
+        xrCamera.cameras[1].layers.set(Layers.CAMERA_LAYER_XR_RIGHT_EYE);
+        xrCamera.cameras[1].layers.mask |= camera.layers.mask;
+      }
+    };
+
     waitForShadowDOMContentLoaded().then(() => {
       this.avatarPOV = DOM_ROOT.getElementById("avatar-pov-node");
       this.avatarRig = DOM_ROOT.getElementById("avatar-rig");
@@ -136,7 +157,7 @@ export class CameraSystem extends EventTarget {
         new SkyboxBufferGeometry(100, 100, 100),
         new THREE.MeshBasicMaterial({ color: 0x020202 })
       );
-      bg.layers.set(CAMERA_LAYER_INSPECT);
+      bg.layers.set(Layers.CAMERA_LAYER_INSPECT);
       this.viewingRig.object3D.add(bg);
       if (customFOV) {
         if (this.viewingCamera.components.camera) {
@@ -160,11 +181,16 @@ export class CameraSystem extends EventTarget {
     const { camera } = this.viewingCamera.object3DMap;
     camera.updateMatrices();
 
-    // Temporarily re-create perspective matrix, then re-gen
+    tmpProjectionMatrix.copy(camera.projectionMatrix);
+    tmpProjectionMatrixInverse.copy(camera.projectionMatrixInverse);
+
+    // Temporarily re-create perspective matrix, then restore
     camera.updateProjectionMatrix();
 
     vector.unproject(camera);
-    this.updateCameraSettings();
+
+    camera.projectionMatrix.copy(tmpProjectionMatrix);
+    camera.projectionMatrixInverse.copy(tmpProjectionMatrixInverse);
   }
 
   defaultCursorDistanceToInspectedObject = (function() {
@@ -323,13 +349,7 @@ export class CameraSystem extends EventTarget {
     }
 
     const scene = AFRAME.scenes[0];
-    const vrMode = scene.is("vr-mode");
-    const camera = vrMode ? scene.renderer.xr.getCamera(scene.camera) : scene.camera;
-    camera.layers.mask = this.snapshot.mask;
-    if (vrMode) {
-      camera.cameras[0].layers.mask = this.snapshot.mask0;
-      camera.cameras[1].layers.mask = this.snapshot.mask1;
-    }
+    scene.camera.layers.mask = this.snapshot.mask;
   }
 
   hideEverythingButInspectedObjectAndCursors() {
@@ -342,13 +362,7 @@ export class CameraSystem extends EventTarget {
     }
 
     const scene = AFRAME.scenes[0];
-    const vrMode = scene.is("vr-mode");
-    const camera = vrMode ? scene.renderer.xr.getCamera(scene.camera) : scene.camera;
-    camera.layers.set(CAMERA_LAYER_INSPECT);
-    if (vrMode) {
-      camera.cameras[0].layers.set(CAMERA_LAYER_INSPECT);
-      camera.cameras[1].layers.set(CAMERA_LAYER_INSPECT);
-    }
+    scene.camera.layers.set(Layers.CAMERA_LAYER_INSPECT);
   }
 
   isInAvatarView() {
@@ -401,8 +415,7 @@ export class CameraSystem extends EventTarget {
 
   updateCameraSettings() {
     const scene = AFRAME.scenes[0];
-    const vrMode = scene.is("vr-mode");
-    const camera = vrMode ? scene.renderer.xr.getCamera(scene.camera) : scene.camera;
+    const camera = scene.camera;
 
     const canvasWidth = this.sceneEl.canvas.parentElement.offsetWidth;
     const canvasHeight = this.sceneEl.canvas.parentElement.offsetHeight;
@@ -415,37 +428,14 @@ export class CameraSystem extends EventTarget {
     if (this.mode === CAMERA_MODE_INSPECT) {
       if (this.snapshot.mask === null) {
         this.snapshot.mask = camera.layers.mask;
-
-        if (vrMode) {
-          this.snapshot.mask0 = camera.cameras[0].layers.mask;
-          this.snapshot.mask1 = camera.cameras[1].layers.mask;
-        }
-      }
-
-      if (vrMode) {
-        camera.cameras[0].far = FAR_PLANE_FOR_INSPECT;
-        camera.cameras[1].far = FAR_PLANE_FOR_INSPECT;
       }
 
       camera.far = FAR_PLANE_FOR_INSPECT;
 
       if (this.isRenderingOrthographic()) {
-        // Hacky, use ortho camera matrix by copying it in, instead of having a separate camera.
-        if (vrMode) {
-          camera.cameras[0].projectionMatrix.copy(orthoCamera.projectionMatrix);
-          camera.cameras[1].projectionMatrix.copy(orthoCamera.projectionMatrix);
-          camera.cameras[0].projectionMatrixInverse.copy(orthoCamera.projectionMatrixInverse);
-          camera.cameras[1].projectionMatrixInverse.copy(orthoCamera.projectionMatrixInverse);
-        } else {
-          camera.projectionMatrix.copy(orthoCamera.projectionMatrix);
-          camera.projectionMatrixInverse.copy(orthoCamera.projectionMatrixInverse);
-        }
+        camera.projectionMatrix.copy(orthoCamera.projectionMatrix);
+        camera.projectionMatrixInverse.copy(orthoCamera.projectionMatrixInverse);
       } else {
-        if (vrMode) {
-          camera.cameras[0].updateProjectionMatrix();
-          camera.cameras[1].updateProjectionMatrix();
-        }
-
         camera.updateProjectionMatrix();
       }
 
@@ -456,26 +446,10 @@ export class CameraSystem extends EventTarget {
 
       if (this.snapshot.mask) {
         camera.layers.mask = this.snapshot.mask;
-
-        if (vrMode) {
-          camera.cameras[0].layers.mask = this.snapshot.mask0;
-          camera.cameras[1].layers.mask = this.snapshot.mask1;
-        }
-      }
-
-      if (vrMode) {
-        camera.cameras[0].far = far;
-        camera.cameras[1].far = far;
       }
 
       camera.far = far;
-
       camera.updateProjectionMatrix();
-
-      if (vrMode) {
-        camera.cameras[0].updateProjectionMatrix();
-        camera.cameras[1].updateProjectionMatrix();
-      }
 
       if (SYSTEMS.terrainSystem.worldTypeHasFog()) {
         SYSTEMS.atmosphereSystem.enableFog();

@@ -148,15 +148,15 @@ class Terrain extends Object3D {
       mesh.receiveShadow = true;
       mesh.castShadow = true;
       mesh.frustumCulled = false;
-      mesh.layers.enable(Layers.reflection);
+      mesh.layers.enable(Layers.CAMERA_LAYER_REFLECTION);
       this.meshes.push(mesh);
       return mesh;
     };
 
-    this.layers.enable(Layers.reflection);
+    this.layers.enable(Layers.CAMERA_LAYER_REFLECTION);
 
     this.lod = new LOD();
-    this.lod.layers.enable(Layers.reflection);
+    this.lod.layers.enable(Layers.CAMERA_LAYER_REFLECTION);
     // Offset LOD/group because we want the proper center distance to chunk.
     this.lod.position.x = VOXELS_PER_CHUNK / 2;
     this.lod.position.z = VOXELS_PER_CHUNK / 2;

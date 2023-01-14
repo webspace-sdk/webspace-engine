@@ -153,7 +153,7 @@ class Water extends Mesh {
     this.target = new Vector3();
     this.q = new Vector4();
     this.virtualCamera = new PerspectiveCamera();
-    this.virtualCamera.layers.set(Layers.reflection);
+    this.virtualCamera.layers.set(Layers.CAMERA_LAYER_REFLECTION);
     this.rotateX = new Matrix4();
     this.rotateX.makeRotationAxis(new Vector3(1, 0, 0), -Math.PI / 2);
     this.reflectionsForceOff = false;

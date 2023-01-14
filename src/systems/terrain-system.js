@@ -496,9 +496,9 @@ export class TerrainSystem {
 
             terrain.meshes.forEach(m => {
               if (enable) {
-                m.layers.enable(Layers.reflection);
+                m.layers.enable(Layers.CAMERA_LAYER_REFLECTION);
               } else {
-                m.layers.disable(Layers.reflection);
+                m.layers.disable(Layers.CAMERA_LAYER_REFLECTION);
               }
             });
           }
