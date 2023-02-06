@@ -87,6 +87,8 @@ async function fetchAppConfigAndEnvironmentVars() {
 const threeExamplesDir = path.resolve(__dirname, "node_modules", "three", "examples");
 const basisTranscoderPath = path.resolve(threeExamplesDir, "js", "libs", "basis", "basis_transcoder.js");
 const basisWasmPath = path.resolve(threeExamplesDir, "js", "libs", "basis", "basis_transcoder.wasm");
+const dracoWasmWrapperPath = path.resolve(threeExamplesDir, "js", "libs", "draco", "gltf", "draco_wasm_wrapper.js");
+const dracoWasmPath = path.resolve(threeExamplesDir, "js", "libs", "draco", "gltf", "draco_decoder.wasm");
 
 module.exports = async (env, argv) => {
   env = env || {};
@@ -150,7 +152,9 @@ module.exports = async (env, argv) => {
         three$: path.resolve(__dirname, "./node_modules/three/build/three.module.js"),
         // TODO these aliases are reequired because `three` only "exports" stuff in examples/jsm
         "three/examples/js/libs/basis/basis_transcoder.js": basisTranscoderPath,
-        "three/examples/js/libs/basis/basis_transcoder.wasm": basisWasmPath
+        "three/examples/js/libs/basis/basis_transcoder.wasm": basisWasmPath,
+        "three/examples/js/libs/draco/gltf/draco_wasm_wrapper.js": dracoWasmWrapperPath,
+        "three/examples/js/libs/draco/gltf/draco_decoder.wasm": dracoWasmPath
       },
       fallback: {
         buffer: require.resolve("buffer/"),

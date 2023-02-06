@@ -1,5 +1,9 @@
 import { getBlobForEmojiImage } from "./emojis";
 import { VOX_CONTENT_TYPE } from "./vox-utils";
+import basisTranscoderUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.js";
+import basisTranscoderWasmUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.wasm";
+import dracoWrapperJsUrl from "!!url-loader!three/examples/js/libs/draco/gltf/draco_wasm_wrapper.js";
+import dracoWasmUrl from "!!url-loader!three/examples/js/libs/draco/gltf/draco_decoder.wasm";
 
 const commonKnownContentTypes = {
   gltf: "model/gltf",
@@ -88,6 +92,15 @@ export function getAbsoluteHref(baseUrl, relativeUrl) {
 
 export const getCustomGLTFParserURLResolver = gltfUrl => url => {
   if (typeof url !== "string" || url === "") return "";
+  if (url === "basis_transcoder.js") {
+    return basisTranscoderUrl;
+  } else if (url === "basis_transcoder.wasm") {
+    return basisTranscoderWasmUrl;
+  } else if (url === "draco_wasm_wrapper.js") {
+    return dracoWrapperJsUrl;
+  } else if (url === "draco_decoder.wasm") {
+    return dracoWasmUrl;
+  }
   if (/^(https?:)?\/\//i.test(url)) return proxiedUrlForSync(url);
   if (/^data:.*,.*$/i.test(url)) return url;
   if (/^blob:.*$/i.test(url)) return url;

@@ -15,6 +15,8 @@ import nextTick from "./next-tick";
 import anime from "animejs";
 import basisTranscoderUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.js";
 import basisTranscoderWasmUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.wasm";
+import dracoWrapperJsUrl from "!!url-loader!three/examples/js/libs/draco/gltf/draco_wasm_wrapper.js";
+import dracoWasmUrl from "!!url-loader!three/examples/js/libs/draco/gltf/draco_decoder.wasm";
 import { BasisTextureLoader } from "three/examples/jsm/loaders/BasisTextureLoader";
 import { modelFromString, modelToString } from "./vox-utils";
 import { voxToSvox } from "smoothvoxels";
@@ -31,6 +33,8 @@ const VIDEO_CORS_PROXY_PLACEHOLDER = "__VIDEO_CORS_PROXY__"; // Used for YTDL ca
 BasisLoadingManager.setURLModifier(url => {
   if (url === "basis_transcoder.js") return basisTranscoderUrl;
   if (url === "basis_transcoder.wasm") return basisTranscoderWasmUrl;
+  if (url === "draco_wasm_wrapper.js") return dracoWrapperJsUrl;
+  if (url === "draco_decoder.wasm") return dracoWasmUrl;
   return url;
 });
 

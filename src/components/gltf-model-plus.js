@@ -11,6 +11,7 @@ import { resetMediaRotation, MEDIA_PRESENCE, MEDIA_INTERACTION_TYPES, BasisLoadi
 import { gatePermission } from "../utils/permissions-utils";
 import { RENDER_ORDER } from "../constants";
 import { BasisTextureLoader } from "three/examples/jsm/loaders/BasisTextureLoader";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
@@ -337,6 +338,7 @@ function runMigration(version, json) {
 }
 
 let ktxLoader;
+let dracoLoader;
 
 class GLTFHubsPlugin {
   constructor(parser, jsonPreprocessor) {
@@ -522,8 +524,16 @@ export async function loadGLTF(src, contentType, onProgress, jsonPreprocessor) {
     ktxLoader = new KTX2Loader(loadingManager).detectSupport(AFRAME.scenes[0].renderer);
   }
 
+  if (!dracoLoader && AFRAME && AFRAME.scenes && AFRAME.scenes[0]) {
+    dracoLoader = new DRACOLoader(loadingManager);
+  }
+
   if (ktxLoader) {
     gltfLoader.setKTX2Loader(ktxLoader);
+  }
+
+  if (dracoLoader) {
+    gltfLoader.setDRACOLoader(dracoLoader);
   }
 
   return new Promise((resolve, reject) => {
