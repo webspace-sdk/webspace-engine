@@ -7,16 +7,7 @@ import sceneEditorLogo from "../assets/images/editor-logo.png";
 const configs = {};
 let isAdmin = false;
 
-[
-  "RETICULUM_SERVER",
-  "THUMBNAIL_SERVER",
-  "TERRA_SERVER",
-  "SENTRY_DSN",
-  "GA_TRACKING_ID",
-  "MIXPANEL_TOKEN",
-  "SHORTLINK_DOMAIN",
-  "BASE_ASSETS_PATH"
-].forEach(x => {
+["RETICULUM_SERVER", "TERRA_SERVER", "BASE_ASSETS_PATH"].forEach(x => {
   const el = document.querySelector(`meta[name='env:${x.toLowerCase()}']`);
   configs[x] = el ? el.getAttribute("content") : process.env[x];
 
