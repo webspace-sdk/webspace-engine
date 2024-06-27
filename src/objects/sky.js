@@ -1,5 +1,6 @@
 import { RENDER_ORDER } from "../constants";
 import SkyboxBufferGeometry from "./skybox-buffer-geometry";
+import { CubeTextureLoader } from 'three';
 
 /**
  * @author zz85 / https://github.com/zz85
@@ -17,7 +18,7 @@ import SkyboxBufferGeometry from "./skybox-buffer-geometry";
  * Three.js integration by zz85 http://twitter.com/blurspline
  */
 
-const { Vector3, Mesh, ShaderMaterial, UniformsUtils } = THREE;
+const { Vector3, Mesh, ShaderMaterial, UniformsUtils, CubeTextureLoader } = THREE;
 
 const CloudySkyShader = {
   uniforms: {
@@ -547,6 +548,51 @@ class Sky extends Mesh {
 
     this.renderOrder = RENDER_ORDER.SKY;
     this.frustumCulled = false;
+
+    // Check for skybox URL meta tag
+    const skyboxUrl = this.getSkyboxUrlFromMeta();
+    if (skyboxUrl) {
+      this.loadSkybox(skyboxUrl);
+    }
+  }
+
+  getSkyboxUrlFromMeta() {
+    const metaTag = document.querySelector('meta[name="skybox-url"]');
+    return metaTag ? metaTag.getAttribute('content') : null;
+  }
+
+  loadSkybox(url) {
+    const loader = new CubeTextureLoader();
+    loader.load(
+      [
+        `${url}/px.jpg`, `${url}/nx.jpg`,
+        `${url}/py.jpg`, `${url}/ny.jpg`,
+        `${url}/pz.jpg`, `${url}/nz.jpg`
+      ],
+      (texture) => {
+        this.material = new ShaderMaterial({
+          uniforms: {
+            skybox: { value: texture }
+          },
+          vertexShader: `
+            varying vec3 vWorldPosition;
+            void main() {
+              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+              vWorldPosition = worldPosition.xyz;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            uniform samplerCube skybox;
+            varying vec3 vWorldPosition;
+            void main() {
+              gl_FragColor = textureCube(skybox, normalize(vWorldPosition));
+            }
+          `
+        });
+        this.material.needsUpdate = true;
+      }
+    );
   }
 
   setColor(color) {
