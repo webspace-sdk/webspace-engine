@@ -1,6 +1,7 @@
 import { RENDER_ORDER } from "../constants";
 import SkyboxBufferGeometry from "./skybox-buffer-geometry";
 import { CubeTextureLoader } from 'three';
+import { getSkyboxUrlFromMetaTags, setSkyboxUrlMetaTag } from "../utils/dom-utils";
 
 /**
  * @author zz85 / https://github.com/zz85
@@ -553,15 +554,16 @@ class Sky extends Mesh {
     const skyboxUrl = this.getSkyboxUrlFromMeta();
     if (skyboxUrl) {
       this.loadSkybox(skyboxUrl);
+      setSkyboxUrlMetaTag(skyboxUrl);
     }
   }
 
   getSkyboxUrlFromMeta() {
-    const metaTag = document.querySelector('meta[name="skybox-url"]');
-    return metaTag ? metaTag.getAttribute('content') : null;
+    return getSkyboxUrlFromMetaTags();
   }
 
   loadSkybox(url) {
+    setSkyboxUrlMetaTag(url);
     const loader = new CubeTextureLoader();
     loader.load(
       [
@@ -588,6 +590,7 @@ class Sky extends Mesh {
             void main() {
               gl_FragColor = textureCube(skybox, normalize(vWorldPosition));
             }
+            setSkyboxUrlMetaTag(url);
           `
         });
         this.material.needsUpdate = true;
