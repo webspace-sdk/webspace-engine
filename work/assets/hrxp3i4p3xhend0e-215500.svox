@@ -1,0 +1,20 @@
+model
+name = hrxp3i4p3xhend0e
+revision = 19
+size = 7 8 8
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#F0F1E3 B:#DCDED1 C:#CDC7C1 D:#333
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+------- ------- ------- --BBA-- ---B--- ------- ------- ------- 
+-ABABA- -B-C-B- -CAAAC- BAA-CAA A--A--A A--A--A CAAACAA ------- 
+-A---A- -A---A- BAAAAAB AAADAAB ADDADDA ADDADDA AAAAAAA --ACA-- 
+-A---A- ------- BAAAAAB AAAAAAA BAAAAAC AAAAAAC AAAAAAC -BAAAA- 
+-A---A- ------- BAAAAAB AAAAAAC AAAAAAA BAAAAAB AAAAAAC -AABAA- 
+-A---A- -B---B- AAAAAAB CAAAAAB CAAAAAA AAAAAAA AAAAAAC -AAABA- 
+------- -B---B- CAAAAAB BAAAAAB AAAAAAB BAAAAAA AAAAAAA -ACCAA- 
+------- ------- -AAAAA- AAAAAAB BAAAAAA AAAAAAC -AAAAA- --AAA-- 

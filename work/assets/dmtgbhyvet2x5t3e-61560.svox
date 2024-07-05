@@ -1,0 +1,19 @@
+model
+name = dmtgbhyvet2x5t3e
+size = 7 1 8
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#FE01FE B:#3F1C13
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+--AAAAA 
+--AAA-- 
+-AAAAA- 
+AAABAAA 
+AABBBAA 
+AABABAA 
+AABBBAA 
+AAAAAAA 

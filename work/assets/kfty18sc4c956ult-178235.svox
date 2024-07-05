@@ -1,0 +1,17 @@
+model
+name = kfty18sc4c956ult
+revision = 1
+size = 5 7 5
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#1D1D11 B:#F2D9A9
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+-AAA- AAAAA ----- ----- ----- ----- ----- 
+AAAAA AAAAA -BBB- -BBB- -BBB- -BBB- -BB-- 
+AAAAA AAAAA -BBB- -BBB- -BBB- -BBB- -BBB- 
+AAAAA AAAAA -BBB- -BBB- -BBB- -BBB- -BBB- 
+-AAA- AAAAA ----- ----- ----- ----- ----- 

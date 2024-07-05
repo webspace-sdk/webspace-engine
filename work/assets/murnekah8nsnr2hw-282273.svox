@@ -1,0 +1,9 @@
+model
+name = murnekah8nsnr2hw
+size = 58 1 5
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FE01FE
+voxels
+290A

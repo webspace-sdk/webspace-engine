@@ -87,16 +87,16 @@ voxMaterial.onBeforeCompile = shader => {
   //
   // Note that if the shadow part is tuned too aggressively to show shadows then the shadow
   // acne can get quite bad on smaller voxels.
-  shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
+  // shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
 
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <fog_fragment>",
-    [
-      "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 4.5, 5.0), pow(outgoingLight.g * 4.5, 5.0), pow(outgoingLight.b * 4.5, 5.0)), 0.0, 1.0);",
-      "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8), diffuseColor.a);",
-      "#include <fog_fragment>"
-    ].join("\n")
-  );
+  // shader.fragmentShader = shader.fragmentShader.replace(
+  //   "#include <fog_fragment>",
+  //   [
+  //     "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 4.5, 5.0), pow(outgoingLight.g * 4.5, 5.0), pow(outgoingLight.b * 4.5, 5.0)), 0.0, 1.0);",
+  //     "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8), diffuseColor.a);",
+  //     "#include <fog_fragment>"
+  //   ].join("\n")
+  // );
 };
 
 let toonGradientMap;
@@ -800,8 +800,8 @@ export class VoxSystem extends EventTarget {
         voxGeometries[i] = voxGeometry;
         svoxGeometries[i] = svoxGeometry;
 
-        mesh = createMesh(showVoxGeometry ? voxGeometry : svoxGeometry, showVoxGeometry ? voxMaterial : svoxMaterial);
-        mesh.receiveShadow = showVoxGeometry;
+        mesh = createMesh(showVoxGeometry ? voxGeometry : svoxGeometry, showVoxGeometry ? voxMaterial : voxMaterial);
+        mesh.receiveShadow = false;
         meshes[i] = mesh;
 
         // Only compute bounding box for frame zero
@@ -873,7 +873,7 @@ export class VoxSystem extends EventTarget {
           [xMin, yMin, zMin, xMax, yMax, zMax] = voxGeometry.update(voxels, mesherQuadSize, false, showXZPlane);
           mesh.geometry = voxGeometry;
           mesh.material = voxMaterial;
-          mesh.receiveShadow = true;
+          mesh.receiveShadow = false;
 
           this.updateShapeOffset(voxId, xMin, xMax, yMin, yMax, zMin, zMax);
 
@@ -988,7 +988,7 @@ export class VoxSystem extends EventTarget {
     const bounds = svoxMesh.bounds;
     svoxGeometry.update(svoxMesh, false);
     mesh.geometry = svoxGeometry;
-    mesh.material = svoxMaterial;
+    mesh.material = voxMaterial;
     mesh.receiveShadow = false;
 
     this.updateShapeOffset(voxId, bounds.xMin, bounds.xMax, bounds.yMin, bounds.yMax, bounds.zMin, bounds.zMax);

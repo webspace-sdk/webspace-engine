@@ -1,0 +1,18 @@
+model
+name = tri1rwbn4gfpe2xj
+revision = 1
+size = 6 1 6
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#1F212A B:#424753 D:#A62922 C:#949FAE
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+-----B 
+-A---- 
+BBAAAA 
+ABDCAA 
+AACDAA 
+AAABBB 

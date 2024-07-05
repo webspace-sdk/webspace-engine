@@ -1,0 +1,12 @@
+model
+name = fj3fncc29f6nc39e
+size = 71 32 2
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#01FE01 B:#FE01FE C:#333933
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+2-2(69C-)73C27(67A4C)67A73C-69C-73C12(67-4C)67-3C5-12(59B4-4C4-)59B4-3(4C67-)2C-69C-

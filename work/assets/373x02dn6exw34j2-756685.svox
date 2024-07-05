@@ -1,0 +1,12 @@
+model
+name = 373x02dn6exw34j2
+size = 28 57 5
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#1D1D11 B:#414822 C:#000 D:#2A3722
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+986-2D26-2BD25-3BD24-4BD23-2(5BD22-)6(6BD21-)6BD6-9D6-6BD3-3D9B6-6BD-2D12B6-5B3D14B6-4B2D4B18-3B2D2B3-12B6-2B2DB2-15B-2C3-B2DB-17B-2C3-2DB-18B6-D21B29(7-2A4(-3A)-2A)2(4-2C-2A4(-3A)-2A)4(7-2A4(-3A)-2A)12(6-D2A4(-3A)-2A)4(6-D2A4(-3A)-AD)6-D2A-3A-2A12D6-D2A-3A3DA2(-3A)-AD-2C3-D2A-A2D3(-3A)-AD9C-D2C2(-3C)-15CD3(3C-)6C-2C3-D21B29(7-21A)2(4-2C-21A)22(7-21A)-2C4-21A56C-2C3-D21B816-C27-C668-2C-2C23-2C-2C866-C27-C587-4(2C26-)2C50-

@@ -1,0 +1,21 @@
+model
+name = vfboru5jxtcy8rj2
+size = 7 9 10
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#1F212A B:#424753
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+------- ------- ------- ------- ------- ------- ---AAA- ---ABA- ------- 
+AAAAA-- ------- ------- ------- ------- ------- ------- ------- ------- 
+A---A-- A------ ------- ------- ------- ------- ------- ------- ------- 
+--AAAAA --AAAAA ---AAA- ---AAA- ------- ------- ------- ------- ------- 
+--AAAAA --AAAAA --AAAAA ---AAA- ---AAA- ------- ------- ------- ------- 
+--AAAAA --AAAAA --AAAAA ---AAA- ---AAA- ---AAA- ------- ------- ------- 
+--A--AA ----AA- ----AA- ---AAA- ---AAA- ---AAA- ------- ------- ------- 
+-----A- ---A-A- ---A-A- ---AAA- ---AAA- ---AAA- ---AAA- ---AAA- ---A-A- 
+---A--- ---A--- ---A--- ---A--- ---AAA- ---AAA- ---AAA- ---AAA- ------- 
+------- ------- ------- ------- ------- ---AAA- ---AAA- ----A-- ------- 

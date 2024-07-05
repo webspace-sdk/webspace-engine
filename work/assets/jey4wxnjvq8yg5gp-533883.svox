@@ -1,0 +1,14 @@
+model
+name = jey4wxnjvq8yg5gp
+size = 11 2 3
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#1F212A B:#A16F37 C:#FE01FE
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+-----BBBAAA --------AAA 
+-----B--AAA --------AAA 
+C----B----- ----------- 

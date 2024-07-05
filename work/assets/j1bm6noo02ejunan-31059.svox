@@ -1,0 +1,16 @@
+model
+name = j1bm6noo02ejunan
+size = 7 1 5
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#3F1C13 B:#B17500 C:#985433 D:#5A2C20 E:#C78E1D G:#FFD88D F:#C8A44D
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+GABEBAG 
+ACDCDCA 
+BDCBCDE 
+ABCDDBA 
+FAEBEAF 

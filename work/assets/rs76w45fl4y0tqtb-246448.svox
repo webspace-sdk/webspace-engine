@@ -1,0 +1,14 @@
+model
+name = rs76w45fl4y0tqtb
+size = 7 9 3
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#2E3A22 B:#C8A44D C:#222B11 D:#8C5F07 E:#1C2211 F:#B17500
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+AAAAACA AAAAACA AAAAACE AAAAACA AAAAACA ADDDDCA ADDDDCE AAAAACA AAAAACA 
+-BBBBFA -BBBBBA -BBBBBE -BBBBBA -BBBBBA -BBBBBA -BBBBBE -BBBBBA -BBBBFA 
+AAAAACA AAAAACA AAAAACE AAAAACA AAAAACA AAAAACA AAAAACE AAAAACA AAAAACA 

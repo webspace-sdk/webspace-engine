@@ -1,0 +1,9 @@
+model
+name = gtnk8wogb7ivvywo
+size = 30 38 1
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FE01FE
+voxels
+1140A

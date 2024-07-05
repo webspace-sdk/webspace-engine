@@ -1,0 +1,19 @@
+model
+name = 713qqlavkdrs77wv
+size = 8 1 8
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#1F212A B:#A62922 C:#424753 E:#CCCCDF D:#949FAE
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+---AAAA- 
+--CAAA-- 
+-CCAAAA- 
+AACBBAAA 
+AABEDBAA 
+AABDEBAA 
+AAABBCCA 
+-AAAAAC- 

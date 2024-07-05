@@ -1,0 +1,8 @@
+model
+name = qj2jzo6qr5s2zrjz
+size = 2 1 2
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FE01FE
+voxels

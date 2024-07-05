@@ -1,0 +1,12 @@
+model
+name = 7zyg2s31kdhblajd
+size = 37 42 2
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#3F1C13 B:#01FE01 C:#281009
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+2-146A2-33(2A13B3A13B2A4-)33A4-33A3-35C2(2-35A)-111A2-2(A15C)2(10(A4-2(AC6-A6-C))A4-2(AC13AC))10(A4-2(AC6-A6-C))A4-2(A15C)A4-33A3-35C3(2-35A)-

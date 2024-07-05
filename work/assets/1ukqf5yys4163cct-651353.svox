@@ -1,0 +1,8 @@
+model
+name = 1ukqf5yys4163cct
+size = 2 2 1
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#5A2C20
+voxels

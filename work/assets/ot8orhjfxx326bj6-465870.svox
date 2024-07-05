@@ -1,0 +1,15 @@
+model
+name = ot8orhjfxx326bj6
+size = 15 14 4
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#985433 B:#7B3E11 C:#785944 D:#FE01FE
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+--------------- D-------------- D-------------- --------------- --------------- --------------- --------------- --------------- --------------- --------------- --------------- --------------- --------------- --------------- 
+--------------- --------------- --------------- --------------- --------------- -------C------- --------------- --------------- --------------- --------------- --------------- -------C------- --------------- --------------- 
+------------AAA ---------AAABBA -------AABBBBBA -------ABBBBBBA -------ABBBBBBA -------ABBBBBBA -------ABBBBBBA -------ABBBBBBA -------ABBBBBBA -------ABBBBBBA -------ABBBBBBA -------ABBBBBBA -------ABBBBBBA -------AAAAAAAA 
+D-----------AAA D--------AAA--A -------AA-----A -------A------A -------A------A -------A------A -------A-CCCC-A -------A-C--C-A -------A-C--C-A -------A--CC--A -------A------A -------A------A -------A------A -------AAAAAAAA 

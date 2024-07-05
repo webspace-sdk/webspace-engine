@@ -1,0 +1,14 @@
+model
+name = dkh4w5kthrc88y0u
+size = 21 25 3
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#3F1C13 B:#5A2C20 C:#23120E D:#FEFE01
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+--------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- ------D-------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- --------------------- 
+BBB---------------BBB BAAABBBBBBBBBBBBBAAAB BACCCCCCCCCCCCCCCCCAB -AC---------------CA- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -BC---------------CB- -AC---------------CA- BACCCCCCCCCCCCCCCCCAB BAAABBBBBBBBBBBBBAAAB BBB---------------BBB 
+AAAAAAAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAAAAAAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAA---------------AAA AAAAAAAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAAAAAAA 

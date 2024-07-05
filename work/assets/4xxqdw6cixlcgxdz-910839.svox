@@ -1,0 +1,17 @@
+model
+name = 4xxqdw6cixlcgxdz
+size = 5 1 6
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#FE01FE B:#3F1C13
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+--AAA 
+-AAA- 
+AABAA 
+ABBBA 
+ABABA 
+ABBBA 

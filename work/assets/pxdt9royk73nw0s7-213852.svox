@@ -1,0 +1,8 @@
+model
+name = pxdt9royk73nw0s7
+size = 1
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FEFE01
+vo

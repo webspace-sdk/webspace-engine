@@ -1,0 +1,10 @@
+model
+name = 4mkeavtrwt3yx5yp
+size = 2 4 2
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FE01FE
+voxels
+-A AA AA AA 
+AA AA AA A

@@ -1,0 +1,9 @@
+model
+name = y52w1q1bojdqvh89
+size = 5 9 1
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FE01FE B:#8C705D C:#9B816F
+voxels
+AAAAA ABBBA ABABA ABBBA AACAA ACCA- AACA- ACCA- AAAA- 

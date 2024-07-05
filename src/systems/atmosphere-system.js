@@ -51,8 +51,8 @@ export class AtmosphereSystem {
     this.ambientLight = new THREE.AmbientLight(0xa0a0a0);
     this.ambientLight.layers.enable(Layers.reflection);
 
-    this.sunLight = new THREE.DirectionalLight(0xa0a0a0, 5);
-    this.sunLight.position.set(10.25, 10, 10.25);
+    this.sunLight = new THREE.PointLight(0xa0a0a0, 0);
+    this.sunLight.position.set(-13, 4.2, 22.1);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.x = 1024 * 4;
     this.sunLight.shadow.mapSize.y = 1024 * 4;
@@ -66,6 +66,32 @@ export class AtmosphereSystem {
     this.sunLight.shadow.radius = 2;
     this.sunLight.layers.enable(Layers.reflection);
     this.sunLight.renderOrder = RENDER_ORDER.LIGHTS;
+
+    const lightPositions = [
+      new THREE.Vector3(-20.6, 6.23 + 1.5, 19.56),
+      new THREE.Vector3(-17.3, 6.64 + 1.5, 16.06),
+      new THREE.Vector3(-12.05, 2.82 + 1.75, 21.11),
+      new THREE.Vector3(-5.62, 6.18 + 1.5, 20.33)
+    ];
+
+    for (const pos of lightPositions) {
+      const l = new THREE.PointLight(0xc5a0a0, 5);
+      l.position.copy(pos);
+      l.castShadow = true;
+      l.shadow.mapSize.x = 1024 * 4;
+      l.shadow.mapSize.y = 1024 * 4;
+      l.shadow.bias = -0.0006;
+      l.shadow.camera.left = 15;
+      l.shadow.camera.right = -15;
+      l.shadow.camera.top = 15;
+      l.shadow.camera.bottom = -15;
+      l.shadow.camera.near = 0.005;
+      l.shadow.camera.far = 20;
+      l.shadow.radius = 2;
+      l.layers.enable(Layers.reflection);
+      l.renderOrder = RENDER_ORDER.LIGHTS;
+      scene.add(l);
+    }
 
     this.ambienceSoundSourceNode = null;
     this.ambienceSoundGainNode = null;
@@ -102,8 +128,8 @@ export class AtmosphereSystem {
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
     scene.add(this.sky);
-    scene.add(this.water); // TODO water needs to become a wrapped entity
-    scene.fog = this.fog;
+    //scene.add(this.water); // TODO water needs to become a wrapped entity
+    //scene.fog = this.fog;
 
     this.lastSoundProcessTime = 0.0;
 
@@ -127,7 +153,7 @@ export class AtmosphereSystem {
   }
 
   enableFog() {
-    this.sceneEl.object3D.fog = this.fog;
+    // this.sceneEl.object3D.fog = this.fog;
   }
 
   enableAmbience() {
@@ -353,22 +379,22 @@ export class AtmosphereSystem {
         Math.abs(sunPos.x - pos.x) > 0.001 || Math.abs(sunPos.y - pos.y) > 0.001 || Math.abs(sunPos.z - pos.z) > 0.001;
 
       if (moveLight) {
-        this.sunLight.position.x = pos.x;
-        this.sunLight.position.y = pos.y;
-        this.sunLight.position.z = pos.z;
+        // this.sunLight.position.x = pos.x;
+        // this.sunLight.position.y = pos.y;
+        // this.sunLight.position.z = pos.z;
         this.sunLight.matrixNeedsUpdate = true;
 
-        this.sunLight.target.position.x = pos.x + 4;
-        this.sunLight.target.position.y = pos.y - 5;
-        this.sunLight.target.position.z = pos.z + 4;
-        this.sunLight.target.matrixNeedsUpdate = true;
+        // this.sunLight.target.position.x = pos.x + 4;
+        // this.sunLight.target.position.y = pos.y - 5;
+        // this.sunLight.target.position.z = pos.z + 4;
+        // this.sunLight.target.matrixNeedsUpdate = true;
 
         // HACK - somewhere in three code matrix is stale by a frame because of auto updates off
         // For now, flip it on if we move shadow camera.
         this.sunLight.shadow.camera.matrixNeedsUpdate = true;
 
         this.sunLight.updateMatrices();
-        this.sunLight.target.updateMatrices();
+        //this.sunLight.target.updateMatrices();
         this.sunLight.shadow.camera.updateProjectionMatrix();
 
         this.renderer.shadowMap.needsUpdate = true;

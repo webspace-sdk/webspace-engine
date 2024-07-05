@@ -1,0 +1,23 @@
+model
+name = z8cs5nkl5sjhlzfw
+size = 10 7 12
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#7B3E1E B:#5A2C20 C:#985433 D:#785945
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+-CCCCCCCCC ---CCCCC-- CCC-----CC C--------C C--DDDD--C C-DD--DD-C C--------C 
+---------- ABBBBBBBBA ABBBBBBBBA ABBBBBBBBA ABBBBBBBBA ABBBBBBBBA ABBBBBBBBA 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- ABBBBBBBBA A--------A A--------A A--------A A--------A A--------A 
+---------- AAAAAAAAAA AAAAAAAAAA AAAAAAAAAA AAAAAAAAAA AAAAAAAAAA A--------A 

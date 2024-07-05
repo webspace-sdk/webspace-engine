@@ -1,0 +1,12 @@
+model
+name = 2jv1nsf1bqhm0xx6
+size = 67 12 1
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#FE01FE
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+804A

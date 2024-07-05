@@ -1,0 +1,9 @@
+model
+name = ponvs8xdfjc1lx5k
+size = 28 40 1
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FE01FE
+voxels
+1120A

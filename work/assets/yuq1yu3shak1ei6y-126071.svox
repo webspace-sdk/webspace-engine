@@ -1,0 +1,18 @@
+model
+name = yuq1yu3shak1ei6y
+size = 13 2 7
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#FE01FE B:#333933
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+-BBBBBBBBBBB- AAAAAAAAAAAAA 
+BBBBBBBBBBBBB AAAAAAAAAAAAA 
+BBBBBBBBBBBBB AAAAAAAAAAAAA 
+BBBBBBBBBBBBB AAAAAAAAAAAAA 
+BBBBBBBBBBBBB AAAAAAAAAAAAA 
+BBBBBBBBBBBBB AAAAAAAAAAAAA 
+-BBBBBBBBBBB- AAAAAAAAAAAAA 

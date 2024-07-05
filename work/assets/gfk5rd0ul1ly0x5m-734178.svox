@@ -1,0 +1,8 @@
+model
+name = gfk5rd0ul1ly0x5m
+size = 1
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FEFE01
+vo

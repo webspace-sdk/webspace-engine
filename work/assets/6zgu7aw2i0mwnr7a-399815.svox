@@ -1,0 +1,14 @@
+model
+name = 6zgu7aw2i0mwnr7a
+size = 5 8 3
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#D1D1BB B:#3B5227 C:#608343
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+----- ----- -AC-- ----- ---A- ----- --A-- ----- 
+--B-- --B-- AAB-- -ABA- -CBCA --B-- -ABA- --A-- 
+----- ----- -A--- --C-- ---A- ----- --A-- ----- 

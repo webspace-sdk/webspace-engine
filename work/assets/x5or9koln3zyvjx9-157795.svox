@@ -1,0 +1,15 @@
+model
+name = x5or9koln3zyvjx9
+size = 5 7 4
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#085399 B:#808A99 C:#565CE7 D:#949FAE E:#00AAE4 F:#FF9B8F
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+----- -BB-- -AA-- -EC-- -AA-- -BB-- ----- 
+-BB-- -AA-- -EC-- -AA-- -BB-- ----- ----- 
+BBBB- AAAA- CCAC- AAAA- BFFB- ---D- ---DD 
+BBBB- AAAA- EECE- AAAA- BFFB- ---D- ---DD 

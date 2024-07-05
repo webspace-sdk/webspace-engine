@@ -1,0 +1,13 @@
+model
+name = 215y79nvtfle0tjp
+size = 4 24 2
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#7B381D B:#B17500 C:#653015
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+--CC -BB- BAAB BAAB -BB- -CC- -AA- -AA- -AA- -AA- -AA- -AA- -AA- -AA- -AA- -AA- -AA- -AA- -CC- -CC- -CC- -CC- -CC- -CC- 
+-BB- BBBB BBBB -BB- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- 

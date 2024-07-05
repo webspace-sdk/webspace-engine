@@ -1,0 +1,12 @@
+model
+name = xw7geov1y12mea3l
+size = 28 57 5
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#1D1D11 B:#414822 C:#000 D:#2A3722
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+1000-2D25-D2B24-D3B23-D4B2(22-D5B)6(21-D6B)6-9D6-D6B6-9B3D3-D6B6-12B2D-D6B6-14B3D5B18-4B2D4B6-12B3-2B2D3B6-15B2-B2D2B6-17B-B2DB3-2C-18B-B2D3-2C-21BD6-29(2A4(-3A)-2A7-)2(2A4(-3A)-2A-2C4-)4(2A4(-3A)-2A7-)12(2A4(-3A)-2AD6-)4(DA4(-3A)-2AD6-)12D2A-3A-2AD6-DA2(-3A)-A3D3A-2AD6-DA3(-3A)-2DA-2AD3-2C-6C2(-3C)-2CD-15C3(-3C)D9C21BD3-2C-29(21A7-)2(21A-2C4-)22(21A7-)21A4-2C-56C21BD3-2C836-C27-C670-2C-2C23-2C-2C864-C27-C586-4(2C26-)2C32-

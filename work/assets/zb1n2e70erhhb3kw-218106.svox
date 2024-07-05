@@ -1,0 +1,16 @@
+model
+name = zb1n2e70erhhb3kw
+size = 5 9 5
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#1D1D11
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+----- -AAA- -AAA- -AAA- -AAA- ----- ----- ----- ----- 
+-AAA- AAAAA AAAAA AAAAA AAAAA -AAA- --A-- --A-- -AAA- 
+-AAA- AAAAA AAAAA AAAAA AAAAA -AAA- -A-A- -A-A- -A-A- 
+-AAA- AAAAA AAAAA AAAAA AAAAA -AAA- --A-- --A-- -AAA- 
+----- -AAA- -AAA- -AAA- -AAA- ----- ----- ----- ----- 

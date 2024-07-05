@@ -1,0 +1,12 @@
+model
+name = qkik68ra3gcaxsvm
+size = 66 83 2
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#01FE01 B:#333933 C:#FE01FE
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+2-2(64B-)68B64(62-4B)63-3B3(62-4B)7(3-56C3-4B)3(62-4B)62-10B56-2B-64B-68B78(62A4B)62A68B-64B-

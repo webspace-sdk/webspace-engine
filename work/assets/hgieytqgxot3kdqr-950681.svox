@@ -1,0 +1,9 @@
+model
+name = hgieytqgxot3kdqr
+size = 49 1 6
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#FE01FE
+voxels
+-293A

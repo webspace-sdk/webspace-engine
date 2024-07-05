@@ -1,0 +1,8 @@
+model
+name = xxhh5czmptfkc09i
+size = 3 1 1
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#A7D754
+voxels

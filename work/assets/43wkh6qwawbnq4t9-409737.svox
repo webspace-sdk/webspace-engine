@@ -1,0 +1,14 @@
+model
+name = 43wkh6qwawbnq4t9
+revision = 1
+size = 11 11 2
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#F2D9A9 B:#6D3011 C:#C8A44D D:#B17500 E:#5A2C20 F:#3F1C13
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+-BBBBBBBBBB BBBBBBBBBBB BDDCAAACDDB BDAAAAAAADB BCAAAAAAACB BAAACCCAAAB BAAACCCAA-- BAAACCCAA-- BCAAAAAAACB BDAAAAAAADB BDDCAAACDDB 
+----------- ----------- -----E----- ---E---E--- ----------- --EFFF--E-- -----F----- ---E-F-E--- -----E----- ----------- ----------- 

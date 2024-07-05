@@ -1,0 +1,13 @@
+model
+name = x29g13obvhsn535c
+size = 2 1 8
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#949FAE B:#5A2C20
+voxels
+-- 
+-B 
+-B 
+-B 
+AA 

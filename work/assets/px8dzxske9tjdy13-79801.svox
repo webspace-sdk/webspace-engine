@@ -1,0 +1,21 @@
+model
+name = px8dzxske9tjdy13
+size = 20 1 10
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#383933 B:#FE01FE
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+--AAAAAAAAAAAAAAAAAA 
+-AAAAAAAAAAAAAAAAAA- 
+AAAAAAAAAAAAAAAAAAAA 
+AABBBBBBBBBBBBBBBBAA 
+AABBBBBBBBBBBBBBBBAA 
+AABBBBBBBBBBBBBBBBAA 
+AABBBBBBBBBBBBBBBBAA 
+AABBBBBBBBBBBBBBBBAA 
+AABBBBBBBBBBBBBBBBAA 
+AAAAAAAAAAAAAAAAAAAA 

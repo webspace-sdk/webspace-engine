@@ -1,0 +1,15 @@
+model
+name = rlf8odijqz2ml0aa
+size = 7 2 7
+scale = 0.05
+origin = -y
+material type = toon, lighting = smooth, deform = 1 1 
+  colors = A:#333933 B:#FE01FE
+voxels
+-AAAAA- -BBBBB- 
+AAAAAAA BBBBBBB 
+AAAAAAA BBBBBBB 
+AAAAAAA BBBBBBB 
+AAAAAAA BBBBBBB 
+AAAAAAA BBBBBBB 
+-AAAAA- -BBBBB- 

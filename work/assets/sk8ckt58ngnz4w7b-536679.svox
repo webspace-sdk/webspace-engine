@@ -1,0 +1,19 @@
+model
+name = sk8ckt58ngnz4w7b
+revision = 1
+size = 4 1 7
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#333933
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+A--- 
+AA-- 
+AAA- 
+AA-A 
+AAA- 
+AA-- 
+A--- 

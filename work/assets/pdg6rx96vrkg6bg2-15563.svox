@@ -1,0 +1,14 @@
+model
+name = pdg6rx96vrkg6bg2
+size = 23 8 3
+scale = 0.05
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = A:#3F1C13 B:#B17500 C:#FE01FE
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+----------------------- ----------------------- --CCCCCCCCCCCCCCCCCCC-- --CCCCCCCCCCCCCCCCCCC-- --CCCCCCCCCCCCCCCCCCC-- --CCCCCCCCCCCCCCCCCCC-- ----------------------- ----------------------- 
+----------------------- --BBBBBBBBBBBBBBBBBBB-- -BBBBBBBBBBBBBBBBBBBBB- -BBBBBBBBBBBBBBBBBBBBB- -BBBBBBBBBBBBBBBBBBBBB- -BBBBBBBBBBBBBBBBBBBBB- --BBBBBBBBBBBBBBBBBBB-- ----------------------- 
+--AAAAAAAAAAAAAAAAAAA-- -AAAAAAAAAAAAAAAAAAAAA- AAAAAAAAAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAAAAAAAAA AAAAAAAAAAAAAAAAAAAAAAA -AAAAAAAAAAAAAAAAAAAAA- --AAAAAAAAAAAAAAAAAAA-- 

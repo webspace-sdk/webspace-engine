@@ -1,0 +1,12 @@
+model
+name = Wall
+revision = 8464
+size = 29 40 37
+origin = -y
+shell = Outline 0.25
+material type = toon, lighting = smooth, deform = 1 1
+  colors = D:#250109 F:#9E2F32 E:#4D1016 G:#751F24
+material type = basic, lighting = smooth, roughness = 0, refractionRatio = 1, side = back
+  colors = Outline:#000
+voxels
+10991-3(28D-)3E25D-28D2(-20F8D)-15F5E8D2(-15F13E)2(-2E13F13E)2(-15F13E)2(-15F5G8E)-6F12E2G8E2-5F12E2G8E3-4D12E4G6D610-4(4G24D-)5G23D-D8E19D-D8E9F10D-DE4D3E9F7E3D-DE4D3E5F6E7GD-DE4D3E5F12DGD-2E4D2(8F12DGD-2ED3E)2(8F12DGD-6E)8F12DGD-D5E8F12DGD-D3E10F12DGD2-3D10F12D2E3-26D30219-
