@@ -650,13 +650,12 @@ export class CameraSystem extends EventTarget {
       camera.updateMatrices();
 
       const worldBox = getEntityWorldBox(object);
-      const localBox = getEntityLocalBox(object);
       worldBox.getCenter(center);
 
       decompose(object.matrixWorld, owp, owq);
       decompose(camera.matrixWorld, cwp, cwq);
 
-      getCameraOrbitFocalPoint(camera, object, localBox, focalPoint);
+      worldBox.getCenter(focalPoint);
 
       rig.getWorldQuaternion(rwq);
 
