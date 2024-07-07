@@ -100,6 +100,10 @@ async function moveToInitialHubLocationAndBeginPeriodicSyncs(hub, hubStore) {
     startTrackingPosition(hubStore);
   }
 
+  startPosition.x = -13.56;
+  startPosition.y = 0.74;
+  startPosition.z = 28.8;
+
   characterController.teleportTo(startPosition, startRotation);
 
   restartPeriodicSyncs();

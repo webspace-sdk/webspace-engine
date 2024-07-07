@@ -254,6 +254,7 @@ detectConcurrentLoad();
 let uiProps = {};
 
 function mountUIRoot(props = {}) {
+  return;
   if (isBotMode) return;
 
   const scene = DOM_ROOT.querySelector("a-scene");
@@ -1285,6 +1286,19 @@ async function start() {
   if (projectionType === PROJECTION_TYPES.FLAT) {
     await setupFlatProjection(scene);
   }
+
+  while (!DOM_ROOT.querySelector("#naf-ol1cvdi")) {
+    await nextTick();
+  }
+
+  // Wait for the object
+
+  console.log("OK");
+  setTimeout(() => {
+    // SYSTEMS.cameraSystem.inspect(DOM_ROOT.querySelector("#naf-ol1cvdi").object3D, 3.5, false, true, false);
+    // SYSTEMS.cameraSystem.toggleShowWorldWithCursor();
+    SYSTEMS.cameraSystem.toggleOrthoCamera();
+  }, 1000);
 }
 
 if (document.readyState === "complete" || document.readyState === "loaded" || document.readyState === "interactive") {

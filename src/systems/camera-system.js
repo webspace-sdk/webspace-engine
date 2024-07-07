@@ -1,5 +1,5 @@
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
-import { childMatch, setMatrixWorld, calculateViewingDistance, getCameraOrbitFocalPoint } from "../utils/three-utils";
+import { childMatch, setMatrixWorld, calculateViewingDistance } from "../utils/three-utils";
 import { shouldOrbitOnInspect } from "../utils/media-utils";
 import { paths } from "./userinput/paths";
 import { getBox } from "../utils/auto-box-collider";
@@ -39,10 +39,6 @@ const IDENTITY = new THREE.Matrix4().identity();
 // vox entity, or the box for the underlying mesh.
 const getEntityWorldBox = object => {
   return getBox(object.el, object.el.getObject3D("mesh") || object, true);
-};
-
-const getEntityLocalBox = object => {
-  return getBox(object.el, object.el.getObject3D("mesh") || object, false);
 };
 
 export const CAMERA_MODE_FIRST_PERSON = 0;
@@ -153,7 +149,7 @@ export class CameraSystem extends EventTarget {
   isRenderingOrthographic() {
     // Orthographic is only shown when cursor is enabled otherwise
     // user cannot toggle it off.
-    return this.inspected && this.orthographicEnabled && this.allowCursor;
+    return this.orthographicEnabled;
   }
 
   unprojectCameraOn(vector) {
@@ -370,6 +366,7 @@ export class CameraSystem extends EventTarget {
   toggleOrthoCamera() {
     this.orthographicEnabled = !this.orthographicEnabled;
     this.updateCameraSettings();
+    orthoCamera.zoom = 0.05;
 
     this.dispatchEvent(new CustomEvent("settings_changed"));
   }
@@ -470,11 +467,24 @@ export class CameraSystem extends EventTarget {
 
       camera.far = far;
 
-      camera.updateProjectionMatrix();
+      if (this.isRenderingOrthographic()) {
+        // Hacky, use ortho camera matrix by copying it in, instead of having a separate camera.
+        if (vrMode) {
+          camera.cameras[0].projectionMatrix.copy(orthoCamera.projectionMatrix);
+          camera.cameras[1].projectionMatrix.copy(orthoCamera.projectionMatrix);
+          camera.cameras[0].projectionMatrixInverse.copy(orthoCamera.projectionMatrixInverse);
+          camera.cameras[1].projectionMatrixInverse.copy(orthoCamera.projectionMatrixInverse);
+        } else {
+          camera.projectionMatrix.copy(orthoCamera.projectionMatrix);
+          camera.projectionMatrixInverse.copy(orthoCamera.projectionMatrixInverse);
+        }
+      } else {
+        if (vrMode) {
+          camera.cameras[0].updateProjectionMatrix();
+          camera.cameras[1].updateProjectionMatrix();
+        }
 
-      if (vrMode) {
-        camera.cameras[0].updateProjectionMatrix();
-        camera.cameras[1].updateProjectionMatrix();
+        camera.updateProjectionMatrix();
       }
 
       if (SYSTEMS.terrainSystem.worldTypeHasFog()) {
@@ -638,6 +648,7 @@ export class CameraSystem extends EventTarget {
       const dh = this.horizontalDelta;
       const dv = this.verticalDelta;
       const dz = this.inspectZoom;
+
       // hacky, avoid bugs when frame hitches
       dt = Math.min(dt, 1000.0 / 30.0);
 
