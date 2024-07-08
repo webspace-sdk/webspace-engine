@@ -48,10 +48,10 @@ export class AtmosphereSystem {
     this.disableExtraPasses = false;
     this.disableWaterPass = false;
 
-    this.ambientLight = new THREE.AmbientLight(0xa0a0a0);
+    this.ambientLight = new THREE.AmbientLight(0xe0e0e0);
     this.ambientLight.layers.enable(Layers.reflection);
 
-    this.sunLight = new THREE.PointLight(0xa0a0a0, 0);
+    this.sunLight = new THREE.PointLight(0xe0e0e0, 0);
     this.sunLight.position.set(-13, 4.2, 22.1);
     this.sunLight.castShadow = true;
     this.sunLight.shadow.mapSize.x = 1024 * 4;
@@ -126,7 +126,7 @@ export class AtmosphereSystem {
     this.rateLimitUpdates = true;
 
     scene.add(this.ambientLight);
-    scene.add(this.sunLight);
+    //scene.add(this.sunLight);
     scene.add(this.sky);
     //scene.add(this.water); // TODO water needs to become a wrapped entity
     //scene.fog = this.fog;

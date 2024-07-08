@@ -156,16 +156,16 @@ svoxMaterial.onBeforeCompile = shader => {
   // acne can get quite bad on smaller voxels.
   //
   // We also special case black, so the cel shaded border is not washed out.
-  shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
+  // shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
 
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <fog_fragment>",
-    [
-      "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 4.5, 5.0), pow(outgoingLight.g * 4.5, 5.0), pow(outgoingLight.b * 4.5, 5.0)), 0.0, 1.0);",
-      "gl_FragColor = vec4(mix(vec3(0.0, 0.0, 0.0), mix(shadows, vColor.rgb * reflectedLight.directDiffuse.rgb, 0.8), step(0.0001, vColor.r + vColor.g + vColor.b)), diffuseColor.a);",
-      "#include <fog_fragment>"
-    ].join("\n")
-  );
+  // shader.fragmentShader = shader.fragmentShader.replace(
+  //   "#include <fog_fragment>",
+  //   [
+  //     "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 4.5, 5.0), pow(outgoingLight.g * 4.5, 5.0), pow(outgoingLight.b * 4.5, 5.0)), 0.0, 1.0);",
+  //     "gl_FragColor = vec4(mix(vec3(0.0, 0.0, 0.0), mix(shadows, vColor.rgb * reflectedLight.directDiffuse.rgb, 0.8), step(0.0001, vColor.r + vColor.g + vColor.b)), diffuseColor.a);",
+  //     "#include <fog_fragment>"
+  //   ].join("\n")
+  // );
 };
 
 function createMesh(geometry, material) {
@@ -800,7 +800,7 @@ export class VoxSystem extends EventTarget {
         voxGeometries[i] = voxGeometry;
         svoxGeometries[i] = svoxGeometry;
 
-        mesh = createMesh(showVoxGeometry ? voxGeometry : svoxGeometry, showVoxGeometry ? voxMaterial : voxMaterial);
+        mesh = createMesh(showVoxGeometry ? voxGeometry : svoxGeometry, showVoxGeometry ? svoxMaterial : svoxMaterial);
         mesh.receiveShadow = false;
         meshes[i] = mesh;
 
@@ -988,7 +988,7 @@ export class VoxSystem extends EventTarget {
     const bounds = svoxMesh.bounds;
     svoxGeometry.update(svoxMesh, false);
     mesh.geometry = svoxGeometry;
-    mesh.material = voxMaterial;
+    mesh.material = svoxMaterial;
     mesh.receiveShadow = false;
 
     this.updateShapeOffset(voxId, bounds.xMin, bounds.xMax, bounds.yMin, bounds.yMax, bounds.zMin, bounds.zMax);

@@ -197,7 +197,7 @@ export class AppAwareMouseDevice {
     const now = performance.now();
 
     // Handle screen space gaze cursor that uses CSS
-    const showCSSCursor = !!(
+    const showCSSCursor = true; /*!!(
       useGazeCursor &&
       this.lockClickCoordDelta[0] === 0 &&
       this.lockClickCoordDelta[1] === 0 &&
@@ -206,7 +206,7 @@ export class AppAwareMouseDevice {
       !this.isGrabbingForMove &&
       now < this.hideCursorAfterIdleTime &&
       !SYSTEMS.directorSystem.trackingCamera
-    );
+    );*/
 
     // The 3D cursor visibility is coordinated via CSS classes on the body.
     const show3DCursor = !!(
