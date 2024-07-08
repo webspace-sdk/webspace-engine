@@ -8,7 +8,7 @@ import SkyboxBufferGeometry from "../objects/skybox-buffer-geometry";
 import { EventTarget } from "event-target-shim";
 import { ATOM_TYPES } from "../utils/atom-metadata";
 
-const customFOV = qsGet("fov");
+let customFOV = qsGet("fov");
 
 // In inspect mode we extend the far plane and disable the fog, so we can observe big objects.
 const FAR_PLANE_FOR_INSPECT = 100;
@@ -122,6 +122,7 @@ export class CameraSystem extends EventTarget {
     this.inspectingWithEphemeralBuildEnabled = false;
     this.snapshot = { audioTransform: new THREE.Matrix4(), matrixWorld: new THREE.Matrix4(), mask: null, mode: null };
     this.audioListenerTargetTransform = new THREE.Matrix4();
+    this.orthoCamera = orthoCamera;
     waitForShadowDOMContentLoaded().then(() => {
       this.avatarPOV = DOM_ROOT.getElementById("avatar-pov-node");
       this.avatarRig = DOM_ROOT.getElementById("avatar-rig");
@@ -134,6 +135,7 @@ export class CameraSystem extends EventTarget {
       );
       bg.layers.set(CAMERA_LAYER_INSPECT);
       this.viewingRig.object3D.add(bg);
+      customFOV = 60.0;
       if (customFOV) {
         if (this.viewingCamera.components.camera) {
           this.viewingCamera.setAttribute("camera", { fov: customFOV });

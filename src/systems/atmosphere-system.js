@@ -68,10 +68,10 @@ export class AtmosphereSystem {
     this.sunLight.renderOrder = RENDER_ORDER.LIGHTS;
 
     const lightPositions = [
-      new THREE.Vector3(-20.6, 6.23 + 1.5, 19.56),
-      new THREE.Vector3(-17.3, 6.64 + 1.5, 16.06),
-      new THREE.Vector3(-12.05, 2.82 + 1.75, 21.11),
-      new THREE.Vector3(-5.62, 6.18 + 1.5, 20.33)
+      // new THREE.Vector3(-20.6, 6.23 + 1.5, 19.56),
+      // new THREE.Vector3(-17.3, 6.64 + 1.5, 16.06),
+      // new THREE.Vector3(-12.05, 2.82 + 1.75, 21.11),
+      // new THREE.Vector3(-5.62, 6.18 + 1.5, 20.33)
     ];
 
     for (const pos of lightPositions) {

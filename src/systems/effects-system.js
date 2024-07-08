@@ -49,17 +49,17 @@ AFRAME.registerSystem("effects", {
         this.disableEffects = false;
 
         const render = renderer.render;
-        let isEffectSystem = false;
+        const isEffectSystem = false;
         const self = this;
 
         renderer.render = function() {
-          if (isEffectSystem || self.disableEffects) {
-            render.apply(this, arguments);
-          } else {
-            isEffectSystem = true;
-            self.composer.render();
-            isEffectSystem = false;
-          }
+          //if (isEffectSystem || self.disableEffects) {
+          render.apply(this, arguments);
+          // } else {
+          //   isEffectSystem = true;
+          //   self.composer.render();
+          //   isEffectSystem = false;
+          // }
         };
       }
 

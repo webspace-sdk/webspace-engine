@@ -1,4 +1,5 @@
 import { paths } from "./userinput/paths";
+import { applyNativePoseToCamera } from "../utils/pose-updates";
 
 const rotatePitchAndYaw = (function() {
   const opq = new THREE.Quaternion();
@@ -56,9 +57,6 @@ AFRAME.registerComponent("camera-rotator", {
   }
 });
 
-let uiRoot;
-let scenePreviewNode;
-
 export class CameraRotatorSystem {
   constructor(scene) {
     this.scene = scene;
@@ -78,34 +76,23 @@ export class CameraRotatorSystem {
 
   tick = (function() {
     return function() {
-      const { scene } = this;
-      const userinput = scene.systems.userinput;
-      uiRoot = uiRoot || DOM_ROOT.getElementById("ui-root");
-      scenePreviewNode = scenePreviewNode || DOM_ROOT.getElementById("scene-preview-node");
-      const lobby = !scene.is("entered");
-      let rotated = false;
-
-      const cameraDelta = userinput.get(lobby ? paths.actions.lobbyCameraDelta : paths.actions.cameraDelta);
       for (let i = 0; i < this.els.length; i++) {
         const el = this.els[i];
-        const rotator = el.components["camera-rotator"];
-        if (!rotator.on) continue;
         const camera = el.getObject3D("camera") || el.object3D;
+        applyNativePoseToCamera(camera);
+        // const target = DOM_ROOT.querySelector("#naf-ol1cvdi").object3D;
+        // const distanceToTarget = camera.position.distanceTo(target.position);
+        // const newZoom = 0.05 + distanceToTarget / 1000;
 
-        if (cameraDelta) {
-          rotated = true;
-          rotatePitchAndYaw(camera, this.pendingXRotation + cameraDelta[1], cameraDelta[0]);
-        } else if (this.pendingXRotation) {
-          rotated = true;
-          rotatePitchAndYaw(camera, this.pendingXRotation, 0);
-        }
+        // if (newZoom < 1.0 && newZoom > 0.01) {
+        //   SYSTEMS.cameraSystem.orthoCamera.zoom = newZoom;
+        //   SYSTEMS.cameraSystem.orthoCamera.updateProjectionMatrix();
+        //   SYSTEMS.cameraSystem.updateCameraSettings();
+        // }
+
+        camera.matrixNeedsUpdate = true;
+        camera.updateMatrices();
       }
-
-      if (rotated) {
-        scene.systems["hubs-systems"].atmosphereSystem.updateWater(true);
-      }
-
-      this.pendingXRotation = 0;
     };
   })();
 }

@@ -1293,12 +1293,15 @@ async function start() {
 
   // Wait for the object
 
+  let i = 0;
   console.log("OK");
-  setTimeout(() => {
+  setInterval(() => {
     // SYSTEMS.cameraSystem.inspect(DOM_ROOT.querySelector("#naf-ol1cvdi").object3D, 3.5, false, true, false);
     // SYSTEMS.cameraSystem.toggleShowWorldWithCursor();
-    SYSTEMS.cameraSystem.toggleOrthoCamera();
-  }, 1000);
+    if (i++ < 5 || !SYSTEMS.cameraSystem.orthographicEnabled) {
+      // SYSTEMS.cameraSystem.toggleOrthoCamera();
+    }
+  }, 10000);
 }
 
 if (document.readyState === "complete" || document.readyState === "loaded" || document.readyState === "interactive") {
