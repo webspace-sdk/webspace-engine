@@ -47,6 +47,13 @@ const SVOX_DEFAULT_SCALE = { x: 0.125, y: 0.125, z: 0.125 };
 const SVOX_DEFAULT_POSITION = { x: 0, y: 0, z: 0 };
 const SVOX_DEFAULT_AO = { color: Color.fromHex("#000"), maxDistance: 3, strength: 1, angle: 70.0 };
 const EMPTY_OBJECT = {};
+const NO_TARGETTING_VOX_IDS = new Set();
+// left drawer
+NO_TARGETTING_VOX_IDS.add("ixipyyxeum32tdt8-149678");
+// Cat door
+NO_TARGETTING_VOX_IDS.add("jj3jpp8ypovrvrqk-271648");
+// Cat
+NO_TARGETTING_VOX_IDS.add("vfboru5jxtcy8rj2-934173");
 
 const targettingMaterial = new MeshStandardMaterial({ color: 0xffffff });
 targettingMaterial.visible = false;
@@ -1349,7 +1356,9 @@ export class VoxSystem extends EventTarget {
 
     const targetableMeshes = [];
 
-    for (const { meshes, targettingMesh } of voxIdToEntry.values()) {
+    for (const [voxId, { meshes, targettingMesh }] of voxIdToEntry.entries()) {
+      // if (!NO_TARGETTING_VOX_IDS.has(voxId)) continue;
+
       const mesh = targettingMesh || meshes[0];
 
       if (mesh) {

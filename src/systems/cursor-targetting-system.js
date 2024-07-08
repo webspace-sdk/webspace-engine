@@ -108,7 +108,7 @@ export class CursorTargettingSystem {
 
     // TODO: Do not querySelectorAll on the entire scene every time anything changes!
     for (let i = 0; i < els.length; i++) {
-      if (els[i].object3D && !els[i].classList.contains("instanced")) {
+      if (els[i].object3D && !els[i].classList.contains("instanced") && !NO_HIT_BLACKLIST.includes(els[i].id)) {
         targets.push(els[i].object3D);
       }
     }

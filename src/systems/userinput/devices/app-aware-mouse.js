@@ -182,8 +182,13 @@ export class AppAwareMouseDevice {
 
     const anyKeyPressed = userinput.get(anyKeyPath);
     const movementXY = frame.get(paths.device.mouse.movementXY);
-    const movementXScreen = movementXY[0] / 1000.0;
-    const movementYScreen = -movementXY[1] / 1000.0;
+    let movementXScreen;
+    let movementYScreen;
+
+    if (movementXY) {
+      movementXScreen = movementXY[0] / 1000.0;
+      movementYScreen = -movementXY[1] / 1000.0;
+    }
 
     if (Math.abs(movementXScreen) > 0.0 || Math.abs(movementYScreen) > 0.0 || (anyKeyPressed && !mouseLookKey)) {
       this.hideCursorAfterIdleTime = performance.now() + HIDE_CURSOR_AFTER_IDLE_MS;
@@ -277,8 +282,10 @@ export class AppAwareMouseDevice {
       }
     }
 
-    this.prevCoords[0] = coords[0];
-    this.prevCoords[1] = coords[1];
+    if (coords) {
+      this.prevCoords[0] = coords[0];
+      this.prevCoords[1] = coords[1];
+    }
 
     if (this.camera) {
       if (cursorIsLocked) {
@@ -302,7 +309,7 @@ export class AppAwareMouseDevice {
           paths.device.smartMouse.cursorPose,
           calculateCursorPose(this.camera, poseX, poseY, this.origin, this.direction, this.cursorPose)
         );
-      } else {
+      } else if (coords) {
         frame.setPose(
           paths.device.smartMouse.cursorPose,
           calculateCursorPose(this.camera, coords[0], coords[1], this.origin, this.direction, this.cursorPose)

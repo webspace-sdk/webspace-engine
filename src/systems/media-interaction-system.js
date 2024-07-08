@@ -47,7 +47,7 @@ export class MediaInteractionSystem {
     const { voxSystem } = SYSTEMS;
 
     if (!rightHand) return;
-    if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
+    // if (!SYSTEMS.cameraSystem.cameraViewAllowsManipulation()) return;
 
     const canSpawnAndMove = window.APP.atomAccessManager.hubCan("spawn_and_move_media");
 
@@ -111,6 +111,7 @@ export class MediaInteractionSystem {
   }
 
   handleHover(hoverEl) {
+    console.log(cursorIsVisible());
     // Do not allow engaging media interactions if cursor has been hidden.
     if (!cursorIsVisible()) return;
 

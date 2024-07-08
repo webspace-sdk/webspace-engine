@@ -111,6 +111,12 @@ export const touchscreenUserBindings = addSetsToBindings({
       dest: { value: paths.actions.spawnPen },
       xform: xforms.rising,
       priority: 2
+    },
+    {
+      src: { value: paths.device.keyboard.code("keys") },
+      dest: { value: paths.actions.mediaOpenAction },
+      xform: xforms.rising,
+      priority: 201
     }
   ],
   [sets.rightCursorHoldingInteractable]: [
@@ -123,6 +129,14 @@ export const touchscreenUserBindings = addSetsToBindings({
   ],
 
   [sets.rightCursorHoveringOnPen]: [],
+  [sets.rightCursorHoveringOnInteractable]: [
+    {
+      src: { value: paths.device.keyboard.code("keys") },
+      dest: { value: paths.actions.mediaOpenAction },
+      xform: xforms.rising,
+      priority: 201
+    }
+  ],
   [sets.rightCursorHoldingPen]: [
     {
       src: { value: paths.device.touchscreen.isTouchingGrabbable },

@@ -79,7 +79,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       src: {
         w: paths.device.keyboard.code("keyw"),
         a: paths.device.keyboard.code("keya"),
-        s: paths.device.keyboard.code("keys"),
+        s: paths.device.keyboard.code("keyo"),
         d: paths.device.keyboard.code("keyd")
       },
       dest: { vec2: wasd_vec2 },
@@ -838,7 +838,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1001
     },
     {
-      src: { value: paths.device.keyboard.code("keyo") },
+      src: { value: paths.device.keyboard.code("keys") },
       dest: { value: paths.actions.mediaOpenAction },
       xform: xforms.rising,
       priority: 201
@@ -933,7 +933,7 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       priority: 1
     },
     {
-      src: { value: paths.device.keyboard.code("keyo") },
+      src: { value: paths.device.keyboard.code("keys") },
       dest: { value: paths.actions.mediaOpenAction },
       xform: xforms.rising,
       priority: 201

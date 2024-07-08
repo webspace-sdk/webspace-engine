@@ -138,9 +138,7 @@ export function getUrlFromVoxId(voxId) {
 }
 
 export function getVoxIdFromUrl(voxUrl) {
-  // The vox id of the url is the base64 encoding of the URL. If the URL is a relative URL,
-  // then we need to prepend the current URL to it.
-  return btoa(new URL(voxUrl, document.location.href));
+  return voxUrl.replace("assets/", "").replace(".svox", "");
 }
 
 export function ensureModelVoxelFrame(model, idxFrame) {

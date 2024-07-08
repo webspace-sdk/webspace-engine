@@ -114,6 +114,78 @@ AFRAME.registerComponent("media-vox", {
 
       // Need to compute the offset of the generated mesh and the position of this source
       resetMediaRotation(this.el);
+    } else if (type === MEDIA_INTERACTION_TYPES.OPEN) {
+      console.log("Opening vox", this.voxId);
+      const object3D = this.el.object3D;
+      console.log(
+        `${object3D.position.x},${object3D.position.y},${object3D.position.z},${object3D.rotation.x},${
+          object3D.rotation.y
+        },${object3D.rotation.z},${object3D.scale.x},${object3D.scale.y},${object3D.scale.z}`
+      );
+      const applyBits = (x, y, z, rx, ry, rz, sx, sy, sz) => {
+        object3D.position.set(x, y, z);
+        object3D.rotation.set(rx, ry, rz);
+        object3D.scale.set(sx, sy, sz);
+        object3D.matrixNeedsUpdate = true;
+      };
+
+      if (this.voxId === "ixipyyxeum32tdt8-149678") {
+        // Left drawer
+        const drawerOpenBits = [
+          -19.791610840684083,
+          2.41,
+          19.398387535973267,
+          0,
+          -2.356185307179586,
+          0,
+          0.9999999999999998,
+          1,
+          0.9999999999999998
+        ];
+
+        const drawerCloseBits = [
+          -19.26127588478859,
+          2.41,
+          19.92871275181287,
+          0,
+          -2.356185307179586,
+          0,
+          0.9999999999999998,
+          1,
+          0.9999999999999998
+        ];
+
+        const isOpen = Math.abs(object3D.position.x - drawerOpenBits[0]) < 0.1;
+
+        if (isOpen) {
+          applyBits(...drawerCloseBits);
+        } else {
+          applyBits(...drawerOpenBits);
+        }
+      } else if (this.voxId === "jj3jpp8ypovrvrqk-271648") {
+        const doorOpenBits = [-17.87, 1.85, 17.62, 0, 1.5709999999999997, 0, 1, 1, 1];
+        const doorCloseBits = [
+          -17.879589080810547,
+          1.85308086395264,
+          17.570751190185547,
+          2.34135871507469e-38,
+          0.7856018169701229,
+          2.788016196857255e-37,
+          1,
+          1,
+          1
+        ];
+        const isOpen = Math.abs(object3D.position.z - doorOpenBits[2]) < 0.01;
+        if (isOpen) {
+          console.log("Closing)");
+          applyBits(...doorCloseBits);
+        } else {
+          console.log("Opening)");
+          applyBits(...doorOpenBits);
+        }
+      } else if (this.voxId === "vfboru5jxtcy8rj2-934173") {
+        console.log("meow");
+      }
     } else if (type === MEDIA_INTERACTION_TYPES.EDIT) {
       if (SYSTEMS.cameraSystem.isInspecting()) return;
       const { voxMetadata } = window.APP;

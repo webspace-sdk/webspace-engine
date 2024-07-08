@@ -107,6 +107,9 @@ AFRAME.registerComponent("cursor-controller", {
         this.raycaster.ray.origin = cursorPose.position;
         this.raycaster.ray.direction = cursorPose.direction;
         this.raycaster.intersectObjects(SYSTEMS.cursorTargettingSystem.targets, true, rawIntersections);
+
+        for (let i = 0; i < rawIntersections.length; i++) {}
+
         this.intersection = rawIntersections[0];
         intersectionTarget = interaction.updateCursorIntersection(this.intersection, left);
         this.intersectionIsValid = !!intersectionTarget;
