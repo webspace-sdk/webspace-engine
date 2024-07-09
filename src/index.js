@@ -254,6 +254,7 @@ detectConcurrentLoad();
 let uiProps = {};
 
 function mountUIRoot(props = {}) {
+  return;
   if (isBotMode) return;
 
   const scene = DOM_ROOT.querySelector("a-scene");
