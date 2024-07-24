@@ -366,6 +366,16 @@ const initMetaTag = (name, content) => {
   document.head.appendChild(newEl);
 };
 
+const SKYBOX_URL_META_TAG_NAME = "skybox-url";
+
+export const getSkyboxUrlFromMetaTags = () => {
+  return getStringFromMetaTags(SKYBOX_URL_META_TAG_NAME, null);
+};
+
+export const setSkyboxUrlMetaTag = (url) => {
+  upsertMetaTag(SKYBOX_URL_META_TAG_NAME, url);
+};
+
 export const pushHubMetaUpdateIntoDOM = async hub => {
   const currentHubSeed = await getSeedForHubIdFromHistory();
 
