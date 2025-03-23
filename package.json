@@ -1,11 +1,14 @@
 {
   "name": "webspace-engine",
   "version": "0.9.0",
-  "description": "",
+  "description": "Engine for Webspaces, which allows you to create 3D worlds using just HTML",
   "browser": {
     "fs": false
   },
-  "main": "src/index.js",
+  "main": "dist/assets/js/index.js",
+  "files": [
+    "dist/assets/js/index.js"
+  ],
   "license": "MPL-2.0",
   "browserslist": [
     "last 2 Chrome versions",
@@ -14,7 +17,7 @@
   "homepage": "https://github.com/webspace-sdk/webspace-engine#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/webspace-sdk/webspace-engine.git"
+    "url": "git+https://github.com/webspace-sdk/webspace-engine.git"
   },
   "bugs": {
     "url": "https://github.com/webspace-sdk/webspace-engine/issues"
