@@ -2,7 +2,6 @@ import { CursorTargettingSystem } from "./cursor-targetting-system";
 import { PositionAtBorderSystem } from "../components/position-at-border";
 import { BoneVisibilitySystem } from "../components/bone-visibility";
 import { AnimationMixerSystem } from "../components/animation-mixer";
-import { UVScrollSystem } from "../components/uv-scroll";
 import { CursorTogglingSystem } from "./cursor-toggling-system";
 import { PhysicsSystem } from "./physics-system";
 import { ConstraintsSystem } from "./constraints-system";
@@ -82,7 +81,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.mediaInteractionSystem = new MediaInteractionSystem(this.el, this.soundEffectsSystem);
     this.animationMixerSystem = new AnimationMixerSystem();
     this.boneVisibilitySystem = new BoneVisibilitySystem();
-    this.uvScrollSystem = new UVScrollSystem();
     this.mediaStreamSystem = new MediaStreamSystem(this.el);
     this.terrainSystem = new TerrainSystem(this.el, this.atmosphereSystem, this.cameraSystem);
     this.skyBeamSystem = new SkyBeamSystem(this.el, this.terrainSystem);
@@ -219,7 +217,6 @@ AFRAME.registerSystem("hubs-systems", {
     this.scenePreviewCameraSystem.tick();
     this.physicsSystem.tick(dt);
     this.enterVRButtonSystem.tick();
-    this.uvScrollSystem.tick(dt);
     this.terrainSystem.tick();
     this.atmosphereSystem.tick(dt);
     this.mediaInteractionSystem.tick(t, dt);
