@@ -70,7 +70,6 @@ export default class SceneEntryManager {
     this._setupBlocking();
     this._setupKicking();
     this._setupMedia();
-    this._setupCamera();
 
     if (qsTruthy("offline")) return;
 
@@ -419,32 +418,7 @@ export default class SceneEntryManager {
     });
   };
 
-  _setupCamera = () => {
-    this.scene.addEventListener("action_toggle_camera", () => {
-      if (!this.atomAccessManager.hubCan("spawn_camera")) return;
-      const myCamera = this.scene.systems["camera-tools"].getMyCamera();
 
-      if (myCamera) {
-        myCamera.parentNode.removeChild(myCamera);
-        this.scene.removeState("camera");
-      } else {
-        const entity = document.createElement("a-entity");
-        entity.setAttribute("networked", { template: "#interactable-camera" });
-        entity.setAttribute("offset-relative-to", {
-          target: "#avatar-pov-node",
-          offset: { x: 0, y: 0, z: -1.5 }
-        });
-        this.scene.appendChild(entity);
-        this.scene.addState("camera");
-      }
-
-      // Need to wait a frame so camera is registered with system.
-      setTimeout(() => this.scene.emit("camera_toggled"));
-    });
-
-    this.scene.addEventListener("photo_taken", e => this.hubChannel.broadcastMessage({ src: e.detail }, "photo"));
-    this.scene.addEventListener("video_taken", e => this.hubChannel.broadcastMessage({ src: e.detail }, "video"));
-  };
 
   _spawnAvatar = () => {
     this.avatarRig.setAttribute("networked", "template: #remote-avatar; attachTemplateToLocal: false;");

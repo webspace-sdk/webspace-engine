@@ -50,41 +50,6 @@ function characterAccelerationBindings(disableForwardOnTrigger) {
 }
 
 export const xboxControllerUserBindings = addSetsToBindings({
-  [sets.rightCursorHoldingPen]: [
-    {
-      src: { value: button("rightTrigger").pressed },
-      dest: { value: paths.actions.cursor.right.startDrawing },
-      xform: xforms.rising,
-      priority: 200
-    },
-    {
-      src: { value: button("rightTrigger").pressed },
-      dest: { value: paths.actions.cursor.right.stopDrawing },
-      xform: xforms.falling,
-      priority: 200
-    },
-    {
-      src: { value: button("b").pressed },
-      dest: { value: paths.actions.cursor.right.drop },
-      xform: xforms.rising
-    },
-    {
-      src: { value: button("y").pressed },
-      dest: { value: paths.actions.cursor.right.undoDrawing },
-      xform: xforms.rising,
-      priority: 200
-    },
-    {
-      src: { value: button("a").pressed },
-      dest: { value: paths.actions.cursor.right.penNextColor },
-      xform: xforms.rising
-    },
-    {
-      src: { value: button("x").pressed },
-      dest: { value: paths.actions.cursor.right.penPrevColor },
-      xform: xforms.rising
-    }
-  ],
   [sets.global]: [
     {
       src: {},

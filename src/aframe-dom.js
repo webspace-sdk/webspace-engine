@@ -153,67 +153,6 @@ export default `
                 </a-entity>
             </template>
 
-            <template id="interactable-pen">
-                <a-entity
-                    class="pen interactable"
-                    body-helper="type: dynamic; mass: 0.001; collisionFilterGroup: 1; collisionFilterMask: 31; gravity: 0 0 0;"
-                    gltf-model-plus="src: #drawing-pen; inflate: true;"
-                    owned-object-limiter="counter: #pen-counter"
-                    set-unowned-body-kinematic
-                    is-remote-hover-target
-                    tags="isHandCollisionTarget: true; isHoldable: true; offersHandConstraint: true; offersRemoteConstraint: true; isPen: true;"
-                    floaty-object="modifyGravityOnRelease: true; autoLockOnLoad: true; gravitySpeedLimit: 0; reduceAngularFloat: true;"
-                    scale="0.5 0.5 0.5"
-                    action-to-remove__pen="path: /actions/pen/remove;"
-                    position-at-border="target:.pen-menu"
-                    set-yxz-order
-                >
-                    <a-entity
-                        id="pen"
-                        position="0 -0.18 0"
-                        pen="camera: #avatar-pov-node; drawingManager: #drawing-manager"
-                        pen-laser
-                    ></a-entity>
-                    <a-entity class="ui delete-button pen-menu" visibility-while-frozen="withinDistance: 100; withPermission: spawn_drawing" >
-                        <a-entity mixin="rounded-button" is-remote-hover-target tags="singleActionButton: true" remove-networked-object-button position="0 0 0.001">
-                            <a-entity
-                                sprite
-                                icon-button="image: remove-action.png; hoverImage: remove-action.png;"
-                                scale="0.165 0.165 0.165"
-                                position="0 0 0.001"
-                            ></a-entity>
-                        </a-entity>
-                    </a-entity>
-                </a-entity>
-            </template>
-
-            <template id="interactable-camera">
-                <a-entity
-                    class="interactable"
-                    body-helper="type: dynamic; mass: 0.001; collisionFilterGroup: 1; collisionFilterMask: 8;"
-                    camera-tool
-                    is-remote-hover-target
-                    tags="isHandCollisionTarget: true; isHoldable: true; offersHandConstraint: true; offersRemoteConstraint: true;"
-                    shape-helper="type: box; fit: manual; halfExtents: 0.22 0.14 0.1; offset: 0 0.02 0;"
-                    floaty-object="autoLockOnRelease: true; autoLockOnLoad: true;"
-                    owned-object-limiter="counter: #camera-counter"
-                    set-unowned-body-kinematic
-                    scalable-when-grabbed
-                    position-at-border="target:.camera-menu; isFlat: true"
-                    set-yxz-order
-                >
-                </a-entity>
-            </template>
-
-            <template id="interactable-drawing">
-                <a-entity
-                    class="drawing"
-                    networked-drawing
-                    is-remote-hover-target
-                >
-                </a-entity>
-            </template>
-
             <template id="pager-hover-menu">
                 <a-entity class="ui interactable-ui hover-container" visible="false">
                     <a-entity class="page-label" position="0 -0.6 0" text="value:.; width:2; align:center;" text-raycast-hack></a-entity>
@@ -320,11 +259,6 @@ export default `
         <!-- HACK - We use this object to trigger initial batch preparation -->
         <a-entity id="batch-prep" visible="false"></a-entity>
 
-        <a-entity id="pen-counter" networked-counter="max: 10;"></a-entity>
-
-        <a-entity id="camera-counter" networked-counter="max: 1;"></a-entity>
-
-        <a-entity id="drawing-manager" drawing-manager="penSpawner: #pen-spawner"></a-entity>
 
         <a-entity
             id="right-cursor-controller"
@@ -452,17 +386,6 @@ export default `
 
             </a-entity>
         </a-entity>
-
-        <a-entity
-            id="pen-spawner"
-            action-to-event="path: /actions/spawnPen; event: spawn_pen; withPermission: spawn_drawing"
-            super-spawner="
-                template: #interactable-pen;
-                spawnEvent: spawn_pen;
-                animateFromCursor: true;
-                spawnScale: 0.5, 0.5, 0.5;
-                "
-        ></a-entity>
 
         <a-entity id="viewing-rig" set-yxz-order camera-rotator>
             <a-entity

@@ -8,10 +8,6 @@ import { addSetsToBindings } from "./utils";
 const wasd_vec2 = "/var/mouse-and-keyboard/wasd_vec2";
 const keyboardCharacterAcceleration = "/var/mouse-and-keyboard/keyboardCharacterAcceleration";
 const arrows_vec2 = "/var/mouse-and-keyboard/arrows_vec2";
-const togglePenWithRMB = "/vars/mouse-and-keyboard/drop_pen_with_RMB";
-const togglePenWithEsc = "/vars/mouse-and-keyboard/drop_pen_with_esc";
-const togglePenWithHud = "/vars/mouse-and-keyboard/drop_pen_with_hud";
-const togglePen = "/vars/mouse-and-keyboard/togglePen";
 const grabViaKeyboard = "/vars/mouse-and-keyboard/grabViaKeyboard";
 const grabViaMouse = "/vars/mouse-and-keyboard/grabViaMouse";
 const dropViaKeyboard = "/vars/mouse-and-keyboard/dropViaKeyboard";
@@ -30,8 +26,6 @@ const panX = "/var/middle-mouse-move-x";
 const panY = "/var/middle-mouse-move-y";
 const rightMouseMoveX = "/var/right-mouse-move-x";
 const rightMouseMoveY = "/var/right-mouse-move-y";
-const cursorScalePenTipWheel = "/var/cursorScalePenTipWheel";
-
 const kMap = new Map();
 const k = name => {
   if (!kMap.has(name)) {
@@ -108,22 +102,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
       dest: { value: paths.actions.boost },
       xform: xforms.copy,
       priority: 1001
-    },
-    {
-      src: { value: paths.device.hud.penButton },
-      dest: { value: togglePenWithHud },
-      xform: xforms.rising
-    },
-    {
-      src: [togglePenWithHud],
-      dest: { value: togglePen },
-      xform: xforms.any
-    },
-    {
-      src: { value: togglePen },
-      dest: { value: paths.actions.spawnPen },
-      xform: xforms.rising,
-      priority: 100
     },
     {
       src: { value: paths.device.smartMouse.cursorPose },
@@ -610,79 +588,6 @@ export const keyboardMouseUserBindings = addSetsToBindings({
     //     )
     //   )
     // }
-  ],
-
-  [sets.rightCursorHoldingPen]: [
-    {
-      src: { value: paths.device.mouse.buttonLeft },
-      dest: { value: paths.actions.cursor.right.startDrawing },
-      xform: xforms.rising,
-      priority: 3
-    },
-    {
-      src: { value: paths.device.mouse.buttonLeft },
-      dest: { value: paths.actions.cursor.right.stopDrawing },
-      xform: xforms.falling,
-      priority: 3
-    },
-    {
-      src: {
-        value: k("wheelWithControl")
-      },
-      dest: { value: cursorScalePenTipWheel },
-      xform: xforms.copy,
-      priority: 200
-    },
-    {
-      src: { value: cursorScalePenTipWheel },
-      dest: { value: paths.actions.cursor.right.scalePenTip },
-      xform: xforms.scale(0.03)
-    },
-    {
-      src: { value: paths.device.mouse.buttonRight },
-      dest: { value: togglePenWithRMB },
-      xform: xforms.falling,
-      priority: 200
-    },
-    {
-      src: { value: paths.device.keyboard.key("Escape") },
-      dest: { value: togglePenWithEsc },
-      xform: xforms.rising
-    },
-    {
-      src: [togglePenWithRMB, togglePenWithEsc, togglePenWithHud],
-      dest: { value: togglePen },
-      xform: xforms.any
-    },
-    {
-      src: { value: togglePen },
-      dest: { value: paths.actions.cursor.right.drop },
-      xform: xforms.rising,
-      priority: 200
-    },
-    {
-      src: { value: togglePen },
-      dest: { value: paths.actions.pen.remove },
-      xform: xforms.rising,
-      priority: 200
-    }
-  ],
-
-  [sets.rightCursorHoldingCamera]: [
-    {
-      src: { value: paths.device.mouse.buttonLeft },
-      dest: { value: paths.actions.cursor.right.drop },
-      xform: xforms.falling,
-      priority: 2
-    },
-    {
-      src: {
-        value: k("wheelWithControl")
-      },
-      dest: { value: paths.actions.cursor.right.scaleGrabbedGrabbable },
-      xform: xforms.noop,
-      priority: 2
-    }
   ],
 
   [sets.rightCursorHoldingInteractable]: [

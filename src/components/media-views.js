@@ -32,9 +32,7 @@ import {
   isAllowedCorsProxyContentType
 } from "../utils/media-url-utils";
 import { buildAbsoluteURL } from "url-toolkit";
-import { SOUND_CAMERA_TOOL_TOOK_SNAPSHOT } from "../systems/sound-effects-system";
 import { promisifyWorker } from "../utils/promisify-worker.js";
-import { refreshMediaMirror, getCurrentMirroredMedia } from "../utils/mirror-utils";
 import { disposeExistingMesh, disposeTexture } from "../utils/three-utils";
 import { addVertexCurvingToMaterial } from "../systems/terrain-system";
 import { chicletGeometry, chicletGeometryFlipped } from "../objects/chiclet-geometry.js";
@@ -390,7 +388,6 @@ AFRAME.registerComponent("media-video", {
   async snap() {
     if (this.isSnapping) return;
     this.isSnapping = true;
-    SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
 
     const canvas = document.createElement("canvas");
     canvas.width = this.video.videoWidth;
@@ -643,9 +640,6 @@ AFRAME.registerComponent("media-video", {
           audioSourceEl = linkedAudioSource;
         } else {
           ({ texture, audioSourceEl } = await this.createVideoTextureAudioSourceEl());
-          if (getCurrentMirroredMedia() === this.el) {
-            await refreshMediaMirror();
-          }
         }
 
         // No way to cancel promises, so if src has changed while we were creating the texture just throw it away. Or, if the element was removed.
@@ -1172,7 +1166,6 @@ AFRAME.registerComponent("media-video", {
       }
     } else if (type === MEDIA_INTERACTION_TYPES.NEXT) {
       if (mayModifyPlayHead) {
-        this.seekForward();
       } else {
         if (!gatePermissionPredicate(mayModifyPlayHead)) return;
       }
@@ -1494,7 +1487,6 @@ AFRAME.registerComponent("media-pdf", {
   async snap() {
     if (this.isSnapping) return;
     this.isSnapping = true;
-    SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
 
     const blob = await new Promise(resolve => this.canvas.toBlob(resolve));
     const file = new File([blob], "snap.png", TYPE_IMG_PNG);
@@ -1563,7 +1555,6 @@ AFRAME.registerComponent("media-pdf", {
         !this.mesh.visible &&
         !refresh
       ) {
-        // No page change, just re-show image
         this.mesh.visible = true;
         return;
       }
@@ -1854,7 +1845,6 @@ AFRAME.registerComponent("media-canvas", {
   async snap() {
     if (this.isSnapping) return;
     this.isSnapping = true;
-    SYSTEMS.soundEffectsSystem.playSoundOneShot(SOUND_CAMERA_TOOL_TOOK_SNAPSHOT);
 
     const canvas = this.texture.image;
     const blob = await new Promise(resolve => canvas.toBlob(resolve));

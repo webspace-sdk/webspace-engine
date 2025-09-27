@@ -8,9 +8,6 @@ import URL_TICK_ALT from "!!url-loader!../assets/sfx/click-alt.wav";
 import URL_TOGGLE_TICK from "!!url-loader!../assets/sfx/tick.mp3";
 import URL_QUICK_TURN from "!!url-loader!../assets/sfx/quick-turn.mp3";
 import URL_TAP_MELLOW from "!!url-loader!../assets/sfx/tap-mellow.mp3";
-import URL_PEN_SPAWN from "!!url-loader!../assets/sfx/pen-spawn.mp3";
-import URL_PEN_DRAW from "!!url-loader!../assets/sfx/pen-draw.mp3";
-import URL_CAMERA_SNAPSHOT from "!!url-loader!../assets/sfx/photo-snap.mp3";
 import URL_WELCOME from "!!url-loader!../assets/sfx/welcome.mp3";
 import URL_QUACK from "!!url-loader!../assets/sfx/quack.mp3";
 import URL_SPECIAL_QUACK from "!!url-loader!../assets/sfx/special-quack.mp3";
@@ -38,18 +35,12 @@ let soundEnum = 0;
 export const SOUND_HOVER_OR_GRAB = soundEnum++;
 export const SOUND_RELEASE = soundEnum++;
 export const SOUND_THAW = soundEnum++;
-export const SOUND_PEN_STOP_DRAW = soundEnum++;
-export const SOUND_PEN_UNDO_DRAW = soundEnum++;
-export const SOUND_PEN_CHANGE_COLOR = soundEnum++;
 export const SOUND_TOGGLE_MIC = soundEnum++;
 export const SOUND_TELEPORT_START = soundEnum++;
 export const SOUND_TELEPORT_END = soundEnum++;
 export const SOUND_WAYPOINT_START = soundEnum++;
 export const SOUND_WAYPOINT_END = soundEnum++;
 export const SOUND_SNAP_ROTATE = soundEnum++;
-export const SOUND_SPAWN_PEN = soundEnum++;
-export const SOUND_PEN_START_DRAW = soundEnum++;
-export const SOUND_CAMERA_TOOL_TOOK_SNAPSHOT = soundEnum++;
 export const SOUND_ENTER_SCENE = soundEnum++;
 export const SOUND_QUACK = soundEnum++;
 export const SOUND_SPECIAL_QUACK = soundEnum++;
@@ -59,7 +50,6 @@ export const SOUND_PIN = soundEnum++;
 export const SOUND_MEDIA_LOADING = soundEnum++;
 export const SOUND_MEDIA_LOADED = soundEnum++;
 export const SOUND_MEDIA_REMOVED = soundEnum++;
-export const SOUND_CAMERA_TOOL_COUNTDOWN = soundEnum++;
 export const SOUND_PREFERENCE_MENU_HOVER = soundEnum++;
 export const SOUND_SPAWN_EMOJI = soundEnum++;
 export const SOUND_LAUNCHER_1 = soundEnum++;
@@ -153,18 +143,11 @@ export class SoundEffectsSystem {
           [SOUND_HOVER_OR_GRAB, URL_TICK],
           [SOUND_RELEASE, URL_TICK_DOWN],
           [SOUND_THAW, URL_TICK],
-          [SOUND_PEN_STOP_DRAW, URL_TICK],
-          [SOUND_PEN_UNDO_DRAW, URL_TICK],
-          [SOUND_PEN_CHANGE_COLOR, URL_TICK],
           [SOUND_TOGGLE_MIC, URL_TOGGLE_TICK],
-          [SOUND_CAMERA_TOOL_COUNTDOWN, URL_TICK],
           [SOUND_TELEPORT_END, URL_QUICK_TURN],
           [SOUND_WAYPOINT_START, URL_QUICK_TURN],
           [SOUND_WAYPOINT_END, URL_TICK],
           [SOUND_SNAP_ROTATE, URL_TAP_MELLOW],
-          [SOUND_SPAWN_PEN, URL_PEN_SPAWN],
-          [SOUND_PEN_START_DRAW, URL_PEN_DRAW],
-          [SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, URL_CAMERA_SNAPSHOT],
           [SOUND_ENTER_SCENE, URL_WELCOME],
           [SOUND_QUACK, URL_QUACK],
           [SOUND_SPECIAL_QUACK, URL_SPECIAL_QUACK],

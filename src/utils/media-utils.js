@@ -1203,28 +1203,6 @@ export function addMeshScaleAnimation(mesh, initialScale, onComplete) {
   return anime(config);
 }
 
-export function closeExistingMediaMirror() {
-  const mirrorTarget = DOM_ROOT.querySelector("#media-mirror-target");
-
-  // Remove old mirror target media element
-  if (mirrorTarget.firstChild) {
-    mirrorTarget.firstChild.setAttribute("animation__remove", {
-      property: "scale",
-      dur: 200,
-      to: { x: 0.01, y: 0.01, z: 0.01 },
-      easing: "easeInQuad"
-    });
-
-    return new Promise(res => {
-      mirrorTarget.firstChild.addEventListener("animationcomplete", () => {
-        mirrorTarget.removeChild(mirrorTarget.firstChild);
-        mirrorTarget.parentEl.object3D.visible = false;
-        res();
-      });
-    });
-  }
-}
-
 export const MEDIA_PRESENCE = {
   UNKNOWN: -1,
   INIT: 0,

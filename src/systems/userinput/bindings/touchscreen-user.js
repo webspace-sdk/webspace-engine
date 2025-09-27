@@ -122,34 +122,6 @@ export const touchscreenUserBindings = addSetsToBindings({
     }
   ],
 
-  [sets.rightCursorHoveringOnPen]: [],
-  [sets.rightCursorHoldingPen]: [
-    {
-      src: { value: paths.device.touchscreen.isTouchingGrabbable },
-      dest: { value: paths.actions.cursor.right.startDrawing },
-      xform: xforms.risingWithFrameDelay(5),
-      priority: 2
-    },
-    {
-      src: { value: paths.device.touchscreen.isTouchingGrabbable },
-      dest: { value: paths.actions.cursor.right.stopDrawing },
-      xform: xforms.falling,
-      priority: 2
-    },
-    {
-      src: { value: togglePen },
-      dest: { value: paths.actions.cursor.right.drop },
-      xform: xforms.rising,
-      priority: 3
-    },
-    {
-      src: { value: togglePen },
-      dest: { value: paths.actions.pen.remove },
-      xform: xforms.rising,
-      priority: 3
-    }
-  ],
-
   [sets.inspecting]: [
     {
       src: { value: paths.device.touchscreen.anything },

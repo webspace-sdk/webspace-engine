@@ -6,7 +6,6 @@ import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
 import {
   injectCustomShaderChunks,
   addMeshScaleAnimation,
-  closeExistingMediaMirror,
   preflightUrl,
   MEDIA_VIEW_COMPONENTS,
   getDefaultResolveQuality
@@ -55,7 +54,6 @@ AFRAME.registerComponent("media-loader", {
     this.showLoader = this.showLoader.bind(this);
     this.cleanupLoader = this.cleanupLoader.bind(this);
     this.onMediaLoaded = this.onMediaLoaded.bind(this);
-    this.handleLinkedElRemoved = this.handleLinkedElRemoved.bind(this);
     this.refresh = this.refresh.bind(this);
     this.animating = false;
     this.cachedShouldShowLoader = null;
@@ -103,21 +101,7 @@ AFRAME.registerComponent("media-loader", {
     }
   },
 
-  handleLinkedElRemoved(e) {
-    if (e.detail.name === "media-loader") {
-      this.data.linkedEl.removeEventListener("componentremoved", this.handleLinkedElRemoved);
-
-      // this should be revisited if we ever use media linking for something other than media mirroring UX --
-      // right now it is assumed if there is a linkedEl, this is the currently active mirrored media
-      closeExistingMediaMirror();
-    }
-  },
-
   remove() {
-    if (this.data.linkedEl) {
-      this.data.linkedEl.removeEventListener("componentremoved", this.handleLinkedElRemoved);
-    }
-
     SYSTEMS.skyBeamSystem.unregister(this.el.object3D);
     SYSTEMS.undoSystem.unregister(this.el);
     SYSTEMS.characterController.removeWalkableModel(this.el.object3D);
@@ -290,7 +274,6 @@ AFRAME.registerComponent("media-loader", {
 
       if (this.data.linkedEl) {
         this.el.sceneEl.systems["linked-media"].registerLinkage(this.data.linkedEl, this.el);
-        this.data.linkedEl.addEventListener("componentremoved", this.handleLinkedElRemoved);
       }
 
       el.emit("media-loaded");
