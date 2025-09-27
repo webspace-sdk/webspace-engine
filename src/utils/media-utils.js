@@ -146,9 +146,9 @@ export const getDefaultResolveQuality = (is360 = false) => {
 };
 
 const runYtdl = (function() {
-  let ytdl = null;
+  let youtubeClientPromise = null;
   let db;
-  const req = indexedDB.open("ytdl", 1);
+  const req = indexedDB.open("youtubejs", 1);
 
   const openPromise = new Promise(res => {
     req.addEventListener("success", ({ target: { result } }) => {
@@ -156,159 +156,368 @@ const runYtdl = (function() {
       res();
     });
 
-    req.addEventListener("upgradeneeded", ({ target: { result: db } }) => {
-      db.createObjectStore("results", { keyPath: "url" });
+    req.addEventListener("error", () => res());
+
+    req.addEventListener("upgradeneeded", ({ target: { result } }) => {
+      db = result;
+      if (!db.objectStoreNames.contains("results")) {
+        db.createObjectStore("results", { keyPath: "url" });
+      }
     });
   });
 
+  const getProxyInfo = () => {
+    const base = getCorsProxyUrl() || "";
+    if (!base) return null;
+    const trimmed = base.endsWith("/") ? base.slice(0, -1) : base;
+
+    try {
+      const origin = new URL(trimmed).origin;
+      return { base: trimmed, origin };
+    } catch (e) {
+      try {
+        const fallback = `https://${trimmed}`;
+        const origin = new URL(fallback).origin;
+        return { base: trimmed, origin };
+      } catch (err) {
+        return { base: trimmed, origin: null };
+      }
+    }
+  };
+
+  const maybeProxyUrl = originalUrl => {
+    if (!originalUrl || typeof originalUrl !== "string") return originalUrl;
+    if (originalUrl.startsWith("blob:")) return originalUrl;
+    if (originalUrl.startsWith("data:")) return originalUrl;
+
+    const proxyInfo = getProxyInfo();
+    if (!proxyInfo) return originalUrl;
+
+    try {
+      const absoluteUrl = new URL(originalUrl, document.location.href);
+      if (!absoluteUrl.protocol.startsWith("http")) return absoluteUrl.toString();
+      if (absoluteUrl.origin === document.location.origin) return absoluteUrl.toString();
+      if (proxyInfo.origin && absoluteUrl.origin === proxyInfo.origin) return absoluteUrl.toString();
+
+      const candidate = absoluteUrl.toString();
+      if (candidate.startsWith(`${proxyInfo.base}/`)) {
+        return candidate;
+      }
+
+      return `${proxyInfo.base}/${candidate}`;
+    } catch (e) {
+      return originalUrl;
+    }
+  };
+
+  const proxiedFetch = (input, init = {}) => {
+    const requestUrl =
+      input instanceof Request ? input.url : typeof input === "string" ? input : input?.toString?.() || "";
+
+    const mergedInit = {
+      method: init.method ?? (input instanceof Request ? input.method : undefined),
+      headers: init.headers ?? (input instanceof Request ? input.headers : undefined),
+      body: init.body ?? (input instanceof Request ? input.body : undefined),
+      redirect: init.redirect ?? (input instanceof Request ? input.redirect : undefined),
+      credentials: init.credentials ?? (input instanceof Request ? input.credentials : undefined),
+      cache: init.cache ?? (input instanceof Request ? input.cache : undefined),
+      mode: init.mode ?? (input instanceof Request ? input.mode : undefined),
+      referrer: init.referrer ?? (input instanceof Request ? input.referrer : undefined),
+      referrerPolicy: init.referrerPolicy ?? (input instanceof Request ? input.referrerPolicy : undefined),
+      integrity: init.integrity ?? (input instanceof Request ? input.integrity : undefined),
+      keepalive: init.keepalive ?? (input instanceof Request ? input.keepalive : undefined),
+      signal: init.signal ?? (input instanceof Request ? input.signal : undefined),
+      priority: init.priority ?? (input instanceof Request ? input.priority : undefined)
+    };
+
+    const proxiedUrl = maybeProxyUrl(requestUrl);
+    return fetch(proxiedUrl, mergedInit);
+  };
+
+  const getYouTubeClient = async () => {
+    if (!youtubeClientPromise) {
+      youtubeClientPromise = (async () => {
+        const { default: Innertube, UniversalCache } = await import(
+          /* webpackChunkName: "youtubejs" */ /* webpackMode: "eager" */ "youtubei.js/web.bundle"
+        );
+        return Innertube.create({
+          fetch: proxiedFetch,
+          cache: new UniversalCache(true),
+          generate_session_locally: true
+        });
+      })().catch(err => {
+        console.error("error loading YouTube client", err);
+        youtubeClientPromise = null;
+        throw err;
+      });
+    }
+
+    return youtubeClientPromise;
+  };
+
+  const extractVideoId = url => {
+    if (!url) return null;
+
+    try {
+      const parsed = new URL(url);
+
+      if (parsed.hostname.endsWith("youtu.be")) {
+        const segments = parsed.pathname.split("/").filter(Boolean);
+        if (segments.length) {
+          return segments[0];
+        }
+      }
+
+      if (parsed.pathname.startsWith("/shorts/") || parsed.pathname.startsWith("/embed/")) {
+        const candidate = parsed.pathname.split("/")[2];
+        if (candidate) {
+          return candidate;
+        }
+      }
+
+      const idParam = parsed.searchParams.get("v") || parsed.searchParams.get("vi");
+      if (idParam) {
+        return idParam;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const match = url.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/);
+    if (match && match[1]) {
+      return match[1];
+    }
+
+    return null;
+  };
+
+  const parseExpiresAt = candidateUrl => {
+    if (!candidateUrl) return null;
+
+    try {
+      const parsed = new URL(candidateUrl);
+      const expireParam = parsed.searchParams.get("expire");
+      if (expireParam) {
+        const timestamp = parseInt(expireParam, 10);
+        if (!isNaN(timestamp)) {
+          return timestamp * 1000;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return null;
+  };
+
+  const selectVideoFormat = (formats, maxHeight, requireAudio, videoElement) => {
+    let best = null;
+
+    for (const format of formats) {
+      if (!format?.has_video) continue;
+      if (format.is_type_otf) continue;
+      if (requireAudio && !format.has_audio) continue;
+      if (format.height && format.height > maxHeight) continue;
+
+      const mimeType = format.mime_type || "";
+      if (!mimeType.startsWith("video/")) continue;
+      if (videoElement.canPlayType(mimeType) !== "probably") continue;
+
+      if (!best) {
+        best = format;
+        continue;
+      }
+
+      const bestMime = best.mime_type || "";
+      const isMp4 = mimeType.startsWith("video/mp4");
+      const bestIsMp4 = bestMime.startsWith("video/mp4");
+      const height = format.height || 0;
+      const bestHeight = best.height || 0;
+
+      if (isMp4 && !bestIsMp4) {
+        best = format;
+        continue;
+      }
+
+      if (isMp4 === bestIsMp4 && height > bestHeight) {
+        best = format;
+        continue;
+      }
+
+      if (isMp4 === bestIsMp4 && height === bestHeight && (format.bitrate || 0) > (best.bitrate || 0)) {
+        best = format;
+      }
+    }
+
+    return best;
+  };
+
+  const selectAudioFormat = (formats, audioElement) => {
+    let best = null;
+
+    for (const format of formats) {
+      if (!format?.has_audio || format.has_video) continue;
+      if (format.is_type_otf) continue;
+
+      const mimeType = format.mime_type || "";
+      if (!mimeType.startsWith("audio/")) continue;
+      if (audioElement.canPlayType(mimeType) !== "probably") continue;
+
+      if (!best) {
+        best = format;
+        continue;
+      }
+
+      const isMp4 = mimeType.startsWith("audio/mp4");
+      const bestIsMp4 = (best.mime_type || "").startsWith("audio/mp4");
+
+      if (isMp4 && !bestIsMp4) {
+        best = format;
+        continue;
+      }
+
+      const bitrate = format.bitrate || 0;
+      const bestBitrate = best.bitrate || 0;
+
+      if (isMp4 === bestIsMp4 && bitrate > bestBitrate) {
+        best = format;
+        continue;
+      }
+
+      const sampleRate = parseInt(format.audio_sample_rate || 0, 10);
+      const bestSampleRate = parseInt(best.audio_sample_rate || 0, 10);
+
+      if (isMp4 === bestIsMp4 && bitrate === bestBitrate && sampleRate > bestSampleRate) {
+        best = format;
+      }
+    }
+
+    return best;
+  };
+
+  const getMaxHeightForQuality = quality => {
+    switch (quality) {
+      case "low":
+        return 480;
+      case "low_360":
+        return 1440;
+      case "high_360":
+        return 2160;
+      default:
+        return 720;
+    }
+  };
+
   return async (url, quality) => {
     await openPromise;
-    const now = Date.now();
 
-    let resolvedYtdl = false;
+    const now = Date.now();
     let expiresAt = now + 24 * 60 * 60 * 1000;
     let contentUrl = null;
     let contentType = null;
     let accessibleContentUrl = null;
     let accessibleContentAudioUrl = null;
 
-    const txn = db
-      .transaction("results")
-      .objectStore("results")
-      .get(url);
-
-    const { target } = await new Promise(res => txn.addEventListener("success", res));
-
-    if (target.result) {
-      if (target.result.expires_at > now - 60 * 60 * 1000) {
-        return target.result.result;
-      }
-    }
-
-    if (!ytdl) {
-      const ytdlUrl = "https://cdn.jsdelivr.net/npm/ytdl-browser@latest/dist/ytdl.min.js";
-      const scriptEl = document.createElement("script");
-      scriptEl.setAttribute("type", "text/javascript");
-      scriptEl.setAttribute("src", ytdlUrl);
-      const waitForScript = new Promise(res => scriptEl.addEventListener("load", res));
-      DOM_ROOT.append(scriptEl);
-      await waitForScript;
-
+    if (db) {
       try {
-        ytdl = window.require("ytdl-core-browser")({
-          proxyUrl: getCorsProxyUrl("video/mp4") + "/"
-        });
-      } catch (e) {
-        console.log("error loading ytdl", e);
-      }
-    }
+        const txn = db.transaction("results").objectStore("results").get(url);
+        const { target } = await new Promise(res => txn.addEventListener("success", res));
 
-    if (ytdl) {
-      try {
-        const ytdlInfo = await ytdl.getInfo(url);
-        let chosenFormatVideo = null;
-        let maxHeight = 720;
-
-        switch (quality) {
-          case "low":
-            maxHeight = 480;
-            break;
-          case "low_360":
-            maxHeight = 1440;
-            break;
-          case "high_360":
-            maxHeight = 2160;
-            break;
-          default:
-        }
-
-        const tmpVideo = document.createElement("video");
-        const tmpAudio = document.createElement("audio");
-
-        for (const hasAudio of [true, false]) {
-          for (const format of ytdlInfo.formats) {
-            if (format.isDashMPD) continue; // Skip dash for now
-            if (format.hasAudio !== hasAudio) continue; // Prefer non-split audio, due to safari bugs
-            if (!format.mimeType.startsWith("video/")) continue;
-            if (format.height > maxHeight) continue;
-            if (tmpVideo.canPlayType(format.mimeType) !== "probably") continue;
-
-            if (!chosenFormatVideo || chosenFormatVideo.height < format.height) {
-              chosenFormatVideo = format;
-            }
-          }
-
-          if (chosenFormatVideo) break;
-        }
-
-        if (chosenFormatVideo) {
-          const parsedVideoUrl = new URL(chosenFormatVideo.url);
-          const parsedVideoParams = new URLSearchParams(parsedVideoUrl.search);
-
-          if (parsedVideoParams.get("expire")) {
-            try {
-              const videoExpires = parseInt(parsedVideoParams.get("expire")) * 1000;
-              if (expiresAt > videoExpires) {
-                expiresAt = videoExpires;
-              }
-            } catch(e) {  } // eslint-disable-line
-          }
-
-          if (chosenFormatVideo.audioBitrate === null) {
-            let chosenFormatAudio = null;
-
-            for (const format of ytdlInfo.formats) {
-              if (format.hasVideo) continue;
-              if (format.isDashMPD) continue; // Skip dash for now
-              if (tmpAudio.canPlayType(format.mimeType) !== "probably") continue;
-
-              if (!chosenFormatAudio || chosenFormatAudio.audioSampleRate < format.audioSampleRate) {
-                chosenFormatAudio = format;
-              }
-            }
-
-            if (chosenFormatAudio) {
-              const parsedAudioUrl = new URL(chosenFormatAudio.url);
-              const parsedAudioParams = new URLSearchParams(parsedAudioUrl.search);
-
-              if (parsedAudioParams.get("expire")) {
-                try {
-                  const audioExpires = parseInt(parsedAudioParams.get("expire")) * 1000;
-                  if (expiresAt > audioExpires) {
-                    expiresAt = audioExpires;
-                  }
-              } catch(e) {  } // eslint-disable-line
-              }
-
-              resolvedYtdl = true;
-              contentUrl = chosenFormatVideo.url;
-              accessibleContentUrl = `${VIDEO_CORS_PROXY_PLACEHOLDER}/${contentUrl}`;
-              contentType = chosenFormatVideo.mimeType.split(";")[0];
-              accessibleContentAudioUrl = `${VIDEO_CORS_PROXY_PLACEHOLDER}/${chosenFormatAudio.url}`;
-            }
-          } else {
-            resolvedYtdl = true;
-            contentUrl = chosenFormatVideo.url;
-            accessibleContentUrl = `${VIDEO_CORS_PROXY_PLACEHOLDER}/${contentUrl}`;
-            contentType = chosenFormatVideo.mimeType.split(";")[0];
-          }
+        if (target.result && target.result.expires_at > now - 60 * 60 * 1000) {
+          return target.result.result;
         }
       } catch (e) {
-        console.error(e);
+        console.warn("YouTube cache lookup failed", e);
       }
     }
 
-    if (resolvedYtdl) {
-      const result = { contentUrl, accessibleContentUrl, contentType, accessibleContentAudioUrl };
-
-      db.transaction("results", "readwrite")
-        .objectStore("results")
-        .put({ url, result, expires_at: expiresAt });
-
-      return result;
-    } else {
+    const videoId = extractVideoId(url);
+    if (!videoId) {
+      console.warn("Failed to extract YouTube video id from url", url);
       return null;
     }
+
+    let client;
+    try {
+      client = await getYouTubeClient();
+    } catch (e) {
+      return null;
+    }
+
+    try {
+      const info = await client.getInfo(videoId, { client: "WEB" });
+      const streamingData = info?.streaming_data;
+      if (!streamingData) {
+        return null;
+      }
+
+      const formats = [...(streamingData.formats || []), ...(streamingData.adaptive_formats || [])];
+      if (!formats.length) {
+        return null;
+      }
+
+      const tmpVideo = document.createElement("video");
+      const tmpAudio = document.createElement("audio");
+      const maxHeight = getMaxHeightForQuality(quality);
+
+      let chosenFormatVideo =
+        selectVideoFormat(formats, maxHeight, true, tmpVideo) ||
+        selectVideoFormat(formats, maxHeight, false, tmpVideo);
+
+      if (!chosenFormatVideo) {
+        return null;
+      }
+
+      const player = info.actions?.session?.player;
+      if (!player) {
+        return null;
+      }
+
+      const resolvedVideoUrl = chosenFormatVideo.decipher(player);
+      const videoExpire = parseExpiresAt(resolvedVideoUrl);
+      if (videoExpire) {
+        expiresAt = Math.min(expiresAt, videoExpire);
+      }
+
+      contentUrl = resolvedVideoUrl;
+      contentType = (chosenFormatVideo.mime_type || "").split(";")[0];
+      accessibleContentUrl = `${VIDEO_CORS_PROXY_PLACEHOLDER}/${contentUrl}`;
+
+      if (!chosenFormatVideo.has_audio) {
+        const audioFormat = selectAudioFormat(formats, tmpAudio);
+        if (audioFormat) {
+          const resolvedAudioUrl = audioFormat.decipher(player);
+          const audioExpire = parseExpiresAt(resolvedAudioUrl);
+          if (audioExpire) {
+            expiresAt = Math.min(expiresAt, audioExpire);
+          }
+
+          accessibleContentAudioUrl = `${VIDEO_CORS_PROXY_PLACEHOLDER}/${resolvedAudioUrl}`;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to resolve YouTube formats", e);
+      return null;
+    }
+
+    if (contentUrl && accessibleContentUrl && contentType) {
+      const result = { contentUrl, accessibleContentUrl, contentType, accessibleContentAudioUrl };
+
+      if (db) {
+        try {
+          db
+            .transaction("results", "readwrite")
+            .objectStore("results")
+            .put({ url, result, expires_at: expiresAt });
+        } catch (e) {
+          console.warn("Failed to cache YouTube result", e);
+        }
+      }
+
+      return result;
+    }
+
+    return null;
   };
 })();
 
