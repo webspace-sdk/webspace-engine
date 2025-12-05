@@ -133,7 +133,7 @@
     "uuid": "^3.2.1",
     "y-protocols": "^1.0.5",
     "yjs": "^13.5.41",
-    "youtubei.js": "^15.1.1",
+    "youtubei.js": "github:LuanRT/YouTube.js#main",
     "zip-loader": "^1.1.0"
   },
   "devDependencies": {

@@ -381,7 +381,18 @@ AFRAME.registerComponent("media-loader", {
           accessibleContentUrl = preflightResponse.accessibleContentUrl;
           accessibleContentAudioUrl = preflightResponse.accessibleContentAudioUrl;
         } catch (e) { // eslint-disable-line
-          console.error(e);
+          console.error("Failed to resolve media URL:", e);
+
+          // If this was a YouTube URL that failed to resolve, don't try to load it
+          // as a video (which would freeze). Instead, show an error.
+          const isYouTubeUrl =
+            parsedUrl.origin.endsWith("youtube.com") || parsedUrl.origin.endsWith("youtu.be");
+
+          if (isYouTubeUrl) {
+            console.error("YouTube video resolution failed, cannot load video");
+            this.onError();
+            return;
+          }
         }
       } else {
         contentType = guessContentType(src) || contentType;
