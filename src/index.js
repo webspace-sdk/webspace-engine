@@ -138,6 +138,7 @@ import {
 } from "./fonts/quill-fonts";
 import { registerWrappedEntityPositionNormalizers } from "./systems/wrapped-entity-system";
 import { App } from "./App";
+import "./harness";
 import { platformUnsupported } from "./support";
 import { loadEmojis } from "./utils/emojis";
 import registerNetworkSchemas from "./network-schemas";
