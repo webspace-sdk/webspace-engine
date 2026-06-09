@@ -130,8 +130,9 @@ const harness = {
     return avatarPose();
   },
 
-  // Hard teleport the avatar to a world position, optionally facing yaw (radians).
-  async teleport({ x, y, z, rotationY } = {}) {
+  // Hard teleport the avatar to a world position, optionally facing yaw (radians)
+  // and pitching the view (radians; negative looks down) for composing shots.
+  async teleport({ x, y, z, rotationY, pitch } = {}) {
     const cc = SYSTEMS.characterController;
     const pos = new THREE.Vector3(x, y, z);
     let quat = null;
@@ -140,8 +141,20 @@ const harness = {
     }
     cc.teleportTo(pos, quat);
     await nextFrame();
+    if (typeof pitch === "number") this.look(pitch);
     await nextFrame();
     return avatarPose();
+  },
+
+  // Pitch the camera up/down (radians; negative looks down). Persists with no
+  // pitch input in headless, so it survives until the next teleport/look.
+  look(pitch = 0) {
+    const cc = SYSTEMS.characterController;
+    if (cc && cc.avatarPOV) {
+      cc.avatarPOV.object3D.rotation.x = pitch;
+      cc.avatarPOV.object3D.matrixNeedsUpdate = true;
+    }
+    return { ok: true, pitch };
   },
 
   // ---- media: spawn things into the world ----

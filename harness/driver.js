@@ -143,6 +143,9 @@ class WebspaceHarness {
   teleport(spec) {
     return this.call("teleport", spec);
   }
+  look(pitch) {
+    return this.call("look", pitch);
+  }
 
   // ---- media ----
   spawnMedia(spec) {

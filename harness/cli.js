@@ -78,6 +78,8 @@ async function runStep(h, step) {
       return ["move", await h.move(parseKV(arg))];
     case "turn":
       return ["turn", await h.turn(Number(arg))];
+    case "look":
+      return ["look", await h.look(Number(arg))];
     case "teleport":
       return ["teleport", await h.teleport(parseKV(arg))];
     case "spawn":

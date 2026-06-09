@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Menagerie</title>
+
+  <!-- Engine. To publish, point this at your hosted webspace-engine bundle. -->
+  <script src="http://localhost:8080/assets/js/index.js"></script>
+
+  <!-- Baked environment: a soft meadow under a clear sky. -->
+  <meta name="webspace.environment.terrain.type" content="plains" />
+  <meta name="webspace.environment.terrain.colors.ground" content="#6ab04c" />
+  <meta name="webspace.environment.terrain.colors.grass" content="#74c24a" />
+  <meta name="webspace.environment.terrain.colors.leaves" content="#5a9e3f" />
+  <meta name="webspace.environment.terrain.colors.bark" content="#6b4a2f" />
+  <meta name="webspace.environment.terrain.colors.rock" content="#9a8b7a" />
+  <meta name="webspace.environment.terrain.colors.water" content="#4aa3c2" />
+
+  <!-- Visitors spawn at a fixed, composed viewpoint facing the garden. -->
+  <meta name="webspace.environment.spawn_point.transform" content="translate3d(0cm, 130cm, 360cm)" />
+  <meta name="webspace.environment.spawn_point.radius" content="0" />
+</head>
+<body>
+  <!-- MENAGERIE — a whimsical, oversized voxel garden on the web.
+       Custom assets: voxmoji (emoji voxelized into 3D meshes) + a glTF duck. -->
+
+  <!-- Friendly duck guardian (glTF, textured) -->
+  <model id="mngduk1" src="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Duck/glTF-Binary/Duck.glb"
+         style="transform: translate3d(20cm, 80cm, -120cm) rotate3d(0,1,0,-0.6rad) scale3d(2.8,2.8,2.8);"></model>
+
+  <!-- Giant flora at the front -->
+  <div id="mngvx01" style="transform: translate3d(-235cm, 70cm, 70cm) scale3d(3,3,3); font-family: emoji;">🍄</div>
+  <div id="mngvx02" style="transform: translate3d(175cm, 80cm, 75cm) scale3d(3.2,3.2,3.2); font-family: emoji;">🌻</div>
+  <div id="mngvx03" style="transform: translate3d(-70cm, 60cm, 110cm) scale3d(2.4,2.4,2.4); font-family: emoji;">🌷</div>
+  <div id="mngvx04" style="transform: translate3d(75cm, 55cm, 120cm) scale3d(2.2,2.2,2.2); font-family: emoji;">🌸</div>
+
+  <!-- Critters on the ground -->
+  <div id="mngvx05" style="transform: translate3d(305cm, 65cm, -5cm) scale3d(2.6,2.6,2.6); font-family: emoji;">🐰</div>
+  <div id="mngvx06" style="transform: translate3d(-305cm, 55cm, -15cm) scale3d(2.4,2.4,2.4); font-family: emoji;">🐌</div>
+  <div id="mngvx07" style="transform: translate3d(135cm, 50cm, 180cm) scale3d(1.9,1.9,1.9); font-family: emoji;">🐥</div>
+
+  <!-- Friends in the air -->
+  <div id="mngvx08" style="transform: translate3d(-215cm, 175cm, 30cm) scale3d(2.1,2.1,2.1); font-family: emoji;">🦋</div>
+  <div id="mngvx09" style="transform: translate3d(225cm, 195cm, 10cm) scale3d(1.8,1.8,1.8); font-family: emoji;">🐝</div>
+  <div id="mngvx10" style="transform: translate3d(-35cm, 235cm, -80cm) scale3d(2.3,2.3,2.3); font-family: emoji;">🎈</div>
+
+  <!-- Trees framing the scene -->
+  <div id="mngvx11" style="transform: translate3d(-335cm, 175cm, -135cm) scale3d(4.6,4.6,4.6); font-family: emoji;">🌳</div>
+  <div id="mngvx12" style="transform: translate3d(360cm, 175cm, -135cm) scale3d(4.6,4.6,4.6); font-family: emoji;">🌳</div>
+
+  <!-- Sky -->
+  <div id="mngvx13" style="transform: translate3d(-160cm, 335cm, -175cm) scale3d(3,3,3); font-family: emoji;">☁️</div>
+  <div id="mngvx14" style="transform: translate3d(175cm, 370cm, -215cm) scale3d(3.6,3.6,3.6); font-family: emoji;">🌈</div>
+  <div id="mngvx15" style="transform: translate3d(45cm, 305cm, -155cm) scale3d(2,2,2); font-family: emoji;">☀️</div>
+
+  <!-- Title (renders for web visitors as a transparent banner) -->
+  <marquee id="mngttl1" style="transform: translate3d(0cm, 270cm, -55cm) scale3d(1.8,1.8,1.8); color: rgb(255,255,255);">~ menagerie ~</marquee>
+</body>
+</html>
