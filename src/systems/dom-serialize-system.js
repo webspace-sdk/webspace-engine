@@ -7,6 +7,7 @@ import { almostEqualVec3, almostEqualQuaternion } from "../utils/three-utils";
 import { parseTransformIntoThree } from "../utils/world-importer";
 import { STACK_AXIS_CSS_NAMES } from "./transform-selected-object";
 import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
+import { SPLAT_CONTENT_TYPE } from "../utils/splat-loader";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
 
 import Color from "color";
@@ -62,7 +63,7 @@ const tagTypeForEl = el => {
     return "embed";
   }
 
-  if (el.components["media-vox"] || el.components["gltf-model-plus"]) {
+  if (el.components["media-vox"] || el.components["gltf-model-plus"] || el.components["media-splat"]) {
     return "model";
   }
 
@@ -152,6 +153,10 @@ const updateDomElForEl = (domEl, el) => {
 
   if (el.components["gltf-model-plus"]) {
     setAttributeIfChanged(domEl, "type", "model/gltf-binary");
+  }
+
+  if (el.components["media-splat"]) {
+    setAttributeIfChanged(domEl, "type", SPLAT_CONTENT_TYPE);
   }
 
   if (el.components["media-text"]) {
@@ -408,7 +413,12 @@ export class DomSerializeSystem {
     }
   }
 
-  onComponentChangedOrTransformed({ target }) {
+  onComponentChangedOrTransformed({ type, target }) {
+    if (type !== "componentchanged") {
+      // A person moved or scaled it, so its pose is authored again
+      SYSTEMS.liveDomSystem.releaseScriptPose(target);
+    }
+
     this.enqueueFlushOf(target);
   }
 
@@ -433,7 +443,8 @@ export class DomSerializeSystem {
       const object3D = el.object3D;
       const hasDirtyMatrix = object3D.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.DOM_SERIALIZER);
 
-      if (hasDirtyMatrix) {
+      // Script-driven poses already live in the document (see LiveDomSystem)
+      if (hasDirtyMatrix && !SYSTEMS.liveDomSystem.isScriptPosed(el)) {
         this.enqueueFlushOf(el);
       }
     }
@@ -445,9 +456,11 @@ export class DomSerializeSystem {
   }
 
   flush() {
-    for (const el of this.pending) {
-      this.flushEl(el);
-    }
+    SYSTEMS.liveDomSystem.engineWrite(() => {
+      for (const el of this.pending) {
+        this.flushEl(el);
+      }
+    });
 
     this.pending.clear();
   }
@@ -477,12 +490,14 @@ export class DomSerializeSystem {
   }
 
   removeFromDOM(el) {
-    for (const domEl of document.body.children) {
-      if (el.id.endsWith(domEl.id)) {
-        domEl.remove();
-        break;
+    SYSTEMS.liveDomSystem.engineWrite(() => {
+      for (const domEl of document.body.children) {
+        if (el.id.endsWith(domEl.id)) {
+          domEl.remove();
+          break;
+        }
       }
-    }
+    });
   }
 
   shouldIncludeMediaElInDom(el) {

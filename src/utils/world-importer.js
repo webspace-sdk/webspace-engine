@@ -300,6 +300,8 @@ export default class WorldImporter {
         if (mediaBackgroundColor) {
           mediaOptions.backgroundColor = mediaBackgroundColor;
         }
+      } else if (["SCRIPT", "STYLE", "TEMPLATE", "NOSCRIPT", "LINK", "META"].includes(tagName)) {
+        continue;
       } else {
         // Unknown
         console.warn(`Unknown tag ${tagName} in webspace ${el.outerHTML}`);

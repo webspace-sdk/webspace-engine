@@ -13,6 +13,7 @@ import {
 import { guessContentType, isWebspaceUrl } from "../utils/media-url-utils";
 import { parseUrlAndCheckRelative } from "../utils/url-utils";
 import { addAnimationComponents } from "../utils/animation";
+import { SPLAT_CONTENT_TYPE, isSplatUrl } from "../utils/splat-loader";
 
 import { SOUND_MEDIA_LOADING, SOUND_MEDIA_LOADED } from "../systems/sound-effects-system";
 import { disposeExistingMesh, disposeNode } from "../utils/three-utils";
@@ -380,13 +381,13 @@ AFRAME.registerComponent("media-loader", {
           contentUrl = preflightResponse.contentUrl;
           accessibleContentUrl = preflightResponse.accessibleContentUrl;
           accessibleContentAudioUrl = preflightResponse.accessibleContentAudioUrl;
-        } catch (e) { // eslint-disable-line
+        } catch (e) {
+          // eslint-disable-line
           console.error("Failed to resolve media URL:", e);
 
           // If this was a YouTube URL that failed to resolve, don't try to load it
           // as a video (which would freeze). Instead, show an error.
-          const isYouTubeUrl =
-            parsedUrl.origin.endsWith("youtube.com") || parsedUrl.origin.endsWith("youtu.be");
+          const isYouTubeUrl = parsedUrl.origin.endsWith("youtube.com") || parsedUrl.origin.endsWith("youtu.be");
 
           if (isYouTubeUrl) {
             console.error("YouTube video resolution failed, cannot load video");
@@ -422,7 +423,8 @@ AFRAME.registerComponent("media-loader", {
           } catch (e) {
             try {
               parsedAccessibleContentUrl = new URL(accessibleContentUrl, document.location.href);
-            } catch (e) { // eslint-disable-line
+            } catch (e) {
+              // eslint-disable-line
             }
           }
 
@@ -632,6 +634,18 @@ AFRAME.registerComponent("media-loader", {
             this.onMediaLoaded(SHAPE.BOX);
           },
           { once: true }
+        );
+      } else if (
+        contentType.startsWith(SPLAT_CONTENT_TYPE) ||
+        (isSplatUrl(src) && !contentType.startsWith("model/gltf"))
+      ) {
+        // Gaussian splats keep their native scale: captures are authored in real-world units.
+        this.el.addEventListener("model-loaded", () => this.onMediaLoaded(null, false), { once: true });
+        this.el.addEventListener("model-error", this.onError, { once: true });
+        this.setToSingletonMediaComponent(
+          "media-splat",
+          Object.assign({}, this.data.mediaOptions, { src: accessibleContentUrl }),
+          mediaSrcChanged
         );
       } else if (
         contentType.includes("application/octet-stream") ||

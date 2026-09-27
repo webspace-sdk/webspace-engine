@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 //const RemoveUnusedFilesWebpackPlugin = require("remove-unused-files-webpack-plugin").default;
 const webpack = require("webpack");
+const TerserPlugin = require("terser-webpack-plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const TOML = require("@iarna/toml");
 const fetch = require("node-fetch");
@@ -197,6 +198,10 @@ module.exports = async (env, argv) => {
           }
         });
       }
+    },
+    optimization: {
+      // Escape non-ASCII so the engine runs correctly even when a host serves it without a charset
+      minimizer: [new TerserPlugin({ terserOptions: { format: { ascii_only: true } } })]
     },
     performance: {
       // Ignore media and sourcemaps when warning about file size.

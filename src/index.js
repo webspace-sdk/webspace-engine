@@ -29,6 +29,7 @@ import "./components/text-button";
 import "./components/visibility-while-frozen";
 import "./components/networked-avatar";
 import "./components/media-views";
+import "./components/media-splat";
 import "./components/media-vox";
 import "./components/media-text";
 import "./components/media-emoji";
@@ -145,6 +146,7 @@ import { warmSerializeElement } from "./utils/serialize-element";
 import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "./utils/vr-caps-detect";
 import detectConcurrentLoad from "./utils/concurrent-load-detector";
 import qsTruthy from "./utils/qs_truthy";
+import { bindWebspaceApiToScene } from "./utils/webspace-api";
 
 random.use(seedrandom("base"));
 
@@ -845,6 +847,9 @@ async function patchUpManuallyAddedHtmlTags() {
     const el = document.body.children[iChild];
     const id = el.id;
 
+    // Scripts and other non-world tags are part of the document but not objects in the world
+    if (["SCRIPT", "STYLE", "TEMPLATE", "NOSCRIPT", "LINK", "META", "NAV"].includes(el.tagName)) continue;
+
     // Manually added tags are assumed to be the ones with bad ids
     if (!id || !id.match(/^[a-z0-9]{7}$/) || (id && seenIds.has(id))) {
       el.id = await getRandomIdForEl(el, iChild);
@@ -968,6 +973,7 @@ async function start() {
   const scene = DOM_ROOT.querySelector("a-scene");
 
   editRingManager.init(scene);
+  bindWebspaceApiToScene(scene);
 
   const sceneResize = scene.resize.bind(scene);
   const resize = function() {

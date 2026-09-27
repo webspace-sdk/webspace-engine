@@ -90,7 +90,8 @@ export const MEDIA_VIEW_COMPONENTS = [
   "media-pdf",
   "media-emoji",
   "media-canvas",
-  "gltf-model-plus"
+  "gltf-model-plus",
+  "media-splat"
 ];
 
 export const PAGABLE_MEDIA_VIEW_COMPONENTS = ["media-video", "media-pdf"];
