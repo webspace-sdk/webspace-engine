@@ -9,8 +9,10 @@ const RIGHT_HAND_OFFSET = new THREE.Matrix4().makeTranslation(0.025, -0.03, 0.12
 const m = new THREE.Matrix4();
 
 export class WebXRControllerDevice {
-  constructor(gamepad) {
+  constructor(gamepad, inputSource = null) {
     this.gamepad = gamepad;
+    // Runtimes may hand out a fresh Gamepad object per frame, so always read through the input source.
+    this.inputSource = inputSource;
 
     this.selector = `#player-${gamepad.hand}-controller`;
     this.rayObject = null;
@@ -22,6 +24,12 @@ export class WebXRControllerDevice {
     this.orientation = new THREE.Quaternion();
   }
   write(frame, xrFrame, referenceSpace) {
+    if (this.inputSource && this.inputSource.gamepad && this.inputSource.gamepad !== this.gamepad) {
+      const hand = this.gamepad.hand;
+      this.gamepad = this.inputSource.gamepad;
+      if (this.gamepad.hand === undefined) this.gamepad.hand = hand;
+    }
+
     if (!referenceSpace || !xrFrame || !this.gamepad) return;
 
     const hand = this.gamepad.hand || "right";
@@ -69,7 +77,11 @@ export class WebXRControllerDevice {
       frame.setValueType(path.axis.joyX, this.gamepad.axes[2]);
       frame.setValueType(path.axis.joyY, this.gamepad.axes[3]);
     }
-    this.rayObject = this.rayObject || document.querySelector(this.selector).object3D;
+    if (!this.rayObject) {
+      const rayEl = DOM_ROOT.querySelector(this.selector);
+      if (!rayEl) return;
+      this.rayObject = rayEl.object3D;
+    }
     this.rayObject.updateMatrixWorld();
     this.rayObjectRotation.setFromRotationMatrix(m.extractRotation(this.rayObject.matrixWorld));
 
@@ -79,7 +91,8 @@ export class WebXRControllerDevice {
 
     frame.setPose(path.pose, this.pose);
 
-    const pose = xrFrame.getPose(this.gamepad.targetRaySpace, referenceSpace);
+    const targetRaySpace = this.inputSource ? this.inputSource.targetRaySpace : this.gamepad.targetRaySpace;
+    const pose = xrFrame.getPose(targetRaySpace, referenceSpace);
 
     if (pose && pose.transform.position && pose.transform.orientation) {
       this.position.copy(pose.transform.position);

@@ -310,7 +310,7 @@ AFRAME.registerSystem("userinput", {
         }
       }
       if (e.gamepad.isWebXRGamepad) {
-        gamepadDevice = new WebXRControllerDevice(e.gamepad);
+        gamepadDevice = new WebXRControllerDevice(e.gamepad, e.targetRaySpace ? e : null);
       } else if (
         // HACK Firefox Nightly bug causes corrupt gamepad names for OpenVR, so do startsWith
         e.gamepad.id.startsWith("OpenVR Gamepad") ||

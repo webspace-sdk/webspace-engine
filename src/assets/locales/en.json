@@ -258,6 +258,7 @@
   "install.desktop": "Install App",
   "writeback.edit-world": "Edit World",
   "writeback.save-changes": "Save Changes",
+  "vr.enter": "Enter VR",
   "paused.info": "Audio-only mode.\nFocus to resume.",
   "chat.info": "Others are here. Press enter to chat.",
   "chat-log.join": "joined this World.",

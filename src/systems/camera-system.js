@@ -136,6 +136,10 @@ export class CameraSystem extends EventTarget {
     xrManager.updateCamera = function(camera) {
       if (camera !== scene.camera) return;
 
+      // An untransformed object shares its parent's matrixWorld by reference in our three fork. XR writes the
+      // head pose into the camera's matrices every frame, so it must own them, or the pose compounds each frame.
+      if (!camera.matrixIsModified) camera.updateMatrix();
+
       updateXRCamera(camera);
       const xrCamera = xrManager.getCamera(scene.camera);
       xrCamera.layers.mask = camera.layers.mask;
@@ -519,8 +523,19 @@ export class CameraSystem extends EventTarget {
       if (this.mode === CAMERA_MODE_FIRST_PERSON) {
         this.viewingCameraRotator.on = false;
         if (scene.is("vr-mode")) {
-          this.viewingCamera.object3DMap.camera.updateMatrices();
-          setMatrixWorld(this.avatarPOV.object3D, this.viewingCamera.object3DMap.camera.matrixWorld);
+          // In VR the headset supplies head height and orientation (local-floor), so the viewing rig stands at the
+          // avatar's feet and follows locomotion; the avatar's head then follows the headset.
+          this.avatarPOVRotator.on = false;
+          this.avatarRig.object3D.updateMatrices();
+          setMatrixWorld(this.viewingRig.object3D, this.avatarRig.object3D.matrixWorld);
+
+          // The camera's local matrix is the headset pose in the (local-floor) reference space, i.e. relative to
+          // the rig. Use it as the head's local transform; deriving it from world matrices would lag a frame
+          // behind locomotion and feed back into the rig.
+          const pov = this.avatarPOV.object3D;
+          const headPose = this.viewingCamera.object3DMap.camera.matrix;
+          headPose.decompose(pov.position, pov.quaternion, pov.scale);
+          pov.matrixNeedsUpdate = true;
         } else {
           this.avatarPOV.object3D.updateMatrices();
           setMatrixWorld(this.viewingRig.object3D, this.avatarPOV.object3D.matrixWorld);

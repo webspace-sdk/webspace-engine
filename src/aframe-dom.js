@@ -10,6 +10,7 @@ export default `
     <a-scene
         embedded
         loading-screen="enabled: false"
+        vr-mode-ui="enabled: false"
         effects
         hubs-systems
         capture-system

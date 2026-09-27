@@ -8,6 +8,7 @@
 // Everything else is the DOM: move objects by setting style.transform, listen for "click",
 // "pointerenter" and "pointerleave" on body elements, spawn objects by appending elements.
 import { posRotScaleToCssTransform } from "../systems/dom-serialize-system";
+import { isImmersiveVRSupported, enterImmersiveVR, exitImmersiveVR } from "./immersive";
 
 const STATE_CHANNEL = "webspace_state";
 
@@ -137,6 +138,16 @@ export const webspaceApi = Object.assign(new EventTarget(), {
   ready,
   player,
   state,
+  // Immersive VR/AR. enterVR must be called from a user gesture (e.g. a click handler).
+  xr: {
+    isSupported: isImmersiveVRSupported,
+    enterVR: enterImmersiveVR,
+    exitVR: exitImmersiveVR,
+    get isPresenting() {
+      const scene = window.AFRAME && AFRAME.scenes[0];
+      return !!(scene && scene.is("vr-mode"));
+    }
+  },
   get clientId() {
     return window.NAF ? NAF.clientId : null;
   }

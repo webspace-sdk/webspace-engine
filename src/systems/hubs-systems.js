@@ -181,7 +181,9 @@ AFRAME.registerSystem("hubs-systems", {
     this.stopUpdatingSelfAsync();
 
     const systems = AFRAME.scenes[0].systems;
-    systems.userinput.tick2();
+    // Controllers read their poses and gamepads from the current XR frame while presenting
+    const xr = this.el.renderer.xr;
+    systems.userinput.tick2(xr.isPresenting ? xr.getFrame() : null);
     systems.interaction.tick2();
 
     // We run this earlier in the frame so things have a chance to override properties run by animations

@@ -81,7 +81,7 @@ export function getQuill(networkId) {
     }
   };
 
-  DOM_ROOT.querySelector("#webspace-ui-wrap").appendChild(el);
+  (DOM_ROOT.querySelector("#webspace-ui-wrap") || DOM_ROOT).appendChild(el); // UI may be unmounted in VR
   const messages = getMessages();
 
   const quill = (quills[networkId] = {
