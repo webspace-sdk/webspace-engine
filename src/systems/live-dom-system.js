@@ -16,12 +16,25 @@ import WorldImporter, { parseTransformIntoThree } from "../utils/world-importer"
 import { docToPrettifiedHtml, webspaceHtmlToQuillHtml } from "../utils/dom-utils";
 import { htmlToDelta } from "../utils/quill-pool";
 import { isValidWorldId, NON_WORLD_TAGS } from "../utils/world-ids";
+import { paths } from "./userinput/paths";
 
 const CLICK_MAX_MOVE_PX = 6;
 const CLICK_MAX_MS = 500;
 
 const isWorldElement = node =>
   node && node.nodeType === Node.ELEMENT_NODE && node.parentNode === document.body && !NON_WORLD_TAGS.has(node.tagName);
+
+// Browser extensions, dev tools and third-party libraries also insert elements into <body> (overlays, helper
+// divs). Only elements in the world's vocabulary become objects: media tags always, and generic <div>/<a>
+// elements only when they're placed with a transform. Add data-webspace-ignore to opt any element out.
+const MEDIA_TAGS = new Set(["IMG", "VIDEO", "AUDIO", "EMBED", "MODEL", "LABEL", "MARQUEE"]);
+const PLACED_TAGS = new Set(["DIV", "A"]);
+
+const looksLikeWorldObject = el => {
+  if (el.hasAttribute("data-webspace-ignore")) return false;
+  if (MEDIA_TAGS.has(el.tagName)) return true;
+  return PLACED_TAGS.has(el.tagName) && /transform\s*:/.test(el.getAttribute("style") || "");
+};
 
 // The body child (world object) that contains a node, if any
 const worldElementOf = node => {
@@ -195,6 +208,18 @@ export class LiveDomSystem {
   processAttribute(record, fromEngine) {
     const el = record.target;
     const attr = record.attributeName;
+
+    // A script-made element that only now got a transform becomes an object
+    if (
+      !fromEngine &&
+      isWorldElement(el) &&
+      !this.importedNodes.has(el) &&
+      !(el.id && DOM_ROOT.getElementById(`naf-${el.id}`))
+    ) {
+      if (attr === "style" && looksLikeWorldObject(el)) this.pendingAdds.push(el);
+      return;
+    }
+
     if (!isWorldElement(el) || !el.id || attr === "id") return;
 
     const id = el.id;
@@ -224,7 +249,7 @@ export class LiveDomSystem {
 
   processBodyChildren(record) {
     for (const node of record.addedNodes) {
-      if (isWorldElement(node)) this.pendingAdds.push(node);
+      if (isWorldElement(node) && looksLikeWorldObject(node)) this.pendingAdds.push(node);
     }
 
     for (const node of record.removedNodes) {
@@ -363,6 +388,7 @@ export class LiveDomSystem {
     this.dirtyTextIds.clear();
 
     this.updateHover();
+    this.updateXRClicks();
   }
 
   importAdded(nodes) {
@@ -452,9 +478,32 @@ export class LiveDomSystem {
     this.scriptPosedEntities.delete(entity);
   }
 
+  // In VR, a trigger pull while a controller ray points at an object is a click.
+  updateXRClicks() {
+    if (!this.scene.is("vr-mode")) {
+      this.xrTriggerDown = null;
+      return;
+    }
+
+    const userinput = this.scene.systems.userinput;
+    const pressed =
+      !!userinput.get(paths.device.webxr.right.button.trigger.pressed) ||
+      !!userinput.get(paths.device.webxr.left.button.trigger.pressed);
+
+    if (pressed && !this.xrTriggerDown) {
+      this.xrTriggerDown = { t: performance.now(), target: this.hoveredDomEl };
+    } else if (!pressed && this.xrTriggerDown) {
+      const down = this.xrTriggerDown;
+      this.xrTriggerDown = null;
+      if (down.target && down.target === this.hoveredDomEl && performance.now() - down.t < 1000) {
+        this.dispatchPointerEvent(down.target, "click");
+      }
+    }
+  }
+
   updateHover() {
     const interaction = this.scene.systems.interaction;
-    let hovered = interaction && interaction.state.rightRemote.hovered;
+    let hovered = interaction && (interaction.state.rightRemote.hovered || interaction.state.leftRemote.hovered);
 
     while (hovered && !hovered.components?.["media-loader"] && hovered.parentEl) {
       hovered = hovered.parentEl;

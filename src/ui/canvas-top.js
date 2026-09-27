@@ -24,6 +24,7 @@ import { getPresetAsColorTuples } from "../utils/world-color-presets";
 import HubPermissionsPopup from "./hub-permissions-popup";
 import WritebackSetupPopup from "./writeback-setup-popup";
 import EnvironmentSettingsPopup from "./environment-settings-popup";
+import { isImmersiveVRSupported, enterImmersiveVR } from "../utils/immersive";
 
 const isMobile = AFRAME.utils.device.isMobile();
 
@@ -459,6 +460,13 @@ function CanvasTop(props) {
   const metadata = atomType === ATOM_TYPES.VOX ? window.APP.voxMetadata : hubMetadata;
   const [isSaveConfigurable, setIsSaveConfigurable] = useState(!atomAccessManager.isWritebackOpen);
   const [pwaAvailable, installPWA] = useInstallPWA();
+  const [vrSupported, setVrSupported] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    isImmersiveVRSupported().then(supported => live && setVrSupported(supported));
+    return () => (live = false);
+  }, []);
   const environmentSettingsButtonRef = useRef();
   const hubPermissionsButtonRef = useRef();
   const hubSaveButtonRef = useRef();
@@ -545,10 +553,17 @@ function CanvasTop(props) {
 
   const showInstallButton = !showSaveButton && pwaAvailable;
   const isSpatial = projectionType === PROJECTION_TYPES.SPATIAL;
+  const vrButton = isSpatial &&
+    vrSupported && (
+      <CornerButton onClick={enterImmersiveVR}>
+        <FormattedMessage id="vr.enter" />
+      </CornerButton>
+    );
 
   if (!isInspecting && !isMobile) {
     cornerButtons = (
       <CornerButtons>
+        {vrButton}
         {showInstallButton && (
           <CornerButton onClick={installPWA}>
             <FormattedMessage id="install.desktop" />
@@ -606,6 +621,7 @@ function CanvasTop(props) {
   } else {
     cornerButtons = (
       <CornerButtons>
+        {!isInspecting && vrButton}
         {cameraSystem.allowCursor && <CameraProjectionButton />}
         {cameraSystem.allowCursor && <ToggleWorldButton />}
         {cameraSystem.allowCursor && <ToggleFloorButton />}

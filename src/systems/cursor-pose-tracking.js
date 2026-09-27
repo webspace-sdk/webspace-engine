@@ -13,10 +13,10 @@ export class CursorPoseTrackingSystem {
       const matrix = AFRAME.scenes[0].systems.userinput.get(this.pairs[i].path);
       if (matrix) {
         const o = this.pairs[i].object3D;
-        o.matrix.copy(matrix);
-        o.matrix.decompose(o.position, o.quaternion, o.scale);
-        o.matrixIsModified = true;
-        o.matrixWorldNeedsUpdate = true;
+        matrix.decompose(o.position, o.quaternion, o.scale);
+        // updateMatrix() (rather than just flagging matrixIsModified) gives the object its own matrixWorld: until
+        // then it shares its parent's by reference, and writing the pose into it would move the whole avatar rig.
+        o.updateMatrix();
       }
     }
   }

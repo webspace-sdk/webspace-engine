@@ -689,6 +689,8 @@ function setupVREventHandlers(scene, availableVREntryTypesPromise) {
   );
 
   scene.addEventListener("exit-vr", () => {
+    scene.removeState("vr-entered");
+    scene.systems.effects.disableEffects = false;
     UI.classList.remove("vr-mode");
     UI.classList.remove("vr-mode-stretch");
 

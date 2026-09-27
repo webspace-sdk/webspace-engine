@@ -9,8 +9,10 @@ const RIGHT_HAND_OFFSET = new THREE.Matrix4().makeTranslation(0.025, -0.03, 0.12
 const m = new THREE.Matrix4();
 
 export class WebXRControllerDevice {
-  constructor(gamepad) {
+  constructor(gamepad, inputSource = null) {
     this.gamepad = gamepad;
+    // Runtimes may hand out a fresh Gamepad object per frame, so always read through the input source.
+    this.inputSource = inputSource;
 
     this.selector = `#player-${gamepad.hand}-controller`;
     this.rayObject = null;
@@ -21,19 +23,29 @@ export class WebXRControllerDevice {
     this.position = new THREE.Vector3();
     this.orientation = new THREE.Quaternion();
   }
-  write(frame, scene, referenceSpace) {
-    if (!referenceSpace || !this.gamepad || !this.gamepad.connected) return;
+  write(frame, xrFrame, referenceSpace) {
+    if (this.inputSource && this.inputSource.gamepad && this.inputSource.gamepad !== this.gamepad) {
+      const hand = this.gamepad.hand;
+      this.gamepad = this.inputSource.gamepad;
+      if (this.gamepad.hand === undefined) this.gamepad.hand = hand;
+    }
+
+    if (!referenceSpace || !xrFrame || !this.gamepad) return;
 
     const hand = this.gamepad.hand || "right";
     const path = paths.device.webxr[hand];
 
-    frame.setValueType(path.button.trigger.pressed, this.gamepad.buttons[0].pressed);
-    frame.setValueType(path.button.trigger.touched, this.gamepad.buttons[0].touched);
-    frame.setValueType(path.button.trigger.value, this.gamepad.buttons[0].value);
+    if (this.gamepad.buttons[0]) {
+      frame.setValueType(path.button.trigger.pressed, this.gamepad.buttons[0].pressed);
+      frame.setValueType(path.button.trigger.touched, this.gamepad.buttons[0].touched);
+      frame.setValueType(path.button.trigger.value, this.gamepad.buttons[0].value);
+    }
 
-    frame.setValueType(path.button.grip.pressed, this.gamepad.buttons[1].pressed);
-    frame.setValueType(path.button.grip.touched, this.gamepad.buttons[1].touched);
-    frame.setValueType(path.button.grip.value, this.gamepad.buttons[1].value);
+    if (this.gamepad.buttons[1]) {
+      frame.setValueType(path.button.grip.pressed, this.gamepad.buttons[1].pressed);
+      frame.setValueType(path.button.grip.touched, this.gamepad.buttons[1].touched);
+      frame.setValueType(path.button.grip.value, this.gamepad.buttons[1].value);
+    }
 
     if (this.gamepad.buttons[2]) {
       frame.setValueType(path.button.touchpad.pressed, this.gamepad.buttons[2].pressed);
@@ -59,12 +71,17 @@ export class WebXRControllerDevice {
       frame.setValueType(path.button.b.value, this.gamepad.buttons[5].value);
     }
 
-    frame.setValueType(path.axis.touchpadX, this.gamepad.axes[0]);
-    frame.setValueType(path.axis.touchpadY, this.gamepad.axes[1]);
-    frame.setValueType(path.axis.joyX, this.gamepad.axes[2]);
-    frame.setValueType(path.axis.joyY, this.gamepad.axes[3]);
-
-    this.rayObject = this.rayObject || DOM_ROOT.querySelector(this.selector).object3D;
+    if (this.gamepad.axes.length >= 4) {
+      frame.setValueType(path.axis.touchpadX, this.gamepad.axes[0]);
+      frame.setValueType(path.axis.touchpadY, this.gamepad.axes[1]);
+      frame.setValueType(path.axis.joyX, this.gamepad.axes[2]);
+      frame.setValueType(path.axis.joyY, this.gamepad.axes[3]);
+    }
+    if (!this.rayObject) {
+      const rayEl = DOM_ROOT.querySelector(this.selector);
+      if (!rayEl) return;
+      this.rayObject = rayEl.object3D;
+    }
     this.rayObject.updateMatrixWorld();
     this.rayObjectRotation.setFromRotationMatrix(m.extractRotation(this.rayObject.matrixWorld));
 
@@ -74,7 +91,8 @@ export class WebXRControllerDevice {
 
     frame.setPose(path.pose, this.pose);
 
-    const pose = scene.frame.getPose(this.gamepad.targetRaySpace, referenceSpace);
+    const targetRaySpace = this.inputSource ? this.inputSource.targetRaySpace : this.gamepad.targetRaySpace;
+    const pose = xrFrame.getPose(targetRaySpace, referenceSpace);
 
     if (pose && pose.transform.position && pose.transform.orientation) {
       this.position.copy(pose.transform.position);

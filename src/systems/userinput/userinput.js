@@ -20,30 +20,16 @@ import { AppAwareTouchscreenDevice } from "./devices/app-aware-touchscreen";
 import { keyboardMouseUserBindings } from "./bindings/keyboard-mouse-user";
 import { touchscreenUserBindings } from "./bindings/touchscreen-user";
 import { keyboardDebuggingBindings } from "./bindings/keyboard-debugging";
-import { oculusTouchUserBindings } from "./bindings/oculus-touch-user";
 import { webXRUserBindings } from "./bindings/webxr-user";
-import {
-  viveUserBindings,
-  viveWandUserBindings,
-  indexUserBindings,
-  viveFocusPlusUserBindings,
-  viveCosmosUserBindings
-} from "./bindings/vive-user";
-import { wmrUserBindings } from "./bindings/windows-mixed-reality-user";
 import { xboxControllerUserBindings } from "./bindings/xbox-controller-user";
-import { daydreamUserBindings } from "./bindings/daydream-user";
 import { cardboardUserBindings } from "./bindings/cardboard-user";
 
-import generate3DOFTriggerBindings from "./bindings/oculus-go-user";
 import { resolveActionSets } from "./resolve-action-sets";
 import { GamepadDevice } from "./devices/gamepad";
 import { gamepadBindings } from "./bindings/generic-gamepad";
 import { getAvailableVREntryTypes, VR_DEVICE_AVAILABILITY } from "../../utils/vr-caps-detect";
 import { hackyMobileSafariTest } from "../../utils/detect-touchscreen";
 import { ArrayBackedSet } from "./array-backed-set";
-
-const oculusGoUserBindings = generate3DOFTriggerBindings(paths.device.oculusgo);
-const gearVRControllerUserBindings = generate3DOFTriggerBindings(paths.device.gearVRController);
 
 function arrayContentsDiffer(a, b) {
   if (a.length !== b.length) return true;
@@ -204,30 +190,33 @@ AFRAME.registerSystem("userinput", {
 
   init() {
     this.frame = {
-      values: new Map(),
+      generation: 0,
+      values: {},
+      generations: {},
       get: function(path) {
-        return this.values.get(path);
+        if (this.generations[path] !== this.generation) return undefined;
+        return this.values[path];
       },
       setValueType: function(path, value) {
-        this.values.set(path, value);
+        this.values[path] = value;
+        this.generations[path] = this.generation;
       },
       setVector2: function(path, a, b) {
-        const value = this.values.get(path) || [];
+        const value = this.values[path] || [];
         value[0] = a;
         value[1] = b;
-        this.values.set(path, value);
+        this.values[path] = value;
+        this.generations[path] = this.generation;
       },
       setPose: function(path, pose) {
         this.setValueType(path, pose);
       },
       setMatrix4: function(path, mat4) {
         // Should we assume the incoming mat4 is safe to store instead of copying values?
-        const value = this.values.get(path) || new THREE.Matrix4();
+        const value = this.values[path] || new THREE.Matrix4();
         value.copy(mat4);
-        this.values.set(path, value);
-      },
-      clear: function() {
-        this.values.clear();
+        this.values[path] = value;
+        this.generations[path] = this.generation;
       }
     };
 
@@ -242,12 +231,12 @@ AFRAME.registerSystem("userinput", {
     const forceEnableTouchscreen = hackyMobileSafariTest();
 
     if (!(isMobile || isMobileVR || forceEnableTouchscreen)) {
-      this.activeDevices.add(new KeyboardDevice());
       this.activeDevices.add(new MouseDevice());
       this.activeDevices.add(new AppAwareMouseDevice());
-    } else if (!isMobileVR || forceEnableTouchscreen) {
       this.activeDevices.add(new KeyboardDevice());
+    } else if (!isMobileVR || forceEnableTouchscreen) {
       this.activeDevices.add(new AppAwareTouchscreenDevice());
+      this.activeDevices.add(new KeyboardDevice());
       this.activeDevices.add(new GyroDevice());
     }
 
@@ -258,44 +247,11 @@ AFRAME.registerSystem("userinput", {
     this.registeredMappingsChanged = true;
 
     const vrGamepadMappings = new Map();
-    vrGamepadMappings.set(WindowsMixedRealityControllerDevice, wmrUserBindings);
-    vrGamepadMappings.set(ViveControllerDevice, viveUserBindings);
-    vrGamepadMappings.set(OculusTouchControllerDevice, oculusTouchUserBindings);
-    vrGamepadMappings.set(OculusGoControllerDevice, oculusGoUserBindings);
-    vrGamepadMappings.set(GearVRControllerDevice, gearVRControllerUserBindings);
-    vrGamepadMappings.set(DaydreamControllerDevice, daydreamUserBindings);
     vrGamepadMappings.set(WebXRControllerDevice, webXRUserBindings);
 
     const nonVRGamepadMappings = new Map();
     nonVRGamepadMappings.set(XboxControllerDevice, xboxControllerUserBindings);
     nonVRGamepadMappings.set(GamepadDevice, gamepadBindings);
-
-    const addExtraMappings = activeDevice => {
-      if (activeDevice instanceof ViveControllerDevice && activeDevice.gamepad) {
-        if (activeDevice.gamepad.id === "OpenVR Cosmos") {
-          //HTC Vive Cosmos Controller
-          this.registeredMappings.add(viveCosmosUserBindings);
-        } else if (activeDevice.gamepad.id === "HTC Vive Focus Plus Controller") {
-          //HTC Vive Focus Plus Controller
-          this.registeredMappings.add(viveFocusPlusUserBindings);
-        } else if (activeDevice.gamepad.axes.length === 4) {
-          //Valve Index Controller
-          this.registeredMappings.add(indexUserBindings);
-        } else {
-          //HTC Vive Controller (wands)
-          this.registeredMappings.add(viveWandUserBindings);
-        }
-      }
-    };
-
-    const deleteExtraMappings = activeDevice => {
-      if (activeDevice instanceof ViveControllerDevice && activeDevice.gamepad) {
-        this.registeredMappings.delete(viveCosmosUserBindings);
-        this.registeredMappings.delete(viveFocusPlusUserBindings);
-        this.registeredMappings.delete(indexUserBindings);
-        this.registeredMappings.delete(viveWandUserBindings);
-      }
-    };
 
     const updateBindingsForVRMode = () => {
       const inVRMode = this.el.sceneEl.is("vr-mode");
@@ -312,7 +268,6 @@ AFRAME.registerSystem("userinput", {
           const activeDevice = this.activeDevices.items[i];
           const mapping = vrGamepadMappings.get(activeDevice.constructor);
           mapping && this.registeredMappings.add(mapping);
-          addExtraMappings(activeDevice);
         }
 
         // Handle cardboard by looking of VR device caps
@@ -329,7 +284,6 @@ AFRAME.registerSystem("userinput", {
         // remove mappings for all active VR input devices
         for (let i = 0; i < this.activeDevices.items.length; i++) {
           const activeDevice = this.activeDevices.items[i];
-          deleteExtraMappings(activeDevice);
           this.registeredMappings.delete(vrGamepadMappings.get(activeDevice.constructor));
         }
         this.registeredMappings.add(
@@ -356,7 +310,7 @@ AFRAME.registerSystem("userinput", {
         }
       }
       if (e.gamepad.isWebXRGamepad) {
-        gamepadDevice = new WebXRControllerDevice(e.gamepad);
+        gamepadDevice = new WebXRControllerDevice(e.gamepad, e.targetRaySpace ? e : null);
       } else if (
         // HACK Firefox Nightly bug causes corrupt gamepad names for OpenVR, so do startsWith
         e.gamepad.id.startsWith("OpenVR Gamepad") ||
@@ -391,7 +345,16 @@ AFRAME.registerSystem("userinput", {
     const gamepadDisconnected = e => {
       for (let i = 0; i < this.activeDevices.items.length; i++) {
         const device = this.activeDevices.items[i];
-        if (device.gamepad && device.gamepad.index === e.gamepad.index) {
+        // WebXR gamepads all have index -1, so match XR devices by their input source
+        const matches = device.inputSource
+          ? device.inputSource === e
+          : !!(
+              device.gamepad &&
+              e.gamepad &&
+              !device.gamepad.isWebXRGamepad &&
+              device.gamepad.index === e.gamepad.index
+            );
+        if (matches) {
           this.registeredMappings.delete(
             vrGamepadMappings.get(device.constructor) || nonVRGamepadMappings.get(device.constructor)
           );
@@ -409,8 +372,13 @@ AFRAME.registerSystem("userinput", {
       gamepad && gamepadConnected({ gamepad });
     }
 
-    const retrieveXRGamepads = ({ session }) => {
-      for (const inputSource of session.inputSources) {
+    const retrieveXRGamepads = ({ added, removed }) => {
+      for (const inputSource of removed) {
+        gamepadDisconnected(inputSource);
+      }
+      for (const inputSource of added) {
+        // Hands and transient pointers (e.g. Vision Pro's gaze-and-pinch) may have no gamepad
+        if (!inputSource.gamepad) continue;
         inputSource.gamepad.isWebXRGamepad = true;
         inputSource.gamepad.targetRaySpace = inputSource.targetRaySpace;
         inputSource.gamepad.primaryProfile = inputSource.profiles[0];
@@ -431,7 +399,12 @@ AFRAME.registerSystem("userinput", {
         xrSession.requestReferenceSpace("local-floor").then(referenceSpace => {
           this.xrReferenceSpace = referenceSpace;
         });
-        retrieveXRGamepads({ session: xrSession });
+        xrSession.addEventListener("end", () => {
+          this.xrReferenceSpace = null;
+          this.activeDevices.items
+            .filter(d => d.inputSource || (d.gamepad && d.gamepad.isWebXRGamepad))
+            .forEach(d => gamepadDisconnected(d.inputSource || d));
+        });
       }
       updateBindingsForVRMode();
     });
@@ -462,8 +435,8 @@ AFRAME.registerSystem("userinput", {
     }
   },
 
-  tick2() {
-    this.frame.clear();
+  tick2(xrFrame) {
+    this.frame.generation += 1;
     const registeredMappingsChanged = this.registeredMappingsChanged;
     if (registeredMappingsChanged) {
       this.registeredMappingsChanged = false;
@@ -508,7 +481,7 @@ AFRAME.registerSystem("userinput", {
     }
 
     for (let i = 0; i < this.activeDevices.items.length; i++) {
-      this.activeDevices.items[i].write(this.frame, this.el.sceneEl, this.xrReferenceSpace);
+      this.activeDevices.items[i].write(this.frame, xrFrame, this.xrReferenceSpace);
     }
 
     for (let i = 0; i < this.sortedBindings.length; i++) {
