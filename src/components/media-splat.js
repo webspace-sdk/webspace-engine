@@ -221,7 +221,8 @@ const tmpModelView = new THREE.Matrix4();
 AFRAME.registerComponent("media-splat", {
   schema: {
     src: { type: "string" },
-    opacity: { default: 1.0 }
+    opacity: { default: 1.0 },
+    blend: { type: "string", default: "normal" } // CSS mix-blend-mode
   },
 
   init() {
@@ -231,12 +232,17 @@ AFRAME.registerComponent("media-splat", {
     this.sortInFlight = false;
     this.lastSortRow = new Float32Array(4).fill(NaN);
     this.spareOrder = null;
+    this.skipDistanceDelay = true;
     SYSTEMS.mediaPresenceSystem.registerMediaComponent(this);
   },
 
   update(oldData) {
     if (this.mesh && oldData.opacity !== this.data.opacity) {
       this.mesh.material.uniforms.opacity.value = this.data.opacity;
+    }
+
+    if (this.mesh && oldData.blend !== this.data.blend) {
+      this.applyBlend(this.mesh.material);
     }
 
     if (oldData.src !== this.data.src && this.data.src) {
@@ -346,6 +352,8 @@ AFRAME.registerComponent("media-splat", {
       side: THREE.DoubleSide
     });
 
+    this.applyBlend(material);
+
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
     mesh.renderOrder = RENDER_ORDER.MEDIA;
@@ -369,6 +377,12 @@ AFRAME.registerComponent("media-splat", {
       camera.updateMatrixWorld();
       this.requestSort(camera);
     }
+  },
+
+  applyBlend(material) {
+    const additive = ["plus-lighter", "screen", "lighten", "color-dodge"].includes(this.data.blend);
+    material.blending = additive ? THREE.AdditiveBlending : THREE.NormalBlending;
+    material.needsUpdate = true;
   },
 
   onBeforeRender(renderer, camera) {

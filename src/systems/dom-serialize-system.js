@@ -156,7 +156,10 @@ const updateDomElForEl = (domEl, el) => {
   }
 
   if (el.components["media-splat"]) {
+    const { blend, opacity } = el.components["media-splat"].data;
     setAttributeIfChanged(domEl, "type", SPLAT_CONTENT_TYPE);
+    if (blend && blend !== "normal") style += `mix-blend-mode: ${blend}; `;
+    if (opacity !== 1) style += `opacity: ${+opacity.toFixed(3)}; `;
   }
 
   if (el.components["media-text"]) {
@@ -193,7 +196,7 @@ const updateDomElForEl = (domEl, el) => {
         try {
           Color(backgroundColor);
           style += `background-color: ${backgroundColor}; `;
-        } catch (e) { } // eslint-disable-line
+        } catch (e) {} // eslint-disable-line
       }
     }
 

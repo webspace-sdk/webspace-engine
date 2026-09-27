@@ -14,7 +14,7 @@ const transformUnitToMeters = s => {
   }
 
   if (s.endsWith("mm")) {
-    return parseFloat(s.replaceAll("mm", "")) / 10000.0;
+    return parseFloat(s.replaceAll("mm", "")) / 1000.0;
   }
 
   return 0.0;
@@ -34,7 +34,40 @@ const transformUnitToRadians = s => {
   return 0.0;
 };
 
+// The canonical form the engine writes. Anything else (rotateX(), rotateY(), matrix3d(), several functions...)
+// is handed to the browser's own CSS transform parser.
+const CANONICAL_TRANSFORM = /^\s*(translate3d\([^)]*\)\s*)?(rotate3d\([^)]*\)\s*)?(scale3d\([^)]*\)\s*)?$/;
+const CSS_PX_PER_METER = 9600 / 2.54;
+const tmpCssMatrix = new THREE.Matrix4();
+const tmpCssPos = new THREE.Vector3();
+const tmpCssRot = new THREE.Quaternion();
+const tmpCssScale = new THREE.Vector3();
+
+const parseCssTransformWithDOMMatrix = (transform, pos, rot, scale) => {
+  const m = new DOMMatrix(transform);
+  const k = CSS_PX_PER_METER;
+  tmpCssMatrix.set(
+    m.m11, m.m21, m.m31, m.m41 / k,
+    m.m12, m.m22, m.m32, m.m42 / k,
+    m.m13, m.m23, m.m33, m.m43 / k,
+    m.m14, m.m24, m.m34, m.m44
+  ); // prettier-ignore
+  tmpCssMatrix.decompose(tmpCssPos, tmpCssRot, tmpCssScale);
+  if (pos !== null) pos.copy(tmpCssPos);
+  if (rot !== null) rot.copy(tmpCssRot);
+  if (scale !== null) scale.copy(tmpCssScale);
+};
+
 export const parseTransformIntoThree = (transform, pos = null, rot = null, scale = null) => {
+  if (transform && !CANONICAL_TRANSFORM.test(transform) && typeof DOMMatrix !== "undefined") {
+    try {
+      parseCssTransformWithDOMMatrix(transform, pos, rot, scale);
+      return;
+    } catch (e) {
+      console.warn(`Could not parse transform ${transform}`, e);
+    }
+  }
+
   const { translate3d, rotate3d, scale3d } = transformParse(transform);
 
   if (pos !== null) {
@@ -218,9 +251,13 @@ export default class WorldImporter {
           mediaOptions.index = page - 1;
         }
       } else if (tagName === "MODEL") {
-        // VOX or glTF
+        // VOX, glTF or Gaussian splats
         src = el.getAttribute("src");
         fitToBox = true;
+
+        // CSS compositing maps onto splats: mix-blend-mode: plus-lighter (or screen) makes them glow additively
+        if (style.mixBlendMode && style.mixBlendMode !== "normal") mediaOptions.blend = style.mixBlendMode;
+        if (style.opacity !== undefined && style.opacity !== "") mediaOptions.opacity = parseFloat(style.opacity);
       } else if (tagName === "VIDEO") {
         // Video
         src = el.getAttribute("src");
@@ -347,6 +384,10 @@ export default class WorldImporter {
       const { entity } = (transform ? addMedia : addMediaInFrontOfPlayer)(addMediaOptions);
 
       const object3D = entity.object3D;
+
+      if (el.hasAttribute("hidden")) {
+        object3D.visible = false;
+      }
 
       if (transform) {
         const pos = new THREE.Vector3();

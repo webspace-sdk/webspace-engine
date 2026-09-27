@@ -30,6 +30,7 @@ const CloudySkyShader = {
     up: { value: new Vector3(0, 1, 0) },
     hue: { value: 0.5 },
     sat: { value: 0.0 },
+    skyLightness: { value: 1.0 },
     time: { value: 0.0 }
   },
 
@@ -117,6 +118,7 @@ const CloudySkyShader = {
     "uniform vec3 up;",
     "uniform float time;",
     "uniform float hue;",
+    "uniform float skyLightness;",
     "uniform float sat;",
 
     "const vec3 cameraPos = vec3( 0.0, 0.0, 0.0 );",
@@ -325,6 +327,7 @@ const CloudySkyShader = {
     "float angle = hue * 3.14159265;\nfloat sh = sin(angle), ch = cos(angle);\nvec3 weights = (vec3(2.0 * ch, -sqrt(3.0) * sh - ch, sqrt(3.0) * sh - ch) + 1.0) / 3.0;\nfloat len = length(gl_FragColor.rgb);\ngl_FragColor.rgb = vec3(\ndot(gl_FragColor.rgb, weights.xyz),\ndot(gl_FragColor.rgb, weights.zxy),\ndot(gl_FragColor.rgb, weights.yzx)\n);\n",
     "  float average = (gl_FragColor.r + gl_FragColor.g + gl_FragColor.b) / 3.0;",
     "  gl_FragColor.rgb += (average - gl_FragColor.rgb) * (1.0 - 1.0 / (1.001 - sat));",
+    "  gl_FragColor.rgb *= skyLightness;",
     "}"
   ].join("\n")
 };
@@ -340,7 +343,8 @@ const FlatSkyShader = {
     up: { value: new Vector3(0, 1, 0) },
     time: { value: 0.0 },
     hue: { value: 0.5 },
-    sat: { value: 0.0 }
+    sat: { value: 0.0 },
+    skyLightness: { value: 1.0 }
   },
 
   vertexShader: [
@@ -422,6 +426,7 @@ const FlatSkyShader = {
     "varying vec3 vBetaM;",
     "varying float vSunE;",
     "uniform float hue;",
+    "uniform float skyLightness;",
     "uniform float sat;",
 
     "uniform float luminance;",
@@ -521,6 +526,7 @@ const FlatSkyShader = {
     "float angle = hue * 3.14159265;\nfloat sh = sin(angle), ch = cos(angle);\nvec3 weights = (vec3(2.0 * ch, -sqrt(3.0) * sh - ch, sqrt(3.0) * sh - ch) + 1.0) / 3.0;\nfloat len = length(gl_FragColor.rgb);\ngl_FragColor.rgb = vec3(\ndot(gl_FragColor.rgb, weights.xyz),\ndot(gl_FragColor.rgb, weights.zxy),\ndot(gl_FragColor.rgb, weights.yzx)\n);\n",
     "  float average = (gl_FragColor.r + gl_FragColor.g + gl_FragColor.b) / 3.0;",
     "  gl_FragColor.rgb += (average - gl_FragColor.rgb) * (1.0 - 1.0 / (1.001 - sat));",
+    "  gl_FragColor.rgb *= skyLightness;",
     "}"
   ].join("\n")
 };
@@ -564,6 +570,8 @@ class Sky extends Mesh {
     for (const mat of [this.highMaterial, this.lowMaterial]) {
       mat.uniforms.hue.value = hue * 2.0;
       mat.uniforms.sat.value = tmp2.s;
+      // Dark sky colors darken the sky (night worlds); everything else keeps the original daylight look
+      mat.uniforms.skyLightness.value = Math.min(1.0, Math.max(0.02, tmp2.l / 0.25));
       mat.uniformsNeedUpdate = true;
     }
   }

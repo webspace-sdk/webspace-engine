@@ -322,7 +322,15 @@ export class AtmosphereSystem {
   }
 
   updateSkyColor({ r, g, b }) {
-    this.sky.setColor(new THREE.Color(r, g, b));
+    const color = new THREE.Color(r, g, b);
+    this.sky.setColor(color);
+
+    // Night skies dim the world's lights too, but never so far that things can't be seen
+    const hsl = {};
+    color.getHSL(hsl);
+    const light = Math.min(1.0, Math.max(0.35, hsl.l / 0.25));
+    this.ambientLight.intensity = light;
+    this.sunLight.intensity = 5 * light;
   }
 
   updateWater(force) {

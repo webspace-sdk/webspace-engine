@@ -565,6 +565,10 @@ export async function getHubMetaFromDOM() {
       radius: getFloatFromMetaTags("environment.spawn_point.radius", 10)
     },
     world: {
+      // "off" gives a long view distance for big scenes (splat captures, skies); default is the short, cozy fog
+      fog: getStringFromMetaTags("environment.fog", "on") !== "off",
+      // "off" makes the world a plain plane instead of a wrapping torus
+      wrap: getStringFromMetaTags("environment.wrap", "on") !== "off",
       seed: getIntFromMetaTags("environment.terrain.seed", currentHubSeed),
       type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(getStringFromMetaTags("environment.terrain.type", "plains")),
       bark_color: getColorFromMetaTags("environment.terrain.colors.bark", defaultColors.bark_color),

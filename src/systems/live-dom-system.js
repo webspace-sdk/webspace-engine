@@ -39,7 +39,12 @@ const parseStyle = styleText => {
     const name = s[i];
     if (name !== "transform") decls.push(`${name}:${s.getPropertyValue(name)}`);
   }
-  return { transform: s.transform || "", rest: decls.sort().join(";") };
+  return {
+    transform: s.transform || "",
+    opacity: s.opacity,
+    mixBlendMode: s.mixBlendMode,
+    rest: decls.sort().join(";")
+  };
 };
 
 // True if two style attribute values describe the same world state (transforms compared numerically).
@@ -332,7 +337,14 @@ export class LiveDomSystem {
   applyToEntity(domEl, entity) {
     const object3D = entity.object3D;
 
-    const { transform } = parseStyle(domEl.getAttribute("style"));
+    const { transform, opacity, mixBlendMode } = parseStyle(domEl.getAttribute("style"));
+
+    if (entity.components["media-splat"]) {
+      entity.setAttribute("media-splat", {
+        opacity: opacity === "" ? 1 : parseFloat(opacity),
+        blend: mixBlendMode || "normal"
+      });
+    }
 
     if (transform) {
       parseTransformIntoThree(transform, tmpPos, tmpRot, tmpScale);

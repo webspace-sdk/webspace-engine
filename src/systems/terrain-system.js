@@ -384,6 +384,15 @@ export class TerrainSystem {
 
     this.updateWorldColors(...colors);
 
+    const hasFog = world.fog !== false;
+    const wraps = world.wrap !== false;
+
+    if (hasFog !== this.hasFog || wraps !== this.wraps) {
+      this.hasFog = hasFog;
+      this.wraps = wraps;
+      this.cameraSystem.updateCameraSettings();
+    }
+
     // Check if type or seed has changed.
     const { type, seed } = world;
 
@@ -844,7 +853,7 @@ export class TerrainSystem {
   }
 
   worldTypeHasFog() {
-    return true;
+    return this.hasFog !== false;
   }
 
   worldTypeDelaysMediaPresence() {
@@ -852,7 +861,7 @@ export class TerrainSystem {
   }
 
   worldTypeWraps() {
-    return true;
+    return this.wraps !== false;
   }
 
   worldTypeLODs() {
