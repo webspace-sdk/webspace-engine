@@ -7,6 +7,7 @@ import { almostEqualVec3, almostEqualQuaternion } from "../utils/three-utils";
 import { parseTransformIntoThree } from "../utils/world-importer";
 import { STACK_AXIS_CSS_NAMES } from "./transform-selected-object";
 import { VOX_CONTENT_TYPE } from "../utils/vox-utils";
+import { SPLAT_CONTENT_TYPE } from "../utils/splat-loader";
 import { WORLD_MATRIX_CONSUMERS } from "../utils/threejs-world-update";
 
 import Color from "color";
@@ -62,7 +63,7 @@ const tagTypeForEl = el => {
     return "embed";
   }
 
-  if (el.components["media-vox"] || el.components["gltf-model-plus"]) {
+  if (el.components["media-vox"] || el.components["gltf-model-plus"] || el.components["media-splat"]) {
     return "model";
   }
 
@@ -154,6 +155,13 @@ const updateDomElForEl = (domEl, el) => {
     setAttributeIfChanged(domEl, "type", "model/gltf-binary");
   }
 
+  if (el.components["media-splat"]) {
+    const { blend, opacity } = el.components["media-splat"].data;
+    setAttributeIfChanged(domEl, "type", SPLAT_CONTENT_TYPE);
+    if (blend && blend !== "normal") style += `mix-blend-mode: ${blend}; `;
+    if (opacity !== 1) style += `opacity: ${+opacity.toFixed(3)}; `;
+  }
+
   if (el.components["media-text"]) {
     const mediaText = el.components["media-text"];
     const { fitContent, foregroundColor, backgroundColor, transparent, font } = mediaText.data;
@@ -188,7 +196,7 @@ const updateDomElForEl = (domEl, el) => {
         try {
           Color(backgroundColor);
           style += `background-color: ${backgroundColor}; `;
-        } catch (e) { } // eslint-disable-line
+        } catch (e) {} // eslint-disable-line
       }
     }
 
@@ -338,7 +346,7 @@ const updateDomElForEl = (domEl, el) => {
   }
 };
 
-const MAX_ELS = 256;
+const MAX_ELS = 1024;
 
 export class DomSerializeSystem {
   constructor(scene) {
@@ -402,13 +410,22 @@ export class DomSerializeSystem {
 
     if (target.components["media-text"]) {
       const quill = SYSTEMS.mediaTextSystem.getQuill(target.components["media-text"]);
-      const handler = () => this.enqueueFlushOf(target);
+      const handler = (delta, oldDelta, source) => {
+        // A person typed: the contents are authored again, even if a script had changed them
+        if (source === "user") SYSTEMS.liveDomSystem.releaseInnerOverride(target.id.replace(/^naf-/, ""));
+        this.enqueueFlushOf(target);
+      };
       this.onQuillTextChanges.set(quill, handler);
       quill.on("text-change", handler);
     }
   }
 
-  onComponentChangedOrTransformed({ target }) {
+  onComponentChangedOrTransformed({ type, target }) {
+    if (type !== "componentchanged") {
+      // A person moved or scaled it, so its pose is authored again
+      SYSTEMS.liveDomSystem.releaseScriptPose(target);
+    }
+
     this.enqueueFlushOf(target);
   }
 
@@ -433,7 +450,8 @@ export class DomSerializeSystem {
       const object3D = el.object3D;
       const hasDirtyMatrix = object3D.consumeIfDirtyWorldMatrix(WORLD_MATRIX_CONSUMERS.DOM_SERIALIZER);
 
-      if (hasDirtyMatrix) {
+      // Script-driven poses already live in the document (see LiveDomSystem)
+      if (hasDirtyMatrix && !SYSTEMS.liveDomSystem.isScriptPosed(el)) {
         this.enqueueFlushOf(el);
       }
     }
@@ -445,9 +463,11 @@ export class DomSerializeSystem {
   }
 
   flush() {
-    for (const el of this.pending) {
-      this.flushEl(el);
-    }
+    SYSTEMS.liveDomSystem.engineWrite(() => {
+      for (const el of this.pending) {
+        this.flushEl(el);
+      }
+    });
 
     this.pending.clear();
   }
@@ -477,12 +497,14 @@ export class DomSerializeSystem {
   }
 
   removeFromDOM(el) {
-    for (const domEl of document.body.children) {
-      if (el.id.endsWith(domEl.id)) {
-        domEl.remove();
-        break;
+    SYSTEMS.liveDomSystem.engineWrite(() => {
+      for (const domEl of document.body.children) {
+        if (domEl.id && el.id === `naf-${domEl.id}`) {
+          domEl.remove();
+          break;
+        }
       }
-    }
+    });
   }
 
   shouldIncludeMediaElInDom(el) {

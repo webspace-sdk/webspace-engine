@@ -1,5 +1,6 @@
 import { getBlobForEmojiImage } from "./emojis";
 import { VOX_CONTENT_TYPE } from "./vox-utils";
+import { SPLAT_CONTENT_TYPE } from "./splat-loader";
 import basisTranscoderUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.js";
 import basisTranscoderWasmUrl from "!!url-loader!three/examples/js/libs/basis/basis_transcoder.wasm";
 import dracoWrapperJsUrl from "!!url-loader!three/examples/js/libs/draco/gltf/draco_wasm_wrapper.js";
@@ -19,7 +20,10 @@ const commonKnownContentTypes = {
   basis: "image/basis",
   m3u8: "application/vnd.apple.mpegurl",
   mpd: "application/dash+xml",
-  svox: VOX_CONTENT_TYPE
+  svox: VOX_CONTENT_TYPE,
+  spz: SPLAT_CONTENT_TYPE,
+  splat: SPLAT_CONTENT_TYPE,
+  ply: SPLAT_CONTENT_TYPE
 };
 
 export const isWorkerCorsProxyableContentType = contentType =>

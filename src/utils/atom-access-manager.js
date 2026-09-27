@@ -170,8 +170,13 @@ export default class AtomAccessManager extends EventTarget {
     this.mutationObserver = new MutationObserver(arr => {
       // Deal with mutations we ignore. <style> tags from styled-components is one.
       let sawUnignoredRecord = false;
+      const liveDom = window.SYSTEMS && SYSTEMS.liveDomSystem;
+      if (liveDom) liveDom.sync();
 
       for (const record of arr) {
+        // Changes made by page scripts are runtime state, not edits to the world
+        if (liveDom && liveDom.isRuntimeRecord(record)) continue;
+
         if (record.type === "attributes" || record.type === "characterData" || record.addedNodes.length > 0) {
           sawUnignoredRecord = true;
           break;
@@ -381,7 +386,8 @@ export default class AtomAccessManager extends EventTarget {
   }
 
   async writeDocument(doc, path = null) {
-    const html = docToPrettifiedHtml(doc);
+    const liveDom = window.SYSTEMS && SYSTEMS.liveDomSystem;
+    const html = liveDom ? liveDom.authoredHtml(doc) : docToPrettifiedHtml(doc);
 
     if (html && html.length > 0) {
       return await this.writeback.write(html, path);

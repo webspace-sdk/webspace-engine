@@ -178,7 +178,11 @@ export class MediaPresenceSystem {
           const networkId = getNetworkId(networkedEl);
           this.mediaComponents.set(networkId, component);
 
-          this.distanceDelayedNetworkIds.add(networkId);
+          // Environment-scale media (e.g. splat captures of places) is meant to be seen from afar
+          if (!component.skipDistanceDelay) {
+            this.distanceDelayedNetworkIds.add(networkId);
+          }
+
           this.updateDesiredMediaPresence(component.el);
         })
         .catch(() => {}); //ignore exception, entity might not be networked
