@@ -1,7 +1,7 @@
 import { hackyMobileSafariTest } from "./detect-touchscreen";
 
 // lifted from https://github.com/aframevr/aframe/blob/master/src/utils/device.js to ensure consistency
-function isIOS() {
+export function isIOS() {
   return /iPad|iPhone|iPod/.test(window.navigator.platform);
 }
 

@@ -3,8 +3,8 @@ import Sky from "../objects/sky";
 import Water from "../objects/water";
 import { Layers } from "../components/layers";
 import { RENDER_ORDER } from "../constants";
-import { getHubIdFromHistory } from "../utils/url-utils";
 import { SOUND_AMBIENCE } from "./sound-effects-system";
+import { getHubIdFromHistory } from "../utils/url-utils";
 
 const FOG_NEAR = 20.5;
 const FOG_SPAN = 1.5;
@@ -49,7 +49,7 @@ export class AtmosphereSystem {
     this.disableWaterPass = false;
 
     this.ambientLight = new THREE.AmbientLight(0xa0a0a0);
-    this.ambientLight.layers.enable(Layers.reflection);
+    this.ambientLight.layers.enable(Layers.CAMERA_LAYER_REFLECTION);
 
     this.sunLight = new THREE.DirectionalLight(0xa0a0a0, 5);
     this.sunLight.position.set(10.25, 10, 10.25);
@@ -64,7 +64,7 @@ export class AtmosphereSystem {
     this.sunLight.shadow.camera.near = 0.005;
     this.sunLight.shadow.camera.far = 20;
     this.sunLight.shadow.radius = 2;
-    this.sunLight.layers.enable(Layers.reflection);
+    this.sunLight.layers.enable(Layers.CAMERA_LAYER_REFLECTION);
     this.sunLight.renderOrder = RENDER_ORDER.LIGHTS;
 
     this.ambienceSoundSourceNode = null;
@@ -166,10 +166,11 @@ export class AtmosphereSystem {
     this.moveSunlight();
 
     // Disable effects for subrenders to water and/or sky
+    const effectsWereDisabled = this.effectsSystem.disableEffects;
     this.effectsSystem.disableEffects = true;
     this.sky.onAnimationTick({ delta: dt / 1000.0 });
     this.water.onAnimationTick({ delta: dt / 1000.0 });
-    this.effectsSystem.disableEffects = false;
+    this.effectsSystem.disableEffects = effectsWereDisabled;
     this.sunLight.castShadow = window.APP.detailLevel < 2;
 
     // If low quality is tripped, reduce shadow map size and distance

@@ -1,4 +1,5 @@
 import { detect } from "detect-browser";
+import { isIOS } from "./is-mobile";
 
 const browser = detect();
 
@@ -50,9 +51,10 @@ export async function getAvailableVREntryTypes() {
   // This needs to be kept up-to-date with the latest browsers that can support VR and Hubs.
   // Checking for navigator.getVRDisplays always passes b/c of polyfill.
   const isWebVRCapableBrowser = window.hasNativeWebVRImplementation;
+  const isWebXRCapableBrowser = window.hasNativeWebXRImplementation;
 
   const isDaydreamCapableBrowser = !!(isWebVRCapableBrowser && browser.name === "chrome" && !isSamsungBrowser);
-  const isIDevice = AFRAME.utils.device.isIOS();
+  const isIDevice = isIOS();
   const isFirefoxBrowser = browser.name === "firefox";
   const isUIWebView = typeof navigator.mediaDevices === "undefined";
 
@@ -130,6 +132,10 @@ export async function getAvailableVREntryTypes() {
       // If we didn't detect daydream in a daydream capable browser, we definitely can't run daydream at all.
       daydream = VR_DEVICE_AVAILABILITY.no;
     }
+  }
+
+  if (isWebXRCapableBrowser) {
+    generic = true;
   }
 
   return { screen, generic, gearvr, daydream, cardboard, safari };

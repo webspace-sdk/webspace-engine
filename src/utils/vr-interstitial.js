@@ -37,11 +37,11 @@ export async function handleExitTo2DInterstitial(isLower, exitAction, nonFullscr
     }
   } else {
     // Non-immersive browser, show notice
-    const vrNotice = DOM_ROOT.querySelector(".vr-notice");
-    vrNotice.object3D.visible = true;
-    vrNotice.setAttribute("follow-in-fov", {
-      angle: isLower ? 39 : -15
-    });
+    // const vrNotice = DOM_ROOT.querySelector(".vr-notice");
+    // vrNotice.object3D.visible = true;
+    // vrNotice.setAttribute("follow-in-fov", {
+    //   angle: isLower ? 39 : -15
+    // });
   }
 }
 
@@ -52,7 +52,7 @@ export async function exit2DInterstitialAndEnterVR(force) {
 
   _isIn2DInterstitial = false;
 
-  DOM_ROOT.querySelector(".vr-notice").object3D.visible = false;
+  // DOM_ROOT.querySelector(".vr-notice").object3D.visible = false;
 
   const scene = DOM_ROOT.querySelector("a-scene");
 

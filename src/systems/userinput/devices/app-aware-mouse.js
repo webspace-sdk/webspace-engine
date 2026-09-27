@@ -82,8 +82,9 @@ export class AppAwareMouseDevice {
       }
     }
 
-    this.transformSystem = this.transformSystem || AFRAME.scenes[0].systems["transform-selected-object"];
-    this.scaleSystem = this.scaleSystem || AFRAME.scenes[0].systems["scale-object"];
+    const scene = AFRAME.scenes[0];
+    this.transformSystem = this.transformSystem || scene.systems["transform-selected-object"];
+    this.scaleSystem = this.scaleSystem || scene.systems["scale-object"];
     const isTransforming =
       !!(this.transformSystem && this.transformSystem.transforming) ||
       !!(this.scaleSystem && this.scaleSystem.isScaling);
@@ -99,7 +100,7 @@ export class AppAwareMouseDevice {
     const inspectPanKey = frame.get(spaceKeyPath);
     const mouseLookKey = frame.get(shiftKeyPath) && !isInEditableField() && !isSnappableTransforming;
     const grabKey = frame.get(tabKeyPath);
-    const userinput = AFRAME.scenes[0].systems.userinput;
+    const userinput = scene.systems.userinput;
 
     if (((buttonRight && !this.prevButtonRight) || (grabKey && !this.prevGrabKey)) && this.cursorController) {
       const rawIntersections = [];
@@ -210,7 +211,7 @@ export class AppAwareMouseDevice {
 
     // The 3D cursor visibility is coordinated via CSS classes on the body.
     const show3DCursor = !!(
-      !AFRAME.scenes[0].is("pointer-exited") &&
+      !scene.is("pointer-exited") &&
       !isNonGrabTransforming &&
       !(isInspecting && isMouseLookingGesture) &&
       !this.isGrabbingForMove &&
@@ -252,7 +253,7 @@ export class AppAwareMouseDevice {
     // Move camera out of lock mode on LMB, or, in lock mode, when not holding something or
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
-      (cursorIsLocked && !this.isGrabbingForMove && !isNonGrabTransforming) ||
+      (!scene.xr?.isPresenting && (cursorIsLocked && !this.isGrabbingForMove && !isNonGrabTransforming)) ||
       (cursorIsLocked &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
         !isNonGrabTransforming) ||
