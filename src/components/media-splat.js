@@ -251,6 +251,7 @@ AFRAME.registerComponent("media-splat", {
   },
 
   remove() {
+    this.removed = true;
     this.disposeSplats();
     SYSTEMS.mediaPresenceSystem.unregisterMediaComponent(this);
   },
@@ -268,6 +269,9 @@ AFRAME.registerComponent("media-splat", {
     }
 
     this.loadedSrc = null;
+    this.sortInFlight = false;
+    this.hasSorted = false;
+    this.loadToken = (this.loadToken || 0) + 1; // invalidates any load still in flight
   },
 
   setMediaPresence(presence, refresh = false) {
@@ -296,13 +300,15 @@ AFRAME.registerComponent("media-splat", {
       }
 
       this.disposeSplats();
+      const token = this.loadToken;
+      const superseded = () => this.removed || token !== this.loadToken || this.data.src !== src;
 
       const res = await fetch(src);
       if (!res.ok) throw new Error(`Failed to fetch splats ${src}: ${res.status}`);
       const bytes = await res.arrayBuffer();
+      if (superseded()) return;
       const splats = await parseSplat(src, bytes);
-
-      if (this.data.src !== src) return; // Superseded while loading
+      if (superseded()) return; // Removed or src changed while loading
 
       this.buildMesh(splats);
       this.loadedSrc = src;
@@ -394,7 +400,9 @@ AFRAME.registerComponent("media-splat", {
 
     // Only the main camera drives the sort order (reflection and preview cameras would thrash it).
     const mainCamera = this.el.sceneEl.camera;
-    if (!mainCamera || camera === mainCamera || camera.parent === mainCamera) {
+    const xr = renderer.xr;
+    const isXrEye = xr && xr.isPresenting && xr.getCamera().cameras.includes(camera);
+    if (!mainCamera || camera === mainCamera || camera.parent === mainCamera || isXrEye) {
       this.requestSort(camera);
     }
   },

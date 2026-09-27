@@ -346,7 +346,7 @@ const updateDomElForEl = (domEl, el) => {
   }
 };
 
-const MAX_ELS = 256;
+const MAX_ELS = 1024;
 
 export class DomSerializeSystem {
   constructor(scene) {
@@ -410,7 +410,11 @@ export class DomSerializeSystem {
 
     if (target.components["media-text"]) {
       const quill = SYSTEMS.mediaTextSystem.getQuill(target.components["media-text"]);
-      const handler = () => this.enqueueFlushOf(target);
+      const handler = (delta, oldDelta, source) => {
+        // A person typed: the contents are authored again, even if a script had changed them
+        if (source === "user") SYSTEMS.liveDomSystem.releaseInnerOverride(target.id.replace(/^naf-/, ""));
+        this.enqueueFlushOf(target);
+      };
       this.onQuillTextChanges.set(quill, handler);
       quill.on("text-change", handler);
     }
@@ -495,7 +499,7 @@ export class DomSerializeSystem {
   removeFromDOM(el) {
     SYSTEMS.liveDomSystem.engineWrite(() => {
       for (const domEl of document.body.children) {
-        if (el.id.endsWith(domEl.id)) {
+        if (domEl.id && el.id === `naf-${domEl.id}`) {
           domEl.remove();
           break;
         }

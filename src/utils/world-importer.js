@@ -1,6 +1,7 @@
 import { addMedia, addMediaInFrontOfPlayer } from "./media-utils";
 import { parse as transformParse } from "transform-parser";
 import { ObjectContentOrigins } from "../object-types";
+import { isValidWorldId } from "./world-ids";
 import { ensureOwnership } from "./ownership-utils";
 import { FONT_FACES } from "./quill-utils";
 import { webspaceHtmlToQuillHtml } from "./dom-utils";
@@ -121,7 +122,7 @@ export default class WorldImporter {
 
     for (const el of doc.body.childNodes) {
       const id = el.id;
-      if (!id || id.length !== 7) continue; // Sanity check
+      if (!isValidWorldId(id)) continue; // Sanity check
 
       const existingEl = DOM_ROOT.getElementById(`naf-${id}`);
 
@@ -170,7 +171,7 @@ export default class WorldImporter {
 
     for (const el of doc.body.childNodes) {
       const id = el.id;
-      if (!id || id.length !== 7) continue; // Sanity check
+      if (!isValidWorldId(id)) continue; // Sanity check
       docEntityIds.add(`naf-${id}`);
     }
 
@@ -205,7 +206,7 @@ export default class WorldImporter {
 
     for (const el of doc.body.childNodes) {
       const id = el.id;
-      if (!id || id.length !== 7) continue; // Sanity check
+      if (!isValidWorldId(id)) continue; // Sanity check
       if (DOM_ROOT.getElementById(`naf-${id}`)) continue;
 
       const style = getStyle(el) || {};

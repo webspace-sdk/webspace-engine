@@ -71,18 +71,33 @@ class SharedState extends EventTarget {
     if (this.connected || !window.NAF || !NAF.connection) return;
     this.connected = true;
 
-    NAF.connection.subscribeToDataChannel(STATE_CHANNEL, (_type, { body }) => {
-      if (!body || !Array.isArray(body.entries)) return;
+    NAF.connection.subscribeToDataChannel(STATE_CHANNEL, (_type, { body }, fromClientId) => {
+      if (!body) return;
+
+      // A newcomer asking for everything we know
+      if (body.request) {
+        this.sendSnapshotTo(fromClientId);
+        return;
+      }
+
+      if (!Array.isArray(body.entries)) return;
       for (const [key, entry] of body.entries) {
         if (typeof key === "string" && entry && typeof entry.clock === "number") this.apply(key, entry);
       }
     });
 
-    // Bring newcomers up to date
-    document.body.addEventListener("clientConnected", ({ detail: { clientId } }) => {
-      if (this.entries.size === 0) return;
-      NAF.connection.sendCustomDataGuaranteed(STATE_CHANNEL, { body: { entries: [...this.entries] } }, clientId);
-    });
+    // Bring newcomers up to date (they also ask once their world is ready, in case this arrives too early)
+    document.body.addEventListener("clientConnected", ({ detail: { clientId } }) => this.sendSnapshotTo(clientId));
+  }
+
+  sendSnapshotTo(clientId) {
+    if (this.entries.size === 0 || !clientId) return;
+    NAF.connection.sendCustomDataGuaranteed(STATE_CHANNEL, { body: { entries: [...this.entries] } }, clientId);
+  }
+
+  requestSnapshot() {
+    if (!this.connected) return;
+    NAF.connection.broadcastCustomDataGuaranteed(STATE_CHANNEL, { body: { request: true } });
   }
 }
 
@@ -130,12 +145,17 @@ export const webspaceApi = Object.assign(new EventTarget(), {
 window.webspace = webspaceApi;
 
 export function bindWebspaceApiToScene(scene) {
+  // Listen for shared state right away: peers send their snapshot when we connect, which can be well
+  // before our own world (and its big media) has finished importing.
+  state.connect();
+
   const onState = () => {
     if (!scene.is("document-imported")) return;
     scene.removeEventListener("stateadded", onState);
     // Observe the document before world scripts run, so their first changes are seen
     if (window.SYSTEMS && SYSTEMS.liveDomSystem) SYSTEMS.liveDomSystem.start();
     state.connect();
+    state.requestSnapshot();
     resolveReady();
     webspaceApi.dispatchEvent(new CustomEvent("ready"));
   };
