@@ -253,7 +253,7 @@ export class AppAwareMouseDevice {
     // Move camera out of lock mode on LMB, or, in lock mode, when not holding something or
     // when holding something after panning past a certain FOV angle.
     const shouldMoveCamera =
-      (!scene.xr?.isPresenting && (cursorIsLocked && !this.isGrabbingForMove && !isNonGrabTransforming)) ||
+      (!scene.renderer?.xr?.isPresenting && (cursorIsLocked && !this.isGrabbingForMove && !isNonGrabTransforming)) ||
       (cursorIsLocked &&
         (Math.abs(this.lockClickCoordDelta[0]) > 0.2 || Math.abs(this.lockClickCoordDelta[1]) > 0.2) &&
         !isNonGrabTransforming) ||

@@ -12,7 +12,8 @@ AFRAME.registerSystem("effects", {
 
     this.el.addEventListener("side_panel_resize_complete", () => (this.updateComposer = true));
 
-    this.updateComposer = false;
+    this.updateComposer = true;
+    this.disableEffects = false;
   },
 
   tick: function() {
@@ -45,8 +46,6 @@ AFRAME.registerSystem("effects", {
         this.ssaoPass.needsSwap = false;
 
         this.composer.addPass(this.ssaoPass);
-
-        this.disableEffects = false;
 
         const render = renderer.render;
         let isEffectSystem = false;

@@ -345,7 +345,16 @@ AFRAME.registerSystem("userinput", {
     const gamepadDisconnected = e => {
       for (let i = 0; i < this.activeDevices.items.length; i++) {
         const device = this.activeDevices.items[i];
-        if (device.gamepad && device.gamepad.index === e.gamepad.index) {
+        // WebXR gamepads all have index -1, so match XR devices by their input source
+        const matches = device.inputSource
+          ? device.inputSource === e
+          : !!(
+              device.gamepad &&
+              e.gamepad &&
+              !device.gamepad.isWebXRGamepad &&
+              device.gamepad.index === e.gamepad.index
+            );
+        if (matches) {
           this.registeredMappings.delete(
             vrGamepadMappings.get(device.constructor) || nonVRGamepadMappings.get(device.constructor)
           );
@@ -368,6 +377,8 @@ AFRAME.registerSystem("userinput", {
         gamepadDisconnected(inputSource);
       }
       for (const inputSource of added) {
+        // Hands and transient pointers (e.g. Vision Pro's gaze-and-pinch) may have no gamepad
+        if (!inputSource.gamepad) continue;
         inputSource.gamepad.isWebXRGamepad = true;
         inputSource.gamepad.targetRaySpace = inputSource.targetRaySpace;
         inputSource.gamepad.primaryProfile = inputSource.profiles[0];
@@ -389,7 +400,10 @@ AFRAME.registerSystem("userinput", {
           this.xrReferenceSpace = referenceSpace;
         });
         xrSession.addEventListener("end", () => {
-          this.activeDevices.items.filter(d => d.gamepad && d.gamepad.isWebXRGamepad).forEach(gamepadDisconnected);
+          this.xrReferenceSpace = null;
+          this.activeDevices.items
+            .filter(d => d.inputSource || (d.gamepad && d.gamepad.isWebXRGamepad))
+            .forEach(d => gamepadDisconnected(d.inputSource || d));
         });
       }
       updateBindingsForVRMode();

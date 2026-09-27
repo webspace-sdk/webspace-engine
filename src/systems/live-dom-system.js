@@ -208,6 +208,18 @@ export class LiveDomSystem {
   processAttribute(record, fromEngine) {
     const el = record.target;
     const attr = record.attributeName;
+
+    // A script-made element that only now got a transform becomes an object
+    if (
+      !fromEngine &&
+      isWorldElement(el) &&
+      !this.importedNodes.has(el) &&
+      !(el.id && DOM_ROOT.getElementById(`naf-${el.id}`))
+    ) {
+      if (attr === "style" && looksLikeWorldObject(el)) this.pendingAdds.push(el);
+      return;
+    }
+
     if (!isWorldElement(el) || !el.id || attr === "id") return;
 
     const id = el.id;

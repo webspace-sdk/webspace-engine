@@ -151,6 +151,25 @@ export class CameraSystem extends EventTarget {
       }
     };
 
+    // Leaving VR: the headset pose was written into the camera and the avatar's head. Put the camera back at the
+    // rig origin and the head back at standing eye height, keeping only the direction the person was facing.
+    scene.addEventListener("exit-vr", () => {
+      const camera = this.viewingCamera && this.viewingCamera.object3DMap.camera;
+      if (camera) {
+        camera.position.set(0, 0, 0);
+        camera.quaternion.identity();
+        camera.matrixNeedsUpdate = true;
+      }
+
+      if (this.avatarPOV) {
+        const pov = this.avatarPOV.object3D;
+        const yaw = new THREE.Euler().setFromQuaternion(pov.quaternion, "YXZ").y;
+        pov.position.set(0, 1.6, 0);
+        pov.quaternion.setFromEuler(new THREE.Euler(0, yaw, 0, "YXZ"));
+        pov.matrixNeedsUpdate = true;
+      }
+    });
+
     waitForShadowDOMContentLoaded().then(() => {
       this.avatarPOV = DOM_ROOT.getElementById("avatar-pov-node");
       this.avatarRig = DOM_ROOT.getElementById("avatar-rig");
