@@ -17,6 +17,20 @@ export function isImmersiveVRSupported() {
   return supportCache;
 }
 
+// A-Frame requests its session with fixed features; also ask for hand tracking, so hands (and their pinches)
+// show up as input sources on headsets that support them.
+function requestHandTrackingToo() {
+  const xr = navigator.xr;
+  if (!xr || xr.__webspaceFeaturesPatched) return;
+  const requestSession = xr.requestSession.bind(xr);
+  xr.requestSession = (mode, init = {}) =>
+    requestSession(mode, {
+      ...init,
+      optionalFeatures: [...new Set([...(init.optionalFeatures || []), "hand-tracking"])]
+    });
+  xr.__webspaceFeaturesPatched = true;
+}
+
 // Resolves true once the headset is presenting, false if the session couldn't start. Call it from a user gesture
 // (e.g. a click handler): the session is requested synchronously so browsers that require a gesture accept it.
 export function enterImmersiveVR() {
@@ -26,6 +40,7 @@ export function enterImmersiveVR() {
   const effects = scene.systems.effects;
   const effectsWereDisabled = effects.disableEffects;
 
+  requestHandTrackingToo();
   scene.addState("vr-entered");
   effects.disableEffects = true;
 
