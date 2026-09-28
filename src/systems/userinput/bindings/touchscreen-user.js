@@ -26,7 +26,7 @@ export const touchscreenUserBindings = addSetsToBindings({
     {
       src: { value: paths.device.touchscreen.pinch.delta },
       dest: { value: forward },
-      xform: xforms.scale(0.5)
+      xform: xforms.scale(0.375) // a quarter slower than it was (#98): pinch-walking was too fast on phones
     },
     {
       src: {},

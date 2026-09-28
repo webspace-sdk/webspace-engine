@@ -487,6 +487,10 @@ export class DomSerializeSystem {
       domEl = document.createElement(tagType);
       domEl.id = elId;
       shouldAppend = true;
+
+      // Links people paste into the world open in a new tab when clicked, rather than navigating away from the
+      // world. Hand-written <a> elements keep ordinary HTML semantics: their target attribute decides.
+      if (tagType === "a") domEl.setAttribute("target", "_blank");
     }
 
     updateDomElForEl(domEl, el);
