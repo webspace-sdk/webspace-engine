@@ -52,6 +52,7 @@ const tmpScale2 = new THREE.Vector3();
 const tmpXrMatrix = new THREE.Matrix4();
 const tmpXrOrigin = new THREE.Vector3();
 const tmpXrDirection = new THREE.Vector3();
+const tmpNdc = new THREE.Vector2();
 const xrRaycaster = new THREE.Raycaster();
 xrRaycaster.far = 100;
 
@@ -162,10 +163,17 @@ export class LiveDomSystem {
     canvas.addEventListener("pointerup", e => {
       const down = this.pointerDown;
       this.pointerDown = null;
-      if (!down || !down.target || down.target !== this.hoveredDomEl) return;
+      if (!down) return;
       if (performance.now() - down.t > CLICK_MAX_MS) return;
       if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_MAX_MOVE_PX) return;
-      this.dispatchPointerEvent(down.target, "click", e);
+
+      // Touch has no hover before the press, so a tap is resolved by what's under the finger
+      const target =
+        e.pointerType === "touch"
+          ? this.pickAt(e.clientX, e.clientY)
+          : down.target === this.hoveredDomEl && down.target;
+
+      if (target) this.dispatchPointerEvent(target, "click", e);
     });
   }
 
@@ -516,18 +524,30 @@ export class LiveDomSystem {
     tmpXrDirection.set(0, 0, -1).transformDirection(tmpXrMatrix);
     xrRaycaster.set(tmpXrOrigin, tmpXrDirection);
 
-    for (const hit of xrRaycaster.intersectObjects(this.scene.object3D.children, true)) {
+    const domEl = this.firstWorldElementHit(xrRaycaster);
+    if (domEl) this.dispatchPointerEvent(domEl, "click");
+  }
+
+  // The world element under a point on the canvas
+  pickAt(clientX, clientY) {
+    const rect = this.scene.canvas.getBoundingClientRect();
+    tmpNdc.set(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
+    xrRaycaster.setFromCamera(tmpNdc, this.scene.camera);
+    return this.firstWorldElementHit(xrRaycaster);
+  }
+
+  firstWorldElementHit(raycaster) {
+    for (const hit of raycaster.intersectObjects(this.scene.object3D.children, true)) {
       let entity = hit.object.el ? hit.object.el : null;
       for (let o = hit.object; !entity && o; o = o.parent) entity = o.el || null;
       while (entity && !entity.components?.["media-loader"] && entity.parentEl) entity = entity.parentEl;
       if (!entity || !entity.components?.["media-loader"] || !entity.id) continue;
 
       const domEl = document.getElementById(entity.id.replace(/^naf-/, ""));
-      if (domEl) {
-        this.dispatchPointerEvent(domEl, "click");
-        return;
-      }
+      if (domEl) return domEl;
     }
+
+    return null;
   }
 
   // In VR, a trigger pull while a controller ray points at an object is a click.
