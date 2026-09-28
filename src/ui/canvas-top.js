@@ -553,8 +553,11 @@ function CanvasTop(props) {
 
   const showInstallButton = !showSaveButton && pwaAvailable;
   const isSpatial = projectionType === PROJECTION_TYPES.SPATIAL;
+  // Phones report immersive-vr support (Cardboard-style), but the button is for headsets
+  const isPhone = isMobile && !AFRAME.utils.device.isMobileVR();
   const vrButton = isSpatial &&
-    vrSupported && (
+    vrSupported &&
+    !isPhone && (
       <CornerButton onClick={enterImmersiveVR}>
         <FormattedMessage id="vr.enter" />
       </CornerButton>
