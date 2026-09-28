@@ -99,6 +99,7 @@ export class AtmosphereSystem {
     this.waterNeedsUpdate = true;
     this.rateLimitUpdates = true;
 
+    this.scene = scene;
     scene.add(this.ambientLight);
     scene.add(this.sunLight);
     scene.add(this.sky);
@@ -164,6 +165,12 @@ export class AtmosphereSystem {
     }
 
     this.moveSunlight();
+
+    // The sky image owns the background: glTF scene components (e.g. a "background" color) may try to replace it
+    if (this.skyTexture && this.scene.background !== this.skyTexture) {
+      if (this.sceneEl.components.background) this.sceneEl.removeAttribute("background");
+      this.scene.background = this.skyTexture;
+    }
 
     // Disable effects for subrenders to water and/or sky
     const effectsWereDisabled = this.effectsSystem.disableEffects;
@@ -316,6 +323,48 @@ export class AtmosphereSystem {
 
     this.updateWaterColor(world.water_color);
     this.updateSkyColor(world.sky_color);
+    this.updateSkyImage(world.sky_url);
+  }
+
+  // <meta name="webspace.environment.sky" content="sky.jpg">: an equirectangular (360°) image replaces the
+  // procedural sky. Any panorama works: phone panoramas, 360 cameras, generated skyboxes.
+  updateSkyImage(url) {
+    url = url || null;
+    if (url === this.skyImageUrl) return;
+    this.skyImageUrl = url;
+
+    const clear = () => {
+      if (this.skyTexture) this.skyTexture.dispose();
+      this.skyTexture = null;
+      this.scene.background = null;
+      this.sky.visible = true;
+    };
+
+    if (!url) {
+      clear();
+      return;
+    }
+
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    loader.load(
+      url,
+      texture => {
+        if (this.skyImageUrl !== url) {
+          texture.dispose();
+          return;
+        }
+
+        clear();
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        texture.encoding = THREE.sRGBEncoding;
+        this.skyTexture = texture;
+        this.scene.background = texture;
+        this.sky.visible = false;
+      },
+      undefined,
+      () => console.warn(`Could not load sky image ${url}`)
+    );
   }
 
   updateWaterColor({ r, g, b }) {

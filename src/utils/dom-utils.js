@@ -569,6 +569,10 @@ export async function getHubMetaFromDOM() {
       fog: getStringFromMetaTags("environment.fog", "on") !== "off",
       // "off" makes the world a plain plane instead of a wrapping torus
       wrap: getStringFromMetaTags("environment.wrap", "on") !== "off",
+      // An equirectangular (360°) image to use as the sky, resolved against the document
+      sky_url: (value => (value ? new URL(value, document.baseURI).href : null))(
+        getStringFromMetaTags("environment.sky", "")
+      ),
       seed: getIntFromMetaTags("environment.terrain.seed", currentHubSeed),
       type: META_TAG_TERRAIN_TYPE_NAMES.indexOf(getStringFromMetaTags("environment.terrain.type", "plains")),
       bark_color: getColorFromMetaTags("environment.terrain.colors.bark", defaultColors.bark_color),
