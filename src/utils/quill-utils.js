@@ -132,10 +132,18 @@ export async function renderQuillToImg(
       background-color: transparent !important;
     }
 
+    /* Outlines are positioned against their own paragraph; against the editor, every paragraph's outline
+       stacked at the top of the label as a ghost line. */
+    .ql-editor p, .ql-editor h1, .ql-editor h2 {
+      position: relative;
+    }
+
     .ql-editor p:before,h1:before,h2:before{
       content: attr(data-contents);
       position: absolute;
-      width: calc(100% - 40px);
+      left: 0;
+      top: 0;
+      width: 100%;
       -webkit-text-stroke: 4px;
       -webkit-text-stroke-color: ${backgroundColor};
       z-index: -2;
@@ -145,11 +153,11 @@ export async function renderQuillToImg(
       content: attr(data-contents);
       position: absolute;
       color: transparent;
-      width: calc(100% - 40px);
+      width: 100%;
       -webkit-text-stroke: 1px black;
       z-index: -1;
-      left: 20px;
-      top: 16px;
+      left: 0;
+      top: 0;
     }
 
     .ql-blank::before {
