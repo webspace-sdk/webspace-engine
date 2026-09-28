@@ -49,6 +49,12 @@ const tmpPos2 = new THREE.Vector3();
 const tmpRot2 = new THREE.Quaternion();
 const tmpScale2 = new THREE.Vector3();
 
+const tmpXrMatrix = new THREE.Matrix4();
+const tmpXrOrigin = new THREE.Vector3();
+const tmpXrDirection = new THREE.Vector3();
+const xrRaycaster = new THREE.Raycaster();
+xrRaycaster.far = 100;
+
 const styleParser = document.createElement("div");
 
 const parseStyle = styleText => {
@@ -454,6 +460,15 @@ export class LiveDomSystem {
   }
 
   async applyTextToEntity(domEl, entity) {
+    // Emoji objects: el.textContent = "🌸" swaps the emoji
+    if (entity.components["media-emoji"]) {
+      const emoji = domEl.textContent.trim();
+      if (emoji && emoji !== entity.components["media-emoji"].data.emoji) {
+        entity.setAttribute("media-emoji", { emoji });
+      }
+      return;
+    }
+
     const mediaText = entity.components["media-text"];
     if (!mediaText) return;
 
@@ -478,12 +493,51 @@ export class LiveDomSystem {
     this.scriptPosedEntities.delete(entity);
   }
 
+  // Hands and transient pointers (Vision Pro gaze-and-pinch, Quest hand tracking) have no gamepad; they
+  // report a pinch as a WebXR "select" event, with the pointing ray in the event's frame.
+  watchXRSelects() {
+    const session = this.scene.renderer.xr.getSession();
+    if (!session || session === this.watchedSession) return;
+    this.watchedSession = session;
+    session.addEventListener("select", e => this.onXRSelect(e));
+  }
+
+  onXRSelect(e) {
+    if (e.inputSource.gamepad) return; // controllers are handled by the trigger path
+
+    const xr = this.scene.renderer.xr;
+    const pose = e.frame.getPose(e.inputSource.targetRaySpace, xr.getReferenceSpace());
+    if (!pose) return;
+
+    // The XR reference space is the viewing rig's frame
+    const viewingRig = DOM_ROOT.getElementById("viewing-rig");
+    tmpXrMatrix.fromArray(pose.transform.matrix).premultiply(viewingRig.object3D.matrixWorld);
+    tmpXrOrigin.setFromMatrixPosition(tmpXrMatrix);
+    tmpXrDirection.set(0, 0, -1).transformDirection(tmpXrMatrix);
+    xrRaycaster.set(tmpXrOrigin, tmpXrDirection);
+
+    for (const hit of xrRaycaster.intersectObjects(this.scene.object3D.children, true)) {
+      let entity = hit.object.el ? hit.object.el : null;
+      for (let o = hit.object; !entity && o; o = o.parent) entity = o.el || null;
+      while (entity && !entity.components?.["media-loader"] && entity.parentEl) entity = entity.parentEl;
+      if (!entity || !entity.components?.["media-loader"] || !entity.id) continue;
+
+      const domEl = document.getElementById(entity.id.replace(/^naf-/, ""));
+      if (domEl) {
+        this.dispatchPointerEvent(domEl, "click");
+        return;
+      }
+    }
+  }
+
   // In VR, a trigger pull while a controller ray points at an object is a click.
   updateXRClicks() {
     if (!this.scene.is("vr-mode")) {
       this.xrTriggerDown = null;
       return;
     }
+
+    this.watchXRSelects();
 
     const userinput = this.scene.systems.userinput;
     const pressed =
