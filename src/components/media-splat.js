@@ -215,6 +215,44 @@ function buildSplatTexture(splats) {
   return { texture, box: new THREE.Box3(min, max) };
 }
 
+// Phones and standalone headsets get the most significant splats (opacity x volume) up to a budget per object,
+// which keeps big captures smooth there; desktops draw everything.
+const MOBILE_SPLAT_BUDGET = 300000;
+
+function limitSplatsForDevice(splats) {
+  const mobile = AFRAME.utils.device.isMobile() || AFRAME.utils.device.isMobileVR();
+  if (!mobile || splats.count <= MOBILE_SPLAT_BUDGET) return splats;
+
+  const { count, positions, scales, rotations, colors } = splats;
+  const weight = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    weight[i] = colors[i * 4 + 3] * scales[i * 3] * scales[i * 3 + 1] * scales[i * 3 + 2];
+  }
+
+  const order = new Uint32Array(count);
+  for (let i = 0; i < count; i++) order[i] = i;
+  order.sort((a, b) => weight[b] - weight[a]);
+
+  const n = MOBILE_SPLAT_BUDGET;
+  const out = {
+    count: n,
+    positions: new Float32Array(n * 3),
+    scales: new Float32Array(n * 3),
+    rotations: new Float32Array(n * 4),
+    colors: new Uint8Array(n * 4)
+  };
+
+  for (let j = 0; j < n; j++) {
+    const i = order[j];
+    out.positions.set(positions.subarray(i * 3, i * 3 + 3), j * 3);
+    out.scales.set(scales.subarray(i * 3, i * 3 + 3), j * 3);
+    out.rotations.set(rotations.subarray(i * 4, i * 4 + 4), j * 4);
+    out.colors.set(colors.subarray(i * 4, i * 4 + 4), j * 4);
+  }
+
+  return out;
+}
+
 const tmpViewport = new THREE.Vector4();
 const tmpModelView = new THREE.Matrix4();
 
@@ -322,6 +360,7 @@ AFRAME.registerComponent("media-splat", {
   },
 
   buildMesh(splats) {
+    splats = limitSplatsForDevice(splats);
     const { texture, box } = buildSplatTexture(splats);
     const { count } = splats;
 
