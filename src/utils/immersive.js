@@ -46,6 +46,7 @@ export function enterImmersiveVR() {
 
   return new Promise(resolve => {
     let settled = false;
+    let onEnter = null;
 
     const finish = ok => {
       if (settled) return;
@@ -60,7 +61,7 @@ export function enterImmersiveVR() {
       resolve(ok);
     };
 
-    const onEnter = () => finish(true);
+    onEnter = () => finish(true);
     scene.addEventListener("enter-vr", onEnter);
 
     try {
