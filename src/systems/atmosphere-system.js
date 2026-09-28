@@ -375,12 +375,13 @@ export class AtmosphereSystem {
     const color = new THREE.Color(r, g, b);
     this.sky.setColor(color);
 
-    // Night skies dim the world's lights too, but never so far that things can't be seen
+    // Night skies dim the world's lights too. The sun fades fastest (no hard shadows at night); soft ambient
+    // light keeps people and things visible.
     const hsl = {};
     color.getHSL(hsl);
-    const light = Math.min(1.0, Math.max(0.35, hsl.l / 0.25));
-    this.ambientLight.intensity = light;
-    this.sunLight.intensity = 5 * light;
+    const light = Math.min(1.0, Math.max(0.05, hsl.l / 0.25));
+    this.ambientLight.intensity = 0.3 + 0.7 * light;
+    this.sunLight.intensity = 5 * light * light;
   }
 
   updateWater(force) {
