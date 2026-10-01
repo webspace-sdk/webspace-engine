@@ -1,6 +1,7 @@
 import { waitForShadowDOMContentLoaded } from "../utils/async-utils";
 import Sky from "../objects/sky";
 import Water from "../objects/water";
+import { setTerrainLight } from "../objects/terrain";
 import { Layers } from "../components/layers";
 import { RENDER_ORDER } from "../constants";
 import { SOUND_AMBIENCE } from "./sound-effects-system";
@@ -382,6 +383,7 @@ export class AtmosphereSystem {
     const light = Math.min(1.0, Math.max(0.05, hsl.l / 0.25));
     this.ambientLight.intensity = 0.3 + 0.7 * light;
     this.sunLight.intensity = 5 * light * light;
+    setTerrainLight(0.3 + 0.7 * light);
   }
 
   updateWater(force) {

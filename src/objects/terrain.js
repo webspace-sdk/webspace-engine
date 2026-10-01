@@ -65,6 +65,13 @@ export const updateWorldColors = (groundColor, edgeColor, leavesColor, barkColor
   voxelMaterials.forEach(m => (m.uniformsNeedUpdate = true));
 };
 
+// Terrain colors are drawn nearly unlit, so night skies dim them directly (1 by day, lower at night).
+const terrainLight = { value: 1.0 };
+
+export const setTerrainLight = light => {
+  terrainLight.value = light;
+};
+
 export const getWorldColor = index => {
   const r = colorMap[index * 4];
   const g = colorMap[index * 4 + 1];
@@ -86,7 +93,8 @@ const createVoxelMaterial = () => {
     },
     uniforms: {
       ...UniformsUtils.clone(ShaderLib.standard.uniforms),
-      colorMap: { value: colorMapTexture }
+      colorMap: { value: colorMapTexture },
+      terrainLight
     }
   });
 
@@ -116,13 +124,14 @@ const createVoxelMaterial = () => {
     );
 
     // See notes in vox system about shader bits here.
+    shader.fragmentShader = ["uniform float terrainLight;", shader.fragmentShader].join("\n");
     shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
 
     shader.fragmentShader = shader.fragmentShader.replace(
       "#include <fog_fragment>",
       [
         "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 2.5, 3.0), pow(outgoingLight.g * 2.5, 3.0), pow(outgoingLight.b * 2.5, 3.0)), 0.0, 1.0);",
-        "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8), diffuseColor.a);",
+        "gl_FragColor = vec4(mix(shadows, vColor.rgb, 0.8) * terrainLight, diffuseColor.a);",
         "#include <fog_fragment>"
       ].join("\n")
     );
