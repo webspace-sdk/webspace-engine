@@ -377,7 +377,11 @@ AFRAME.registerComponent("media-loader", {
           const forceLink = !!this.data.mediaOptions.forceLink;
           const preflightResponse = await preflightUrl(parsedUrl, quality, forceLink);
 
-          contentType = preflightResponse.contentType || guessContentType(src) || contentType;
+          // A generic type from the server (e.g. GitHub Pages serves .svox as application/octet-stream) must not
+          // override what the file extension says.
+          const preflightType = preflightResponse.contentType;
+          const isGenericType = !preflightType || preflightType.startsWith("application/octet-stream");
+          contentType = (isGenericType ? guessContentType(src) : preflightType) || preflightType || contentType;
           contentUrl = preflightResponse.contentUrl;
           accessibleContentUrl = preflightResponse.accessibleContentUrl;
           accessibleContentAudioUrl = preflightResponse.accessibleContentAudioUrl;
