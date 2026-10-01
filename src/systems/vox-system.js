@@ -156,13 +156,23 @@ svoxMaterial.onBeforeCompile = shader => {
   // acne can get quite bad on smaller voxels.
   //
   // We also special case black, so the cel shaded border is not washed out.
+  //
+  // Materials with `emissive = #color intensity` add their emissive color on top, so they glow at night.
+  shader.vertexShader = shader.vertexShader.replace(
+    "#include <color_vertex>",
+    ["#include <color_vertex>", "vSvoxEmissive = svoxEmissive;"].join("\n")
+  );
+  shader.vertexShader = ["attribute vec3 svoxEmissive;", "varying vec3 vSvoxEmissive;", shader.vertexShader].join("\n");
+
+  shader.fragmentShader = ["varying vec3 vSvoxEmissive;", shader.fragmentShader].join("\n");
   shader.fragmentShader = shader.fragmentShader.replace("#include <color_fragment>", "");
 
   shader.fragmentShader = shader.fragmentShader.replace(
     "#include <fog_fragment>",
     [
       "vec3 shadows = clamp(vec3(pow(outgoingLight.r * 4.5, 5.0), pow(outgoingLight.g * 4.5, 5.0), pow(outgoingLight.b * 4.5, 5.0)), 0.0, 1.0);",
-      "gl_FragColor = vec4(mix(vec3(0.0, 0.0, 0.0), mix(shadows, vColor.rgb * reflectedLight.directDiffuse.rgb, 0.8), step(0.0001, vColor.r + vColor.g + vColor.b)), diffuseColor.a);",
+      "vec3 lit = mix(shadows, vColor.rgb * reflectedLight.directDiffuse.rgb, 0.8) + vSvoxEmissive;",
+      "gl_FragColor = vec4(mix(vec3(0.0, 0.0, 0.0), lit, step(0.0001, vColor.r + vColor.g + vColor.b)), diffuseColor.a);",
       "#include <fog_fragment>"
     ].join("\n")
   );
